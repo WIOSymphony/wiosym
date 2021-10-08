@@ -4,3 +4,5 @@ data_raw
 data_access_info
 gis
 metadata
+!*_metasym.txt
+!*_sourcesym.txt
