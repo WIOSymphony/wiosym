@@ -22,3 +22,5 @@
 !*metasym.txt
 !*sourcesym.txt
 !.gitignore
+!data_collection_coordinates.txt
+!wiosym.Rproj
