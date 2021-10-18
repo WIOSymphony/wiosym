@@ -11,13 +11,11 @@
 !process/
 /process/*/*/*
 
-
 !shiny_data_upload/
-# .gitignore file placed in shiny_data_upload directory to allow all files from shiny app
+# gitignore file in shiny_data_upload folder ensures all files are included
 
 # block all files
 *.*
-
 
 # add files that we want...
 
@@ -29,4 +27,3 @@
 !.gitignore
 !data_collection_coordinates.txt
 !wiosym.Rproj
-
