@@ -1,0 +1,24 @@
+# exclude everything except selected directorys and files
+/*
+
+# add directorys and specify how many subdirectorys to include (number of /*)
+!data_raw/
+/data_raw/*/*/*/*/*/*/*
+
+!data/
+/data/*/*/*/*/*/*/*
+
+!process/
+/process/*/*/*
+
+# block all files
+*.*
+
+# add files that we want...
+
+!*.r
+!*.rmd
+!*.py
+!*metasym.txt
+!*sourcesym.txt
+!.gitignore
