@@ -12,7 +12,7 @@
 /process/*/*/*
 
 
-!shiny_data_upload/  
+!shiny_data_upload/
 # .gitignore file placed in shiny_data_upload directory to allow all files from shiny app
 
 # block all files
