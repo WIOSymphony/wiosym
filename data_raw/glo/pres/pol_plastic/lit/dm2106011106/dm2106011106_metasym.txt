@@ -1,0 +1,22 @@
+"id"	"dm2106011106"
+"file_path"	"data_raw\glo\pres\pol_plastic\lit\dm2106011106"
+"local_path"	"M:\marin\swoc\work\wiosym"
+"download_date"	"2021-06-01"
+"user"	"dm"
+"provider_list"	"lit"
+"provider_manual"	"https://theoceancleanup.com/sources/"
+"source"	"https://figshare.com/articles/dataset/Supplementary_data_for_More_than_1000_rivers_account_for_80_of_global_riverine_plsatic_emissions_into_the_ocean_/14515590"
+"citation"	"Meijer, Lourens; van Emmerik, Tim; Ent, Ruud van der; Schmidt, Christian; lebreton, laurent (2021): Supplementary data for 'More than 1000 rivers account for 80% of global riverine plsatic emissions into the ocean'. figshare. Dataset. https://doi.org/10.6084/m9.figshare.14515590.v1"
+"copyright"	"Unknown"
+"copyright_details"	"This work is licensed under a Creative Commons Attribution – Non Commercial – NoDerivs 3.0 Unported License. This means you can blog, link, like, share and tweet as much as you like but can’t change or use the work commercially."
+"location"	"glo"
+"theme"	"Pressures (e.g. noise)"
+"theme_tag"	"pres"
+"subtheme"	"Plastic waste"
+"subtheme_tag"	"pol_plastic"
+"tags"	";pres;plastic waste;shore habitat;"
+"comments"	"
+Dataset posted on 30.04.2021, 01:39 by Lourens Meijer, Tim van Emmerik, Ruud van der Ent, Christian Schmidt, laurent lebreton
+Here we provide the outputs from the model presented in Meijer et al. 2021 for the mid-point scenario of mismanaged plastic waste generation. The dataset distributed as GIS shapefile, represents 31,819 river outfalls emitting floating macro-plastic pollution globally. The emissions are expressed in metric tons per year.
+HISTORY
+30.04.2021 - First online date, Posted date"

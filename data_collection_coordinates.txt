@@ -1,0 +1,4 @@
+Data collection area
+Currently bounded by:
+Lat 42° S, 18° N
+Long 6° E, 80° E

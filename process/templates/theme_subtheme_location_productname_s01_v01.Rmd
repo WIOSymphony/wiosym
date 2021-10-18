@@ -1,0 +1,126 @@
+# IMPORTANT: Because this script is an R Markdown script, the default directory is the location of this .Rmd file.
+# To run the script from the project directory, in R Studio, you need to go to: Tools > Global Options > R Markdown
+# and set "Evaluate chunks in directory" to "Project"
+
+# =========================================================================================================
+# Script by name, org
+# This script creates rasters from the from the shapefiles available on the IUCN red list of threatened species
+# (https://www.iucnredlist.org/resources/spatial-data-download)
+# This script also resamples the rasters to the same resolution and extent as the standard WIOSym grid
+# =========================================================================================================
+
+# PREPARATIONS
+```{r, include = FALSE}
+# Install / load packages
+#x <- c("sf", "raster", "tidyr", "dplyr")
+#install.packages(x, dependencies=TRUE)
+```
+
+## Install packages
+```{r, include = FALSE}
+library(sf) 
+library(raster)
+library(fasterize)
+library(tidyr)
+library(dplyr)
+library(rgdal)
+library(tidyverse)
+library(leaflet)
+```
+
+## View folders/themes
+```{r}
+folders_raw <- read.table("./shiny_data_upload/folders.txt", sep = "\t", header = TRUE)
+folders_data <- read.table("./process/templates/folders_data.txt", sep = "\t", header = TRUE)
+(folders <- folders_raw %>% add_row(folders_data))
+```
+```{r}
+(ed_is_fich <- "small fish")
+```
+
+## Define versions/directories
+```{r}
+version = "v01"
+d_version = ".0"
+location = "glo"
+theme1 <- "eco"
+subtheme1 <- "mam"
+name1 <- "threatened_mammals"
+(dest1_path <- paste("./data", location, theme1, subtheme1, name1, version, sep="/"))
+(work1_path <- paste(dest1_path, "proc", sep="/"))
+(proc1_path <- paste(dest1_path, "proc_log", sep="/"))
+script_path <- "./process/r"
+(script_path_windows <- paste(getwd(), "/process/r", sep=""))
+(script_name <- paste(theme1, "_", subtheme1,"_", location, "_", name1,"_s01_",version, ".R", sep=""))
+```
+
+## Create directories
+```{r}
+dir.create(dest1_path, recursive = TRUE)
+dir.create(work1_path, recursive = TRUE)
+dir.create(proc1_path, recursive = TRUE)
+```
+
+## Read in WIOSym standard grid
+```{r}
+grid_1km <- raster("./data/reg/grid/grid/v01/grid_1km_v01.1.tif")
+plot(grid_1km)
+```
+
+## Define sources
+```{r}
+num_sources <- 1  # write the number of sources you will use in this script (to be used later for exporting metadata)
+  
+source1_dir <-  "./data_raw/glo/eco/mam/iucn/es2105070953/"
+source1_id <- "es2105070953"
+source1_metasym <- read.table(paste0(source1_dir, source1_id, "_metasym.txt"), sep = "\t")
+#source1_metasym # check that metasym file is populated, and fix if not - before finalising the processing
+
+source_list <- c(source1_id) # for multiple sources, should look like - c(source1_id, source2_id, source3_id) etc.
+```
+
+# PROCESSING
+
+
+
+*****************************************************************
+*****************************************************************
+## Here you can perform any processing to generate the data layer
+## Ensure the code is clearly described with comments (#)
+*****************************************************************
+*****************************************************************
+
+
+
+# EXPORT
+
+## Specify output directory and product file name
+
+```{r}
+(dest1_path_file1 <-paste0(dest1_path, "/", subtheme1, "_", name1, "_richness_1km", "_", version, d_version, ".tif"))
+```
+
+## Export metadata
+```{r}
+sourcesym <- data.frame(matrix(data = NA, nrow = num_sources, ncol = 1))
+colnames(sourcesym) <- "id"
+
+for(i in 1:num_sources){
+  sourcesym[i,1] <- source_list[i]
+}
+
+sourcesym
+```
+
+```{r}
+sourcesym_path <- paste0(dest1_path_file1, "_sourcesym.txt")
+write.table(sourcesym, sourcesym_path, row.names = F, sep = "\t")
+```
+
+
+## Export product
+
+```{r}
+writeRaster(spec_raster, dest1_path_file1, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
+```
+

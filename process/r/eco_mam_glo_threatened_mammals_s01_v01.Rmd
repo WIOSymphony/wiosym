@@ -1,0 +1,152 @@
+#=========================================================================================================
+# Script by Edmond Sacre, SLU
+# This script creates rasters from the from the shapefiles available on the IUCN red list of threatened species
+# (https://www.iucnredlist.org/resources/spatial-data-download)
+# This script also resamples the rasters to the same resolution and extent as the standard WIOSym grid
+#=========================================================================================================
+
+# PREPARATIONS
+```{r, include = FALSE}
+# Install / load packages
+#x <- c("sf", "raster", "tidyr", "dplyr")
+#install.packages(x, dependencies=TRUE)
+```
+
+## Install packages
+```{r, include = FALSE}
+library(sf) 
+library(raster)
+library(fasterize)
+library(tidyr)
+library(dplyr)
+library(rgdal)
+library(tidyverse)
+library(leaflet)
+```
+
+## View folders/themes
+```{r}
+folders_raw <- read.table("./shiny_data_upload/folders.txt", sep = "\t", header = TRUE)
+folders_data <- read.table("./process/templates/folders_data.txt", sep = "\t", header = TRUE)
+#folders <- folders_raw %>% add_row(folders_data)
+```
+
+## Define versions/directories
+```{r}
+version = "v01"
+d_version = ".0"
+location = "glo"
+theme1 <- "eco"
+subtheme1 <- "mam"
+name1 <- "threatened_mammals"
+(dest1_path <- paste("./data", location, theme1, subtheme1, name1, version, sep="/"))
+(work1_path <- paste(dest1_path, "proc", sep="/"))
+(proc1_path <- paste(dest1_path, "proc_log", sep="/"))
+script_path <- "./process/r"
+(script_path_windows <- paste(getwd(), "/process/r", sep=""))
+(script_name <- paste(theme1, "_", subtheme1,"_", location, "_", name1,"_s01_",version, ".R", sep=""))
+```
+
+## Create directories
+```{r}
+dir.create(dest1_path, recursive = TRUE)
+dir.create(work1_path, recursive = TRUE)
+dir.create(proc1_path, recursive = TRUE)
+```
+
+## Read in WIOSym standard grid
+```{r}
+grid_1km <- raster("./data/reg/grid/grid/v01/grid_1km_v01.1.tif")
+```
+
+## Define sources
+```{r}
+num_sources <- 1  # write the number of sources you will use in this script (to be used later for exporting metadata)
+  
+source1_dir <-  "./data_raw/glo/eco/mam/iucn/es2105070953/"
+source1_id <- "es2105070953"
+source1_metasym <- read.table(paste0(source1_dir, source1_id, "_metasym.txt"), sep = "\t")
+#source1_metasym # check that metasym file is populated, and fix if not - before finalising the processing
+
+source_list <- c(source1_id) # for multiple sources, should look like - c(source1_id, source2_id, source3_id) etc.
+```
+
+# PROCESSING
+## Read in raw data
+```{r}
+data_file <- "./data_raw/glo/eco/mam/iucn/es2105070953/MAMMALS_MARINE_ONLY/MAMMALS_MARINE_ONLY.shp"
+
+spec <- st_read(data_file) #%>%
+  #filter(category == "CR" | category == "EN" | category == "VU" | category == "NT") # Red list category
+```
+
+## Create empty grid for rasterizing polygons
+```{r}
+spec_grid <- raster(spec, res = 1/100)
+```
+
+## Convert the IUCN polygons into a raster, and calculate the total number of species in each cell
+```{r}
+spec_raster <- fasterize(spec, spec_grid, fun = "sum")
+```
+
+## Crop the raster to approximately the WIOSym extent (to speed up projecting)
+```{r}
+ex <- extent(1, 85,-45, 25)
+spec_raster <- crop(spec_raster, ex)
+```
+
+## Project IUCN raster to same projection as WIOSym grid
+```{r}
+spec_raster <- projectRaster(spec_raster, crs = crs(grid_1km))
+```
+
+## Resample to WIOSym grid
+```{r}
+spec_raster <- resample(spec_raster, grid_1km, method = "ngb")
+
+spec_raster[is.na(grid_1km) == TRUE] <- NA
+```
+
+## View raster
+```{r}
+plot(spec_raster)
+```
+
+##  View raster interactively
+```{r, echo = FALSE, warning = FALSE, error = FALSE, results = "hide", fig.keep = "all"}
+pal <- colorNumeric(c("#3288bd", "#ffffbf", "#d53e4f"), values(spec_raster), na.color = "transparent")
+
+leaflet() %>% addRasterImage(spec_raster, layerId = "values", colors = pal)
+```
+
+
+# EXPORT
+## Specify output directory and product file name
+```{r}
+(dest1_path_file1 <-paste0(dest1_path, "/", subtheme1, "_", name1, "_richness_1km", "_", version, d_version, ".tif"))
+```
+
+## Export metadata
+```{r}
+sourcesym <- data.frame(matrix(data = NA, nrow = num_sources, ncol = 1))
+colnames(sourcesym) <- "id"
+
+for(i in 1:num_sources){
+  sourcesym[i,1] <- source_list[i]
+}
+
+sourcesym
+```
+
+```{r}
+sourcesym_path <- paste0(dest1_path_file1, "_sourcesym.txt")
+write.table(sourcesym, sourcesym_path, row.names = F, sep = "\t")
+```
+
+
+## Export product
+```{r}
+writeRaster(spec_raster, dest1_path_file1, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
+```
+
