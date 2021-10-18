@@ -1,0 +1,16 @@
+location_name	location_val
+Regional	reg
+Global	glo
+Comoros	com
+Kenya	ken
+Madagascar	mdg
+Mauritius	mus
+Mozambique	moz
+Reunion	reu
+Seychelles	syc
+Somalia	som
+South Africa	saz
+Tanzania	tza
+Angola	ago
+Namibia	nam
+
