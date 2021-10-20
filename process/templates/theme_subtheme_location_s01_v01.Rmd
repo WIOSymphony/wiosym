@@ -141,6 +141,13 @@ object_name <- st_read(paste(source_dir, "name.ext", sep="")) # REPLACE object_n
 # ... keep adding sources/files, copy above
 ```
 
+# declare number of "data_raw" directorys
+```{r}
+data_raw_metasym_num <-  # REPLACE - set total number of data_raw dir used (e.g. <- 1), to help in export section
+```
+
+
+
 
 ## Set "DATA" sources
 # IMPORTANT Products in data are based on information in data_raw. Check that *_sourcesym.txt exists for each file to track acccumulated IDs. 
@@ -183,6 +190,10 @@ plot(object_name) # REPLACE
 # DATA3: ...
 # keep adding as needed, copy from data 2 above
 
+# declare number of "data" files
+```{r}
+data_sourcesym_num <-  # REPLACE - set total number of data files (e.g. <- 2), to help in export section
+```
 
 #==========================================================================================================================#
 ### PROCESSING
@@ -210,13 +221,15 @@ plot(object_name) # REPLACE
 
 # data raw sources (dir)
 ```{r}
+print(paste("data_raw metasym files used = ", data_raw_metasym_num, sep=""))
 (data_raw_sources <- tibble(id = c(source1_id, ...))) # REPLACE - keep adding all data_raw souces e.g. c( source1_id, source2_id, ...)
 ```
 
 # data sources (files)
 ```{r}
-data_sources <- data1_sourcesym %>% 
-  add_row(data2_sourcesym)%>%  # add any "sourcesym" files applicable to this product (check indata section), keep adding sourcesym files as needed
+print(paste("data_sourcym files = ", data_sourcesym_num, sep=""))
+data_sources <- data1_sourcesym %>% # add any "sourcesym" files applicable to this product (check indata section), keep adding sourcesym files as needed
+  add_row(data2_sourcesym)%>%  
   #add_row(data3_sourcesym)%>% 
   #add_row(data4_sourcesym)%>% 
   #add_row(data5_sourcesym)%>% 
