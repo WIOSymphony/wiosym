@@ -27,3 +27,4 @@
 !.gitignore
 !data_collection_coordinates.txt
 !wiosym.Rproj
+.Rproj.user

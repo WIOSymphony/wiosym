@@ -1,0 +1,285 @@
+### IMPORTANT: Because this script is an R Markdown script, the default directory is the location of this .Rmd file.
+# To run the script from the project directory, in R Studio, you need to go to: Tools > Global Options > R Markdown
+# and set "Evaluate chunks in directory" to "Project"
+# -----------------------------------------------------------------------------------------------------------
+
+### ABOUT
+# ========================================================================================================= #
+# Brief description: 
+# Script by: Initial, org
+# Updated: Initial, org, comments
+# Developer check: Initial, org, yymmdd
+# External check: Initial, org, yymmdd, comments
+# ========================================================================================================= #
+
+### INSTRUCTIONS
+# ========================================================================================================= #    
+# Style
+  # Write code that is easy to follow and repeat.
+  # Suggested R style is tidyverse. Style guide here https://style.tidyverse.org/index.html
+
+# Metadata
+  # All indata from "data_raw" must have a unique ID with *_metasym.txt file to go along, check before you add data.
+  # All indata from and outputs to "data" must have a *_sourcesym.txt file with all (accumulated) sourceIDs used to create the layer.
+  # The metasym files and tracking of those in the sourcesym files ensures correct sources for products and ISO metadata. This template helps you get it right..
+  
+# Naming and folders
+  # Predefined standard names for main/sub folders and final products in two text files that can be added to in need.
+  # ..\shiny_data_upload\modify_txt_files_v01.2.xlsx and ..\process\templates\modify_txt_files_data_v01.0.xlsx
+  # Main version (e.g. v01 for 2021) follows dev cycles for all WIOSYm. For version control within v01 use V01.1, V01.2 etc..
+  # More code/instructions to standardize folders and names under "set destinations" section
+  # Each product dir have a "proc" folder. It's the temp space where all workfiles are stored. No final products here.  
+  # All final products are stored under the root folder (e.g. ..\data\reg\eco\bh_coral\v01) together with 
+  # a nameofmyfile_sourcesym.txt file with all source IDs used. No other files here. move products to _archive\ dir if defunct 
+# ========================================================================================================= # 
+### PREPARATIONS
+# ========================================================================================================= #
+
+# Install packages
+```{r, include = FALSE}
+# list all packages that this script is dependent on, remove any redundant ones
+x <- c("leaflet", "sf", "raster", "rgdal", "tidyverse")
+#install.packages(x, dependencies=TRUE)
+```
+
+# Load packages
+```{r, include = FALSE}
+library(leaflet)
+library(sf) 
+library(raster)
+library(rgdal)
+library(tidyverse)
+```
+
+## Set version
+```{r}
+version = "v01" # relates to major iteration of WIOSym (v01 for grid 2021, v02 for grid 2022)
+d_version = ".0"  # detailed version (you can add another level e.g. 0.0  -> v01.0.0)
+seq = "s01" # sequential order - change accordingly if process is run in several scripts
+```
+
+## Set geographic scope
+```{r}
+read_tsv("./shiny_data_upload/locations.txt")  # prints available locations to choose from and their abbreviations
+```
+```{r}
+location = "reg" # choose applicable 3 letter abbreviation from "location_val" -  reg for whole WIO area
+```
+
+## Set main theme
+```{r}
+folders_raw <- read_tsv("./shiny_data_upload/folders.txt")
+folders_data <- read_tsv("./process/templates/folders_data.txt") # additional folders for data not applicable for data_raw 
+folders <- folders_raw %>% add_row(folders_data)
+(unique(folders["theme_folder"]))
+```
+```{r}
+theme <- "REPLACE" # Copy from "theme_folder" (e.g. "eco")
+```
+
+## Set Subtheme
+```{r}
+folders %>%
+  filter(theme_folder == theme) %>% 
+  dplyr::select(subtheme_folder, subtheme_name) %>% 
+  print(n = Inf)
+```
+```{r}
+subtheme <- "REPLACE" # copy from "subtheme_folder"
+```
+
+## Set paths
+```{r}
+(dest_path <- paste("./data", location, theme, subtheme, version, sep="/")) # path to final product
+(work_path <- paste(dest_path, "proc", sep="/"))
+(proc_path <- paste(dest_path, "proc_log", sep="/"))
+(archive_path <- paste(dest_path, "_archive", sep="/"))
+(script_path <- "./process/r")
+```
+
+## Create directories
+```{r}
+dir.create(dest_path, recursive = TRUE)
+dir.create(work_path, recursive = TRUE)
+dir.create(proc_path, recursive = TRUE)
+dir.create(archive_path, recursive = TRUE)
+dir.create(script_path, recursive = TRUE)
+```
+
+## Save R Script
+```{r}
+name1 <- "" # "REPLACE_" if script need additional name... don't use unless needed to avoid duplication.
+(script_path_windows <- paste(getwd(), "/process/r", sep=""))
+(script_name <- paste(theme, "_", subtheme,"_", location, "_", name1, seq, "_", version, ".Rmd", sep=""))
+```
+ # copy path and name and use File/Save As in R studio to save rmd file
+ 
+#==========================================================================================================================#
+### INDATA
+#==========================================================================================================================#
+
+## Set DATA_RAW sources
+# IMPORTANT all data harvested from data_raw needs to have a metasym.txt file in its root directory (not file specific)
+# Data_raw DIR1
+```{r}
+source1_dir <- source_dir <-  "./data_raw/.../uniqueid/"  # REPLACE - internal path
+source1 <- source_id <- "uniqueid" # REPLACE
+(read_tsv(paste(source_dir, source_id, "_metasym.txt", sep=""))) # check the metasym file
+``` 
+```{r}
+dir(source_dir, recursive=F)
+```
+
+# Files DIR1
+```{r}
+object_name <- st_read(paste(source_dir, "name.ext", sep="")) # REPLACE object_name with descriptive short name and "name.ext" - copy internal path to file in source dir
+# keep adding files from source 1 as needed
+```
+
+## Data_raw DIR2
+```{r}
+# ... keep adding sources/files, copy above
+```
+
+
+## Set "DATA" sources
+# IMPORTANT Products in data are based on information in data_raw. Check that *_sourcesym.txt exists for each file to track acccumulated IDs. 
+
+# DATA 1: WIOSym standard grid 1km
+```{r}
+data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
+dir(data_dir) # check what data is in this directory
+```
+```{r}
+data_file <- "grid_1km_v01.1.tif" # REPLACE - your data file
+(data1_sourcesym <- read_tsv(paste(data_dir, data_file, "_sourcesym.txt", sep="")))
+# check that source IDs exists and make sense
+```
+```{r}
+(grid_1km <- raster(paste(data_dir, data_file, sep=""))) # read and check your data
+```
+```{r}
+plot(grid_1km)
+```
+
+# DATA 2: ...  
+```{r}
+data_dir <-  "./data/.../v01/"  # REPLACE - input your data directory
+dir(data_dir) # check what data is in this directory
+```
+```{r}
+data_file <- "REPLACE" # your data file (must be under the root of data_dir, do not use files from proc/)
+(data2_sourcesym <- read_tsv(paste(data_dir, data_file, "_sourcesym.txt", sep=""))) # REPLACE - check/change data number (e.g. data3_sourcesym)
+# check that source IDs exists and make sense
+```
+```{r}
+(object_name <- raster(paste(data_dir, data_file, sep=""))) # REPLACE "object_name" - read in your data object
+```
+```{r}
+plot(object_name) # REPLACE
+```
+
+
+# DATA3: ...
+# keep adding as needed, copy from data 2 above
+
+
+#==========================================================================================================================#
+### PROCESSING
+#==========================================================================================================================#
+
+
+*****************************************************************
+*****************************************************************
+## Here you can perform any processing to generate the data layer
+## Ensure the code is clearly described with comments (#)
+*****************************************************************
+*****************************************************************
+
+
+#==========================================================================================================================#
+### EXPORT
+#==========================================================================================================================#
+# Write products to root directory, accompanied by yourfilename_sourcesym.txt to track source IDs
+# Temp files (../proc/) generated in "PROCESS Section will lack metadata (don't use from elsewhere). Save files of value to root with correct naming & *_sourcesym.txt. 
+# Check outputs - If needed, check your outputs in /proc/ before writing to file (Make note of manual check elsewhere (e.g. qgis). perhaps integrate leaflet here?
+# Note on looped products with same sources, make sure to save *_sourcesym.txt for each individual product.
+
+# SOURCESYM
+# Create sourcesym file WITH all source IDs used (data and data_raw) 
+
+# data raw sources (dir)
+```{r}
+(data_raw_sources <- tibble(id = c(source1_id, ...))) # REPLACE - keep adding all data_raw souces e.g. c( source1_id, source2_id, ...)
+```
+
+# data sources (files)
+```{r}
+data_sources <- data1_sourcesym %>% 
+  add_row(data2_sourcesym)%>%  # add any "sourcesym" files applicable to this product (check indata section), keep adding sourcesym files as needed
+  #add_row(data3_sourcesym)%>% 
+  #add_row(data4_sourcesym)%>% 
+  #add_row(data5_sourcesym)%>% 
+  #add_row(data6_sourcesym)%>% 
+  unique() %>% 
+  print()
+```
+# Sources combined
+```{r}
+(all_sources <- data_raw_sources %>% add_row(data_sources))
+```
+# if a product only use a subset of the total sources, copy the section above and create individual files below (e.g. product1_sources <- ...)
+
+
+# PRODUCT 1: 
+# read objects
+```{r}
+product_orig <- REPLACE # input and check your object to be written to file
+product_norm01 <- REPLACE # input and check your object to be written to file
+product_uncertainty <- REPLACE # input and check your object to be written to file
+plot(c(product_orig, product_norm01, product_uncertainty)) # use leaflet here instead?
+```
+# set name/paths
+```{r}
+scale <- "REPLACE" # "1km" / "250m"
+descriptive_name <- ""  # "REPLACE_" additional name of product (mainly for pressure/ecosystem components used standard names in list)
+unit <- "REPLACE"  # add SI unit for product with original values (use short abbreviation e.g. meter = m, kilometer = km, percent = perc) 
+
+(product_orig_path <- paste(dest_path, theme, "_", subtheme, "_", descriptive_name, "orig_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_norm01_path <- paste(dest_path, theme, "_", subtheme, "_", descriptive_name, "norm01_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_uncertainty_path <- paste(dest_path, theme, "_", subtheme, "_", descriptive_name, "uncertainty_", scale, "_", version, d_version, ".tif", sep="" ))
+```
+# Write to file
+```{r}
+writeRaster(product_orig, product_orig_path, COMPRESS=LZW, datatype = raster_data_type, overwrite=TRUE)
+writeRaster(product_norm01, product_norm01_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+writeRaster(product_uncertainty, product_uncertainty_path, COMPRESS=LZW, datatype = 'INT1U', overwrite=TRUE)
+write_tsv(all_sources, paste(product_orig_path, "_sourcesym.txt", sep=""))  # writes unique sourcesym file for all products, change "all_sources" to "product1_sources" if subset only
+```
+
+
+### SAVE SCRIPT
+# 1. save your current R script (File/Save)
+# 2. Save a carbon copy of the R script to proc_log (identical script to what is used to create the products exported
+# Do not change the *.Rmd carbon copy in proc_log/ unless you change this version of the products (new versions are developed under process/r)
+
+```{r}
+# 2. run code below and go to File/Save As and paste link and name:
+dest_path_script <- paste(getwd(), proc_path)
+print(dest_path_script <- gsub(" .", "", dest_path_script)) # path
+print(script_name_copy <- paste(gsub(".Rmd", "", script_name), d_version, ".Rmd", sep="")) # script name
+```
+
+#==========================================================================================================================#
+### FINAL CHECK
+#==========================================================================================================================#
+# Developer check
+# Do your own final check on the products and double check sourcesym file exists and are complete for all files in root 
+# -> Sign at top of script in about section (# Approved by:)
+
+# External check 
+# To ensure repeatability and quality, make sure one colleage can run the script
+# When script is proven repeatable/understandable and products/metadata look ok 
+# -> Sign at top of script in about section (# Approved by:), and make any comments if needed
+# There is also a work_log document in onedrive / gitHUB, check current arrangement with Swedish dev team
+
