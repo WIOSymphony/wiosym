@@ -20,18 +20,18 @@ eco	Fish, sharks & invertebrates	whale_shark	Whale shark	Whale shark	Plankton fe
 eco	Fish, sharks & invertebrates	ray_skate_manta	Ray/Skate/Manta	Ray/Skate/Manta	Manta ray, eagle ray etc	
 eco	Fish, sharks & invertebrates	mobile_epifauna	Mobile epifauna	Mobile epifauna	Crustaceans, sea cucumber, octopus etc, NOT corals	
 eco	Fish, sharks & invertebrates	infauna	Infauna	Infauna	Worms, gastropods, bivalves etc	
-eco	Tropical habitats	shore	Shore 	Shore 	Beach of sand, rock or gravel (including intertidal zone)	
-eco	Tropical habitats	mudflats	Mudflats	Mudflats	Intertidal flats with deposited mud	
-eco	Tropical habitats	shallow_soft_bottom	Shallow soft bottom	Shallow soft bottom	Mud or sand bottom (<40 m depth)	
-eco	Tropical habitats	shallow_rocky_bottom	Shallow rocky bottom	Shallow rocky bottom	Rock, limestone (<40 m depth)	
-eco	Tropical habitats	mesophotic_soft_bottom	Mesophotic soft bottom	Deeper (>40m) soft bottom	Deep mud or sand bottom (40-200 m depth)	
-eco	Tropical habitats	mesophotic_rocky_bottom	Mesophotic rocky bottom	Deeper (>40m)  rocky bottom	Deep rock, limestone (40-200 m depth)	
-eco	Tropical habitats	mangrove	Mangrove	Mangrove	Stands of dense mangroves 	
-eco	Tropical habitats	seagrass_bed	Seagrass bed	Seagrass bed	Dense seagrass e.g. Enhalus, Thalassodendron	
+eco	Tropical habitats	shore_trop	Shore 	Shore 	Beach of sand, rock or gravel (including intertidal zone)	
+eco	Tropical habitats	mudflats_trop	Mudflats	Mudflats	Intertidal flats with deposited mud	
+eco	Tropical habitats	shallow_soft_bottom_trop	Shallow soft bottom	Shallow soft bottom	Mud or sand bottom (<40 m depth)	
+eco	Tropical habitats	shallow_rocky_bottom_trop	Shallow rocky bottom	Shallow rocky bottom	Rock, limestone (<40 m depth)	
+eco	Tropical habitats	mesophotic_soft_bottom_trop	Mesophotic soft bottom	Deeper (>40m) soft bottom	Deep mud or sand bottom (40-200 m depth)	
+eco	Tropical habitats	mesophotic_rocky_bottom_trop	Mesophotic rocky bottom	Deeper (>40m)  rocky bottom	Deep rock, limestone (40-200 m depth)	
+eco	Tropical habitats	mangrove_trop	Mangrove	Mangrove	Stands of dense mangroves 	
+eco	Tropical habitats	seagrass_bed_trop	Seagrass bed	Seagrass bed	Dense seagrass e.g. Enhalus, Thalassodendron	
 eco	Tropical habitats	shallow_coral_reef	Shallow coral reef	Coral reef	Hard structure with live coral, gorgonians, sponges etc	
 eco	Tropical habitats	mesophotic_coral_reef	Mesophotic coral reef	Coral reef deep (>40 m)	Mesophotic coral reefs	
-eco	Tropical habitats	macroalgal_bed	Macroalgal bed	Macroalgal bed	Canopyforming macroalgae e.g. Sargassum	
-eco	Tropical habitats	salt_marsh	Salt marsh	Salt marsh	Vegetated intertidal flats e.g. grasses, herbs, low shrubs	
+eco	Tropical habitats	macroalgal_bed_trop	Macroalgal bed	Macroalgal bed	Canopyforming macroalgae e.g. Sargassum	
+eco	Tropical habitats	salt_marsh_trop	Salt marsh	Salt marsh	Vegetated intertidal flats e.g. grasses, herbs, low shrubs	
 eco	Open ocean habitats	continental_slope_soft_bottom	Continental slope soft bottom	Continental slope soft bottom	Sand or mud along continental slope	
 eco	Open ocean habitats	continental_slope_rocky_bottom	Continental slope rocky bottom	Continental slope rocky bottom	Rock and stone along continental slope	
 eco	Open ocean habitats	abyssal_soft_bottom	Abyssal soft bottom	Abyssal plain (deep soft bottom)	Deep sea mud bottom	
@@ -44,15 +44,15 @@ eco	Open ocean habitats	pelagic_photic_zone	Pelagic photic zone	Pelagic photic z
 eco	Open ocean habitats	pelagic_midwater	Pelagic midwater	Pelagic midwater	Twilight zone	
 eco	Open ocean habitats	pelagic_deep_water	Pelagic deep water	Pelagic deep water	Deep cold nutrient rich bottom water	
 eco	Open ocean habitats	pelagic_upwelling	Pelagic upwelling	Pelagic upwelling	Nutrient rich surface water, upwelling, eddies	
-eco	Temperate & seabirds	shore	Shore	Shore	Shores of mixed substrate and feature	
-eco	Tropical habitats	mudflats	Mudflats	Mudflats	Intertidal flats with deposited mud	
-eco	Temperate & seabirds	shallow_soft_bottom	Shallow soft bottom	Shallow soft bottom	Shallow sand or mud bottom (<40 m depth)	
-eco	Temperate & seabirds	shallow_rocky_bottom	Shallow rocky bottom	Shallow rocky bottom	Shallow rock or gravel bottom (<40 m depth)	
-eco	Temperate & seabirds	mesophotic_soft_bottom	Mesophotic soft bottom	Shelf soft bottom	Sandy or muddy shelf (40-200 m depth)	
-eco	Temperate & seabirds	mesophotic_rocky_bottom	Mesophotic rocky bottom	Shelf rocky bottom	Rocky outcrops  and hard bottom shelf (40-200 m depth)	
+eco	Temperate & seabirds	shore_temp	Shore	Shore	Shores of mixed substrate and feature	
+eco	Tropical habitats	mudflats_temp	Mudflats	Mudflats	Intertidal flats with deposited mud	
+eco	Temperate & seabirds	shallow_soft_bottom_temp	Shallow soft bottom	Shallow soft bottom	Shallow sand or mud bottom (<40 m depth)	
+eco	Temperate & seabirds	shallow_rocky_bottom_temp	Shallow rocky bottom	Shallow rocky bottom	Shallow rock or gravel bottom (<40 m depth)	
+eco	Temperate & seabirds	mesophotic_soft_bottom_temp	Mesophotic soft bottom	Shelf soft bottom	Sandy or muddy shelf (40-200 m depth)	
+eco	Temperate & seabirds	mesophotic_rocky_bottom_temp	Mesophotic rocky bottom	Shelf rocky bottom	Rocky outcrops  and hard bottom shelf (40-200 m depth)	
 eco	Temperate & seabirds	kelp_forest	Kelp forest	Kelp forest	Mixed or rocky bottom with dense kelp algae	
-eco	Temperate & seabirds	seagrass_bed	Seagrass bed	Seagrass bed	Dense seagrass e.g. Zostera etc	
-eco	Temperate & seabirds	salt_marsh	Salt marsh	Salt marsh	Vegetated tidal flats e.g. grasses, herbs, low shrubs	
+eco	Temperate & seabirds	seagrass_bed_temp	Seagrass bed	Seagrass bed	Dense seagrass e.g. Zostera etc	
+eco	Temperate & seabirds	salt_marsh_temp	Salt marsh	Salt marsh	Vegetated tidal flats e.g. grasses, herbs, low shrubs	
 eco	Temperate & seabirds	penguin_feeding_area	Penguin feeding area	Penguin feeding area	Nearby African penguin colony (indirect effects included)	
 eco	Temperate & seabirds	sea_birds	Sea birds	Sea birds	Petrels, gulls, albatross, gannet etc	
 pres	COASTAL DEVELOPMENT	ports	Ports	Ports	Hard infrastructure, loss of beach, spills, turbidity	
@@ -105,14 +105,3 @@ pres	CLIMATE CHANGE	temperature_rise	Temperature rise	Temperature rise	Current d
 pres	CLIMATE CHANGE	sea_level_rise	Sea level rise	Sea level rise	Current degree of sea level rise and flooding related to climate change	
 pres	CLIMATE CHANGE	ocean_acidification	Ocean acidification	Ocean acidification	Current degrees of pH increase, related to CO2 emissions	
 pres	CLIMATE CHANGE	storm_surges	Storm surges	Storm surges	Climate induced extreme storm events	
-						
-eco	function	spawning_area	Spawning area	Spawning area		
-eco	function	nesting_area	Nesting area	Nesting area		
-eco	function	nursery_area	Nursery area	Nursery area		
-eco	function	feeding_ground	Feeding ground	Feeding ground		
-eco	function	migration_route	Migration route	Migration route		
-eco	function	biomass_hotspot	Biomass hotspot	Biomass hotspot		
-eco	function	biodiversity_hotspot	Biodiversity hotspot	Biodiversity hotspot		
-eco	function	biologically_important_area	Biologically important area	Biologically important area		
-eco	function	threathened_species	Threathened species	Threathened species		
-eco	function	threathened_habitat	Threathened habitat	Threathened habitat		
