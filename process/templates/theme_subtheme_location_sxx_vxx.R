@@ -56,7 +56,7 @@ location = "reg" # choose applicable 3 letter abbreviation from "location_val" (
 
 # Set names and working folder using standard themes, if available
 folders_raw <- read_tsv("./shiny_data_upload/folders.txt")
-folders_data <- read_tsv("./process/templates/folders_data.txt")
+folders_data <- read_tsv("./shiny_data_upload/folders_data.txt")
 folders <- folders_raw %>% 
   add_row(folders_data)
 
@@ -300,14 +300,23 @@ product_uncertainty <- REPLACE # input and check your object to be written to fi
 # check products, if done in other places (e.g. qgis) write comment
 plot(c(product_orig, product_norm01, product_uncertainty)) # use leaflet here instead?
 
-# set name/paths
+# set names
 scale <- "REPLACE" # "1km" / "250m"
-descriptive_name <- ""  # "REPLACE_" additional name of product (mainly for pressure/ecosystem components used standard names in list)
 unit <- "REPLACE"  # add SI unit for product with original values (use short abbreviation e.g. meter = m, kilometer = km, percent = perc) 
+component_names <- read_tsv("./shiny_data_upload/component_names.txt") 
+component_names_selected <- component_names %>%
+  dplyr::filter(theme_folder == theme) %>% 
+  dplyr::select(group, file_name, description) %>% 
+  print(n = Inf)
 
-(product_orig_path <- paste(dest_path, theme, "_", subtheme, "_", descriptive_name, "orig_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
-(product_norm01_path <- paste(dest_path, theme, "_", subtheme, "_", descriptive_name, "norm01_", scale, "_", version, d_version, ".tif", sep="" ))
-(product_uncertainty_path <- paste(dest_path, theme, "_", subtheme, "_", descriptive_name, "uncertainty_", scale, "_", version, d_version, ".tif", sep="" ))
+descriptive_name <- "REPLACE"  # name of product, for pressure/ecosystem components select from name list above
+
+# paths
+
+(product_orig_path <- paste(dest_path,"/", descriptive_name, "_orig_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_norm01_path <- paste(dest_path,"/", descriptive_name, "_norm01_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_uncertainty_path <- paste(dest_path,"/", descriptive_name, "_uncertainty_", scale, "_", version, d_version, ".tif", sep="" ))
+
 
 # Write to file
 writeRaster(product_orig, product_orig_path, COMPRESS=LZW, datatype = raster_data_type, overwrite=TRUE)

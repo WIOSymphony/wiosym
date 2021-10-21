@@ -61,7 +61,7 @@ National Environment Management Authority of Kenya (nema)	nema
 National Environment Management Council of Tanzania (nemc)	nemc
 Natural Earth (naturalearth)	naturalearth
 Nelson Mandela University (nmu)	nmu
-New Partnership for Africa?s Development (nepad)	nepad
+New Partnership for Africa’s Development (nepad)	nepad
 NMU Institute for Coastal and Marine Research (cmr)	cmr
 Northern Mozambique Channel initiative (nmci)	nmci
 Ocean Biogeographic Information System (obis)	obis
@@ -84,7 +84,7 @@ TeleGeography (telgeo)	telgeo
 The Knowledge Network for Biocomplexity (knb)	knb
 The Nature Conservancy (tnc)	tnc
 The Ocean Cleanup project (ocp)	ocp
-The United Nations Support Office inÿSomalia (unsos)	unsos
+The United Nations Support Office in Somalia (unsos)	unsos
 U.S. Geological Survey (usgs)	usgs
 U.S. National Oceanic and Atmospheric Administration (noaa)	noaa
 UNEP World Conservation Monitoring Centre (wcmc)	wcmc
@@ -112,3 +112,5 @@ World Database on Protected Areas (wdpa)	wdpa
 World Environment Center (wec)	wec
 World Resources Institute (wri)	wri
 World Wide Fund for Nature (wwf)	wwf
+UN Biodiversity Lab (unbl)	unbl
+Norsk Polarinstitutt (npi)	npi

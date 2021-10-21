@@ -69,7 +69,7 @@ location = "reg" # choose applicable 3 letter abbreviation from "location_val" -
 ## Set main theme
 ```{r}
 folders_raw <- read_tsv("./shiny_data_upload/folders.txt")
-folders_data <- read_tsv("./process/templates/folders_data.txt") # additional folders for data not applicable for data_raw 
+folders_data <- read_tsv("./shiny_data_upload/folders_data.txt") # additional folders for data not applicable for data_raw 
 folders <- folders_raw %>% add_row(folders_data)
 (unique(folders["theme_folder"]))
 ```
@@ -256,16 +256,20 @@ plot(c(product_orig, product_norm01, product_uncertainty)) # use leaflet here in
 ```{r}
 scale <- "REPLACE" # "1km" / "250m"
 unit <- "REPLACE"  # add SI unit for product with original values (use short abbreviation e.g. meter = m, kilometer = km, percent = perc) 
-(component_names <- read_tsv("./shiny_data_upload/component_names.txt")) 
+component_names <- read_tsv("./shiny_data_upload/component_names.txt") 
+component_names_selected <- component_names %>%
+  dplyr::filter(theme_folder == theme) %>% 
+  dplyr::select(group, file_name, description) %>% 
+  print(n = Inf)
 ```
 ```{r}
 descriptive_name <- "REPLACE"  # name of product, for pressure/ecosystem components select from name list above
 ```
 # paths
 ```{r}
-(product_orig_path <- paste(dest_path,"_", descriptive_name, "_orig_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
-(product_norm01_path <- paste(dest_path,"_", descriptive_name, "_norm01_", scale, "_", version, d_version, ".tif", sep="" ))
-(product_uncertainty_path <- paste(dest_path,"_", descriptive_name, "_uncertainty_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig_path <- paste(dest_path,"/", descriptive_name, "_orig_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_norm01_path <- paste(dest_path,"/", descriptive_name, "_norm01_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_uncertainty_path <- paste(dest_path,"/", descriptive_name, "_uncertainty_", scale, "_", version, d_version, ".tif", sep="" ))
 ```
 # Write to file
 ```{r}

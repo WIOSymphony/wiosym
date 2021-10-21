@@ -1,0 +1,118 @@
+theme_folder	group	file_name	component_name	component_name_original	description	
+grid	Grid	grid	Grid	Grid	WIOSym analysis grid (watermask)	
+env	Environment	bathymetry	Bathymetry	Bathymetry	Depth model	
+env	Environment	substrate	Substrate	Substrate		
+env	Environment	primary_productivity	Primary productivity	Phytoplacton/Oceanography		
+env	Environment	climate_zone	Climate zone	Climate zone	Tropical / temperate	
+eco	Whales & turtles	dolphins_porpoises	Dolphins and porpoises	Dolphins and porpoises	Common dolphin, bottlenose etc	
+eco	Whales & turtles	baleen_whales	Baleen whales	Baleen whales	Hump-back whale	
+eco	Whales & turtles	toothed_whales	Toothed whales	Toothed whales	Sperm whale	
+eco	Whales & turtles	sea_cows	Sea cows 	Sea cows 	Dugong	
+eco	Whales & turtles	seals	Seals	Seals	Sea lion	
+eco	Whales & turtles	turtles	Turtles	Turtles	Green turtle, leatherback etc	
+eco	Fish, sharks & invertebrates	tuna_billfish	Tuna & billfish	Tuna & billfish	Tuna species, sword fish etc	
+eco	Fish, sharks & invertebrates	pelagic_fish	Pelagic fish (other)	Pelagic fish (other)	Sardine, flyfish, shoalfish etc	
+eco	Fish, sharks & invertebrates	deepsea_fish_squid	Deep sea fish & squid	Deep sea fish & squid	Fish below 60m (Halpern et al.2008)	
+eco	Fish, sharks & invertebrates	demersal_fish	Demersal fish 	Demersal fish 	Fish close to seabed e.g. kob, sole, dogfish, hake	
+eco	Fish, sharks & invertebrates	coral_reef_fish	Coral reef fish	Coral reef fish	Snappers, parrotfish, groupers etc	
+eco	Fish, sharks & invertebrates	predatory_sharks	Sharks (predatory)	Sharks (predatory)	Reef shark, tiger shark, oceanic sharks etc	
+eco	Fish, sharks & invertebrates	whale_shark	Whale shark	Whale shark	Plankton feeding whale shark	
+eco	Fish, sharks & invertebrates	ray_skate_manta	Ray/Skate/Manta	Ray/Skate/Manta	Manta ray, eagle ray etc	
+eco	Fish, sharks & invertebrates	mobile_epifauna	Mobile epifauna	Mobile epifauna	Crustaceans, sea cucumber, octopus etc, NOT corals	
+eco	Fish, sharks & invertebrates	infauna	Infauna	Infauna	Worms, gastropods, bivalves etc	
+eco	Tropical habitats	shore	Shore 	Shore 	Beach of sand, rock or gravel (including intertidal zone)	
+eco	Tropical habitats	mudflats	Mudflats	Mudflats	Intertidal flats with deposited mud	
+eco	Tropical habitats	shallow_soft_bottom	Shallow soft bottom	Shallow soft bottom	Mud or sand bottom (<40 m depth)	
+eco	Tropical habitats	shallow_rocky_bottom	Shallow rocky bottom	Shallow rocky bottom	Rock, limestone (<40 m depth)	
+eco	Tropical habitats	mesophotic_soft_bottom	Mesophotic soft bottom	Deeper (>40m) soft bottom	Deep mud or sand bottom (40-200 m depth)	
+eco	Tropical habitats	mesophotic_rocky_bottom	Mesophotic rocky bottom	Deeper (>40m)  rocky bottom	Deep rock, limestone (40-200 m depth)	
+eco	Tropical habitats	mangrove	Mangrove	Mangrove	Stands of dense mangroves 	
+eco	Tropical habitats	seagrass_bed	Seagrass bed	Seagrass bed	Dense seagrass e.g. Enhalus, Thalassodendron	
+eco	Tropical habitats	shallow_coral_reef	Shallow coral reef	Coral reef	Hard structure with live coral, gorgonians, sponges etc	
+eco	Tropical habitats	mesophotic_coral_reef	Mesophotic coral reef	Coral reef deep (>40 m)	Mesophotic coral reefs	
+eco	Tropical habitats	macroalgal_bed	Macroalgal bed	Macroalgal bed	Canopyforming macroalgae e.g. Sargassum	
+eco	Tropical habitats	salt_marsh	Salt marsh	Salt marsh	Vegetated intertidal flats e.g. grasses, herbs, low shrubs	
+eco	Open ocean habitats	continental_slope_soft_bottom	Continental slope soft bottom	Continental slope soft bottom	Sand or mud along continental slope	
+eco	Open ocean habitats	continental_slope_rocky_bottom	Continental slope rocky bottom	Continental slope rocky bottom	Rock and stone along continental slope	
+eco	Open ocean habitats	abyssal_soft_bottom	Abyssal soft bottom	Abyssal plain (deep soft bottom)	Deep sea mud bottom	
+eco	Open ocean habitats	abyssal_rocky_bottom	Abyssal rocky bottom	Abyssal rock (deep hard bottom)	Deep sea rock surfaces	
+eco	Open ocean habitats	seamounts	Seamounts	Seamounts	Underwater pinnacles, volcanoes	
+eco	Open ocean habitats	mid_ocean_ridge	Mid-ocean ridge	Mid-ocean ridge	Submerged ridges of hard bottom raising from seafloor	
+eco	Open ocean habitats	cold_water_coral_reef	Cold-water coral reef	Cold-water coral reef	Coral and porifer reefs below photic zone	
+eco	Open ocean habitats	hydrothermal_vents	Hydrothermal vents	Hydrothermal vents	Formations built around hot vents	
+eco	Open ocean habitats	pelagic_photic_zone	Pelagic photic zone	Pelagic photic zone	Surface water in the open ocean (sun lit)	
+eco	Open ocean habitats	pelagic_midwater	Pelagic midwater	Pelagic midwater	Twilight zone	
+eco	Open ocean habitats	pelagic_deep_water	Pelagic deep water	Pelagic deep water	Deep cold nutrient rich bottom water	
+eco	Open ocean habitats	pelagic_upwelling	Pelagic upwelling	Pelagic upwelling	Nutrient rich surface water, upwelling, eddies	
+eco	Temperate & seabirds	shore	Shore	Shore	Shores of mixed substrate and feature	
+eco	Tropical habitats	mudflats	Mudflats	Mudflats	Intertidal flats with deposited mud	
+eco	Temperate & seabirds	shallow_soft_bottom	Shallow soft bottom	Shallow soft bottom	Shallow sand or mud bottom (<40 m depth)	
+eco	Temperate & seabirds	shallow_rocky_bottom	Shallow rocky bottom	Shallow rocky bottom	Shallow rock or gravel bottom (<40 m depth)	
+eco	Temperate & seabirds	mesophotic_soft_bottom	Mesophotic soft bottom	Shelf soft bottom	Sandy or muddy shelf (40-200 m depth)	
+eco	Temperate & seabirds	mesophotic_rocky_bottom	Mesophotic rocky bottom	Shelf rocky bottom	Rocky outcrops  and hard bottom shelf (40-200 m depth)	
+eco	Temperate & seabirds	kelp_forest	Kelp forest	Kelp forest	Mixed or rocky bottom with dense kelp algae	
+eco	Temperate & seabirds	seagrass_bed	Seagrass bed	Seagrass bed	Dense seagrass e.g. Zostera etc	
+eco	Temperate & seabirds	salt_marsh	Salt marsh	Salt marsh	Vegetated tidal flats e.g. grasses, herbs, low shrubs	
+eco	Temperate & seabirds	penguin_feeding_area	Penguin feeding area	Penguin feeding area	Nearby African penguin colony (indirect effects included)	
+eco	Temperate & seabirds	sea_birds	Sea birds	Sea birds	Petrels, gulls, albatross, gannet etc	
+pres	COASTAL DEVELOPMENT	ports	Ports	Ports	Hard infrastructure, loss of beach, spills, turbidity	
+pres	COASTAL DEVELOPMENT	piers_docks	Piers and docks	Piers and docks	Smaller harbors, docks, man-made piers	
+pres	COASTAL DEVELOPMENT	land_reclamation	Land reclamation	Land reclamation	Filling of wetland or inter-tidal areas to create more land	
+pres	COASTAL DEVELOPMENT	air_traffic	Air traffic	Air traffic	Pollution mainly from landing/takeoff (~20km radius enl vetenskapensvärld..)	
+pres	COASTAL DEVELOPMENT	water_flow_changes	Water flow changes 	Water flow changes 	Major hydrological changes e.g. impaired currents or water exchange	
+pres	COASTAL DEVELOPMENT	light_pollution	Light pollution	Light pollution	Artificial lights from buildings, settlements and platforms (not fishing)	
+pres	COASTAL DEVELOPMENT	industrial_pollution	Industrial pollution 	Industrial pollution 	Operational discharge of industrial waste or cooling water	
+pres	COASTAL DEVELOPMENT	dredging	Dredging	Dredging	Loss of habitat, turbidity	
+pres	COASTAL DEVELOPMENT	dumping	Dumping 	Dumping 	Loss of habitat, turbidity	
+pres	SHIPPING 	ship_pollution	Ship pollution	Ship pollution	Operational spills, leaks and waste	
+pres	SHIPPING 	underwater_noise	Underwater noise	Underwater noise	"Continuous noise (engines, cavitation); 
+140 dB re 1 uPa at 200 Hz "	
+pres	SHIPPING 	ship_strike	Ship strike	Ship strike	Potential collision between ship and animal, when ships pass through area	
+pres	FISHING	pelagic_trawl_fishing	Pelagic trawl fishing	Pelagic trawl fishing	Commercial fishing with mid-water trawl	
+pres	FISHING	pelagic_seine_net_fishing	Pelagic seine net fishing	Pelagic seine net fishing	Commercial purse seine for open water (e.g. catching mackerel, tuna)	
+pres	FISHING	floating_long-line	Floating Long-line	Floating Long-line	Pelagic fishing with long-line baited hooks (floating)	
+pres	FISHING	pelagic_gill_net	Pelagic gill net	Pelagic gill net	Commercial fishing using gill nets floating close to the surface	
+pres	FISHING	demersal_trawl_fishing	Demersal trawl fishing	Demersal trawl fishing	Commercial fishing with bottom scraping trawl	
+pres	FISHING	weighted_long-line	Weighted Long-line	Weighted Long-line	Demersal fishing with long-line baited hooks (weighted down to bottom)	
+pres	FISHING	demersal_gill_net	Demersal gill net	Demersal gill net	Commercial fishing using gill nets close to the bottom	
+pres	FISHING	crustacean_fishing_selective	Crustacean fishing (selective)	Crustacean fishing (selective)	Commercial fishing of lobsters, crabs, shrimps using pots, cages, nets	
+pres	FISHING	artisanal_fishing_mixed	Artisanal fishing (mixed methods)	Artisanal fishing (mixed methods)	Small scale fisheries using nets, cages, spears	
+pres	FISHING	ghost_fishing	Ghost fishing	Ghost fishing	Fishing by lost/discarded fishing gear	
+pres	FISHING	recreational_fishing	Recreational fishing	Recreational fishing	Tourism related fisheries	
+pres	RECREATION	recreational_boating	Recreational boating 	Recreational boating 	Motorboating	
+pres	RECREATION	tourism	Tourism	Tourism	Swimming, bathing, beach life	
+pres	RECREATION	diving_and_snorkelling	Diving and snorkelling	Diving and snorkelling	Diving with and without scuba gear	
+pres	RECREATION	shark_control	Shark control	Shark control	Shark nets for beach protection	
+pres	SURVEY	seismic_surveys	Seismic surveys	Seismic surveys	Prospecting of seabed resources using impulsive sonars	
+pres	SURVEY	research	Research	Research	ROVs, probes, sampling	
+pres	AQUACULTURE	mariculture	Mariculture	Mariculture	Farming of shellfish and fish	
+pres	AQUACULTURE	algae_farming	Algae farming	Algae farming	Farming of algae	
+pres	OFFSHORE DEVELOPMENT	infrastructure	Infrastructure	Infrastructure	Wave breakers, bridges	
+pres	OFFSHORE DEVELOPMENT	submarine_cables	Submarine cables 	Submarine cables 	Electromagnetic fields from power cables or communication lines	
+pres	OFFSHORE DEVELOPMENT	oil_and_gas	Oil and gas 	Oil and gas 	Oil and gas infrastructure, operational spills, service shipping	
+pres	OFFSHORE DEVELOPMENT	renewable_energy	Renewable energy 	Renewable energy 	Offshore windfarms, wavefarms etc.	
+pres	OFFSHORE DEVELOPMENT	impulsive_noise	Impulsive noise	Impulsive noise	"Impulsive pressure waves (dynamite, pile-driving); 
+200 dB re 1 uPa SEL "	
+pres	BIOLOGICAL DISTURBANCE	invasive_species	Invasive species	Invasive species	Non-native species spreading in new environment at expense of native species	
+pres	MINING	seabed_mining	Seabed mining	Seabed mining	Extraction of seabed minerals (not dredging)	
+pres	LITTER	plastic_waste	Plastic waste	Plastic waste	Macro plastic pollution from waste	
+pres	POLLUTION	oil_spill	Oil spill	Oil spill	Accidental spill of oil from ship or oil rig (often crude oil)	
+pres	POLLUTION	organic_toxins	Organic toxins	Organic toxins	High concentrations of organic toxins (PCB, DDT, dioxin etc) in inflow and sediment	
+pres	POLLUTION	inorganic_toxins	Inorganic toxins	Inorganic toxins	High concentrations of inorganic toxins (e.g. heavy metals) in inflow and sediment	
+pres	POLLUTION	air_emissions	Air emissions	Air emissions	Airborne pullutants (NOx SOx etc) from activities on land or sea	
+pres	NUTRIENTS	nutrient_input	Nutrient input 	Nutrient input 	Agriculture runoff and sewage discharge	
+pres	CLIMATE CHANGE	temperature_rise	Temperature rise	Temperature rise	Current degree of temp rise, incl heat waves, casued by climate change	
+pres	CLIMATE CHANGE	sea_level_rise	Sea level rise	Sea level rise	Current degree of sea level rise and flooding related to climate change	
+pres	CLIMATE CHANGE	ocean_acidification	Ocean acidification	Ocean acidification	Current degrees of pH increase, related to CO2 emissions	
+pres	CLIMATE CHANGE	storm_surges	Storm surges	Storm surges	Climate induced extreme storm events	
+						
+eco	function	spawning_area	Spawning area	Spawning area		
+eco	function	nesting_area	Nesting area	Nesting area		
+eco	function	nursery_area	Nursery area	Nursery area		
+eco	function	feeding_ground	Feeding ground	Feeding ground		
+eco	function	migration_route	Migration route	Migration route		
+eco	function	biomass_hotspot	Biomass hotspot	Biomass hotspot		
+eco	function	biodiversity_hotspot	Biodiversity hotspot	Biodiversity hotspot		
+eco	function	biologically_important_area	Biologically important area	Biologically important area		
+eco	function	threathened_species	Threathened species	Threathened species		
+eco	function	threathened_habitat	Threathened habitat	Threathened habitat		

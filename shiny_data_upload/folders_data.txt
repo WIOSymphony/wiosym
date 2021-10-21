@@ -1,0 +1,10 @@
+theme_folder	theme_name	subtheme_folder	subtheme_tag	subtheme_name
+cia	Cumulative Impact Assessment (e.g. raster stacks for analysis, tools, and the analysis)	tools	tools	Tools for CIA
+cia	Cumulative Impact Assessment (e.g. raster stacks for analysis, tools, and the analysis)	stacks	stacks	Raster stacks (e.g. pressure and ecosystem components mapped to grid)
+cia	Cumulative Impact Assessment (e.g. raster stacks for analysis, tools, and the analysis)	matrix	matrix	CIA Matrix (e.g. Matrix that relate pressure and ecosystem components with each other)
+cia	Cumulative Impact Assessment (e.g. raster stacks for analysis, tools, and the analysis)	analysis	analysis	Analysis results
+grid	Analysis grid	proj	projections	Projections (zones, definitions etc)
+grid	Analysis grid	mask	masks	Land/water mask
+grid	Analysis grid	grid	standard grid	Standard grid för analysis
+grid	Analysis grid	scope	geographical scope	Geographical scope (e.g. data collection extent, analysis extent)
+util	Additional utilities			

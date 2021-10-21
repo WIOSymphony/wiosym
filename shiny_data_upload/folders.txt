@@ -19,7 +19,7 @@ env	Environmental (e.g. bathymetry)	geo_geom	geomorphology	Geomorphology
 env	Environmental (e.g. bathymetry)	geo_sub	substrate	Substrate
 env	Environmental (e.g. bathymetry)	ocean	oceanography	OCEANOGRAPHY
 env	Environmental (e.g. bathymetry)	ocean_chem	ocean chemistry	Ocean chemistry (e.g. temperature, salinity, oxygen)
-env	Environmental (e.g. bathymetry)	ocean_zones	ocean zones	Ocean zones (e.g. photic, mesophotic, open ocean)
+env	Environmental (e.g. bathymetry)	ocean_zones	ocean zones	Ocean zones (e.g. photic, open ocean, climate zone)
 env	Environmental (e.g. bathymetry)	ocean_nrg	ocean energy	Ocean energy (e.g. currents, waves)
 env	Environmental (e.g. bathymetry)	ocean_sealev	sea level	Sea level and tides
 env	Environmental (e.g. bathymetry)	hydro	hydrology	HYDROLOGY
@@ -44,6 +44,7 @@ act	Activity (e.g. shipping)	survey	acoustic surveys	Acoustic surveys (e.g. seis
 act	Activity (e.g. shipping)	rsrch	research	Research
 act	Activity (e.g. shipping)	aqc	aquaculture	AQUACULTURE
 act	Activity (e.g. shipping)	aqc_mari	mariculture	Mariculture
+act	Activity (e.g. shipping)	aqc_algae	algae farm	Algae farming
 act	Activity (e.g. shipping)	fishing	fishing	FISHING
 act	Activity (e.g. shipping)	fishing_com	commercial fishing	Commercial fishing
 act	Activity (e.g. shipping)	fishing_art	artisanal fishing	Artisanal fishing
@@ -51,7 +52,8 @@ act	Activity (e.g. shipping)	fishing_recr	recreational fishing	Recreational fish
 act	Activity (e.g. shipping)	recr	recreation	RECREATION
 act	Activity (e.g. shipping)	recr_tourism	tourism	Tourism
 act	Activity (e.g. shipping)	recr_diving	diving snorkelling	Diving and snorkelling
-act	Activity (e.g. shipping)	recr_boating	recreational boating	recreational boating (e.g. marinas, anchoring sites)
+act	Activity (e.g. shipping)	recr_boating	recreational boating	Recreational boating (e.g. marinas, anchoring sites)
+act	Activity (e.g. shipping)	recr_sharkcontrol	shark control	Shark control (e.g. nets for beach protection)
 act	Activity (e.g. shipping)	other	act other	Other marine activity
 act	Activity (e.g. shipping)	cd	coastal development	COASTAL DEVELOPMENT
 act	Activity (e.g. shipping)	cd_inf	coastal infrastructure	Coastal infrastructure
@@ -91,8 +93,8 @@ pres	Pressures (e.g. noise)	cc_bleach	climate coral bleaching	Climate coral blea
 pres	Pressures (e.g. noise)	pol	pollution	POLLUTION
 pres	Pressures (e.g. noise)	pol_air	air emissions	Air emissions
 pres	Pressures (e.g. noise)	pol_oil	oil spill	Oil spill
-pres	Pressures (e.g. noise)	pol_org	organic Pollution	Organic pollution
-pres	Pressures (e.g. noise)	pol_inorg	inorganic Pollution	Inorganic pollution
+pres	Pressures (e.g. noise)	pol_org	organic pollution	Organic pollution
+pres	Pressures (e.g. noise)	pol_inorg	inorganic pollution	Inorganic pollution
 pres	Pressures (e.g. noise)	pol_nutrient	nutrient pollution	Nutrient pollution (e.g. Anthropogenic eutrophication)
 pres	Pressures (e.g. noise)	pol_hypoxia	hypoxia	Hypoxia
 pres	Pressures (e.g. noise)	pol_sed	sedimentation	Sedimentation
@@ -102,6 +104,7 @@ pres	Pressures (e.g. noise)	other	pres other	Other
 eco	Ecosystem components (e.g. habitat and species)	hab	habitat	HABITAT
 eco	Ecosystem components (e.g. habitat and species)	chab	coastal habitat	COASTAL HABITAT
 eco	Ecosystem components (e.g. habitat and species)	ch_shore	shore habitat	Shore (e.g. beaches, rocky intertidal)
+eco	Ecosystem components (e.g. habitat and species)	ch_mudflat	mudflats	Mudflats (e.g. intertidal flats with deposited mud)
 eco	Ecosystem components (e.g. habitat and species)	ch_saltm	salt marsh	Salt marsh
 eco	Ecosystem components (e.g. habitat and species)	ch_mangrove	mangrove	Mangrove
 eco	Ecosystem components (e.g. habitat and species)	bhab	benthic habitat	BENTHIC HABITAT
@@ -129,6 +132,8 @@ eco	Ecosystem components (e.g. habitat and species)	spec	species	SPECIES
 eco	Ecosystem components (e.g. habitat and species)	spec_rare	threathened species	Threathened species (e.g. IUCN red list)
 eco	Ecosystem components (e.g. habitat and species)	mam	marine mammal	MARINE MAMMALS
 eco	Ecosystem components (e.g. habitat and species)	mam_whale	whale	Whales
+eco	Ecosystem components (e.g. habitat and species)	mam_balwhale	baleen whale	Baleen whales (e.g. hump-back whale)
+eco	Ecosystem components (e.g. habitat and species)	mam_toothwhale	toothed whale	Toothed whales (e.g. sperm whale)
 eco	Ecosystem components (e.g. habitat and species)	mam_dolph	dolphin porpoise	Dolphins and porpoises
 eco	Ecosystem components (e.g. habitat and species)	mam_seals	seal	Seals
 eco	Ecosystem components (e.g. habitat and species)	mam_scow	sea cow	Sea cows (e.g. dugongs, manatees)
@@ -158,6 +163,8 @@ eco	Ecosystem components (e.g. habitat and species)	cfish_whalesh	whale shark	Wh
 eco	Ecosystem components (e.g. habitat and species)	cfish_manta	manta ray	Manta ray
 eco	Ecosystem components (e.g. habitat and species)	cfish_saw	sawfish	Sawfish
 eco	Ecosystem components (e.g. habitat and species)	inv	invertebrates	INVERTEBRATES
+eco	Ecosystem components (e.g. habitat and species)	inv_infauna	infauna	Infauna
+eco	Ecosystem components (e.g. habitat and species)	inv_epifauna	epifauna	Epifauna
 eco	Ecosystem components (e.g. habitat and species)	inv_sponges	marine sponges	Marine sponges
 eco	Ecosystem components (e.g. habitat and species)	inv_cniderians	cnidarians	Cnidarians (e.g. jellyfish, anemones - corals sort under habitat)
 eco	Ecosystem components (e.g. habitat and species)	inv_worms	marine worms	Marine worms
@@ -167,4 +174,3 @@ eco	Ecosystem components (e.g. habitat and species)	inv_echinoderm	echinoderms	E
 eco	Ecosystem components (e.g. habitat and species)	inv_arthropods	arthropods	Arthropods (e.g. lobsters, crabs, shrimps)
 eco	Ecosystem components (e.g. habitat and species)	other	spec other	Other
 unknown	Unknown	unknown	unknown	Unknown
-				
