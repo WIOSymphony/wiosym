@@ -252,15 +252,20 @@ product_norm01 <- REPLACE # input and check your object to be written to file
 product_uncertainty <- REPLACE # input and check your object to be written to file
 plot(c(product_orig, product_norm01, product_uncertainty)) # use leaflet here instead?
 ```
-# set name/paths
+# set names
 ```{r}
 scale <- "REPLACE" # "1km" / "250m"
-descriptive_name <- ""  # "REPLACE_" additional name of product (mainly for pressure/ecosystem components used standard names in list)
 unit <- "REPLACE"  # add SI unit for product with original values (use short abbreviation e.g. meter = m, kilometer = km, percent = perc) 
-
-(product_orig_path <- paste(dest_path, theme, "_", subtheme, "_", descriptive_name, "orig_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
-(product_norm01_path <- paste(dest_path, theme, "_", subtheme, "_", descriptive_name, "norm01_", scale, "_", version, d_version, ".tif", sep="" ))
-(product_uncertainty_path <- paste(dest_path, theme, "_", subtheme, "_", descriptive_name, "uncertainty_", scale, "_", version, d_version, ".tif", sep="" ))
+(component_names <- read_tsv("./shiny_data_upload/component_names.txt")) 
+```
+```{r}
+descriptive_name <- "REPLACE"  # name of product, for pressure/ecosystem components select from name list above
+```
+# paths
+```{r}
+(product_orig_path <- paste(dest_path,"_", descriptive_name, "_orig_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_norm01_path <- paste(dest_path,"_", descriptive_name, "_norm01_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_uncertainty_path <- paste(dest_path,"_", descriptive_name, "_uncertainty_", scale, "_", version, d_version, ".tif", sep="" ))
 ```
 # Write to file
 ```{r}
