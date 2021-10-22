@@ -9,7 +9,7 @@
 /data/*/*/*/*/*/*/*
 
 !process/
-/process/*/*/*
+/process/*/*/*/*
 
 !shiny_data_upload/
 # gitignore file in shiny_data_upload folder ensures all files are included
