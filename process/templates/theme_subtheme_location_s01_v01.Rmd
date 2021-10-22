@@ -1,13 +1,13 @@
----
-output:
-  pdf_document: default
-  html_document: default
----
-### IMPORTANT: Because this script is an R Markdown script, the default directory is the location of this .Rmd file.
-# To run the script from the project directory, in R Studio, you need to go to: Tools > Global Options > R Markdown
-# and set "Evaluate chunks in directory" to "Project"
-# -----------------------------------------------------------------------------------------------------------
+# ========================================================================================================= #
+### IMPORTANT - To get started:
+Because this script is an R Markdown script, the default directory is the location of this .Rmd file.
+You must open this script from within the .Rproj file associated with your wiosym database for it to work.
+If you haven't used R notebooks before (.Rmd), each of the code "chunks" can be executed by clicking the green play
+button at the top right of the chunk.
 
+To run the script from the project directory, in R Studio, you need to go to: Tools > Global Options > R Markdown
+and set "Evaluate chunks in directory" to "Project", though for latest version of R/Rstudio it may not be needed...
+# ========================================================================================================= #
 ### ABOUT
 # ========================================================================================================= #
 # Brief description: 
@@ -18,7 +18,6 @@ output:
 # Developer check: Initial, org, yymmdd, comments
 # External check: Initial, org, yymmdd, comments
 # ========================================================================================================= #
-
 ### INSTRUCTIONS
 # ========================================================================================================= #    
 # Style
@@ -69,6 +68,7 @@ seq = "s01" # sequential order - change accordingly if process is run in several
 ```{r}
 read_tsv("./shiny_data_upload/locations.txt")  # prints available locations to choose from and their abbreviations
 ```
+
 ```{r}
 location = "reg" # choose applicable 3 letter abbreviation from "location_val" -  reg for whole WIO area
 ```
@@ -80,6 +80,7 @@ folders_data <- read_tsv("./shiny_data_upload/folders_data.txt") # additional fo
 folders <- folders_raw %>% add_row(folders_data)
 (unique(folders["theme_folder"]))
 ```
+
 ```{r}
 theme <- "REPLACE" # Copy from "theme_folder" (e.g. "eco")
 ```
@@ -91,6 +92,7 @@ folders %>%
   dplyr::select(subtheme_folder, subtheme_name) %>% 
   print(n = Inf)
 ```
+
 ```{r}
 subtheme <- "REPLACE" # copy from "subtheme_folder"
 ```
@@ -133,9 +135,11 @@ source1_dir <- source_dir <-  "./data_raw/.../uniqueid/"  # REPLACE - internal p
 source1 <- source_id <- "uniqueid" # REPLACE
 (read_tsv(paste(source_dir, source_id, "_metasym.txt", sep=""))) # check the metasym file
 ``` 
+
 ```{r}
 dir(source_dir, recursive=F)
 ```
+
 ```{r}
 # Files
 source1_path <- path <- paste(source_dir, "REPLACE.ext", sep="")
@@ -149,9 +153,11 @@ source2_dir <- source_dir <-  "./data_raw/.../uniqueid/"  # REPLACE - internal p
 source2 <- source_id <- "uniqueid" # REPLACE
 (read_tsv(paste(source_dir, source_id, "_metasym.txt", sep=""))) # check the metasym file
 ``` 
+
 ```{r}
 dir(source_dir, recursive=F)
 ```
+
 ```{r}
 # Files
 source2_path <- path <- paste(source_dir, "REPLACE.ext", sep="")
@@ -176,14 +182,17 @@ data_raw_metasym_num <-  # REPLACE - set total number of data_raw dir used (e.g.
 data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
 dir(data_dir) # check what data is in this directory
 ```
+
 ```{r}
 data_file <- "grid_1km_v01.1.tif" # REPLACE - your data file
 (data1_sourcesym <- read_tsv(paste(data_dir, data_file, "_sourcesym.txt", sep="")))
 # check that source IDs exists and make sense
 ```
+
 ```{r}
 (grid_1km <- raster(paste(data_dir, data_file, sep=""))) # read and check your data
 ```
+
 ```{r}
 plot(grid_1km)
 ```
@@ -192,15 +201,18 @@ plot(grid_1km)
 ```{r}
 data_dir <-  "./data/.../v01/"  # REPLACE - input your data directory
 dir(data_dir) # check what data is in this directory
+
 ```
 ```{r}
 data_file <- "REPLACE" # your data file (must be under the root of data_dir, do not use files from proc/)
 (data2_sourcesym <- read_tsv(paste(data_dir, data_file, "_sourcesym.txt", sep=""))) # REPLACE - check/change data number (e.g. data3_sourcesym)
 # check that source IDs exists and make sense
 ```
+
 ```{r}
 (object_name <- raster(paste(data_dir, data_file, sep=""))) # REPLACE "object_name" - read in your data object
 ```
+
 ```{r}
 plot(object_name) # REPLACE
 ```
@@ -226,6 +238,10 @@ data_sourcesym_num <-  # REPLACE - set total number of data files (e.g. <- 2), t
 *****************************************************************
 *****************************************************************
 
+*****************************************************************
+## NOTE 1. Normalisation will happen at later "final" stage, do not integrate in main scripts
+## NOTE 2. Create the uncertainty map separate (script *_s02_v01) once main data is ready (script *_s01_v01)
+*****************************************************************
 
 #==========================================================================================================================#
 ### EXPORT
@@ -265,9 +281,9 @@ data_sources <- data1_sourcesym %>% # add any "sourcesym" files applicable to th
 # read objects
 ```{r}
 product_orig <- REPLACE # input and check your object to be written to file
-product_norm01 <- REPLACE # input and check your object to be written to file
-product_uncertainty <- REPLACE # input and check your object to be written to file
-plot(c(product_orig, product_norm01, product_uncertainty)) # use leaflet here instead?
+#product_norm01 <- REPLACE # input and check your object to be written to file
+#product_uncertainty <- REPLACE # input and check your object to be written to file
+plot(c(product_orig))
 ```
 # set names
 ```{r}
@@ -279,25 +295,26 @@ component_names_selected <- component_names %>%
   dplyr::select(group, file_name, description) %>% 
   print(n = Inf)
 ```
+
 ```{r}
 descriptive_name <- "REPLACE"  # name of product, for pressure/ecosystem components select from name list above
 ```
 # paths
 ```{r}
 (product_orig_path <- paste(dest_path, descriptive_name, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
-(product_norm01_path <- paste(dest_path, descriptive_name, "_norm01_", scale, "_", version, d_version, ".tif", sep="" ))
-(product_uncertainty_path <- paste(dest_path, descriptive_name, "_uncertainty_", scale, "_", version, d_version, ".tif", sep="" ))
+#(product_norm01_path <- paste(dest_path, descriptive_name, "_norm01_", scale, "_", version, d_version, ".tif", sep="" ))
+#(product_uncertainty_path <- paste(dest_path, descriptive_name, "_uncertainty_", scale, "_", version, d_version, ".tif", sep="" ))
 ```
 # Write to file
 ```{r}
 # check datatype to be appropriate for values (flt or int, 'INT4S' option to..)
 writeRaster(product_orig, product_orig_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
-writeRaster(product_norm01, product_norm01_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
-writeRaster(product_uncertainty, product_uncertainty_path, COMPRESS=LZW, datatype = 'INT1U', overwrite=TRUE)
+#writeRaster(product_norm01, product_norm01_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+#writeRaster(product_uncertainty, product_uncertainty_path, COMPRESS=LZW, datatype = 'INT1U', overwrite=TRUE)
 # write sourcesym file, change "all_sources" to "selected_sources" if subset only for specific file
 write_tsv(all_sources, paste(product_orig_path, "_sourcesym.txt", sep=""))  
-write_tsv(all_sources, paste(product_norm01_path, "_sourcesym.txt", sep=""))
-write_tsv(all_sources, paste(product_uncertainty_path, "_sourcesym.txt", sep=""))
+#write_tsv(all_sources, paste(product_norm01_path, "_sourcesym.txt", sep=""))
+#write_tsv(all_sources, paste(product_uncertainty_path, "_sourcesym.txt", sep=""))
 ```
 
 
