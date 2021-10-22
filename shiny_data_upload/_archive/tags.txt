@@ -1,0 +1,41 @@
+tag_adm_val	tag_adm_name	tag_env_val	tag_env_name	tag_act_val	tag_act_name	tag_landact_val	tag_landact_name	tag_pres_val	tag_pres_name	tag_hab_val	tag_hab_name	tag_spec_val	tag_spec_name	tag_func_val	tag_func_name
+projection	Projections 	topography	Topography 	shipping	Shipping 	coastal development	Coastal development	biological disturbance	Biological disturbance	habitat	Habitat	threathened species	Threathened species 	spawning area	Spawning area
+analytical grid	Analytical grid	shoreline	Shoreline 	ports	Ports	coastal infrastructure	Coastal infrastructure	invasive species	Invasive species	coastal habitat	Coastal habitat	marine mammal	Marine mammals	nesting area	Nesting area
+boundary	Boundary 	water body	Water body 	dredging	Dredging	piers docks	Piers and docks	pathogens	Pathogens	shore habitat	Shore 	whale	Whales	nursery area	Nursery area
+maritime boundary	Maritime boundary 	geology	Geology	dumping sea	Dumping 	land reclamation	Land reclamation	extraction of species	Extraction of species	salt marsh	Salt marsh	dolphin porpoise	Dolphins and porpoises	feeding ground	Feeding ground
+marine boundary	Marine boundary 	geomorphology	Geomorphology	military	Military	coastal mining	Coastal mining 	collision	Collision 	mangrove	Mangrove	seal	Seals	migration route	Migration route
+management area	Management area	substrate	Substrate	marine infrastructure	Marine infrastructure	land based activity	Land based activity	physical disturbance	Physical disturbance	benthic habitat	Benthic habitat	sea cow	Sea cows 	biomass hotspot	Biomass hotspot
+locally managed areas	Locally managed area 	oceanography	Oceanography	cables	Submarine cables 	agriculture	Agriculture	seabed disturbance	Seabed disturbance 	hard soft bottom	Hard and softbottom	otter mink	Otters and minks	biodiversity hotspot	Biodiversity hotspot
+marine spatial plan	Marine spatial plan	ocean chemistry	Ocean chemistry 	energy	Energy	forestry	Forestry	barriers to movement	Barriers to species movements	rocky reef	Rocky reef	birds	Birds	biologically important area	Biologically important area
+shipping area	Shipping area 	ocean zones	Ocean zones 	oil and gas	Oil and gas 	mining	Mining 	energy change	Energy change 	coral	Coral 	sea birds	Sea birds	threathened species	Threathened species
+protected area	Protected area 	ocean energy	Ocean energy 	renewable energy	Renewable energy 	urban development	Urban development	underwater noise	Underwater noise	biogenic reef	Biogenic reef	penguins	Penguins	threathened habitat	Threathened habitat
+fishing area	Fishing area 	sea level	Sea level and tides	seabed mining	Seabed mining	dumping	Dumping 	electromagnetic	Electromagnetic disturbance	mearl bed	Mearl bed	reptiles	Reptiles		
+adm other	Other	hydrology	Hydrology	acoustic surveys	Acoustic surveys 	industrial activity	Industrial activity 	light change	Light change	vegetation	Submerged vegetation	turtles	Turtles		
+		surface waters	Surface waters 	research	Research	energy production	Energy production 	water movement change	Water movement changes 	seagrass	Seagrass	sea snakes	Sea snakes		
+		ground water	Ground water 	aquaculture	Aquaculture	waste water	Waste water 	climate change	Climate change	macroalgae	Macroalgae	crocodiles	Crocodiles		
+		rainfall	Rainfall	mariculture	Mariculture	act land other	Other land activity	climate temperature	Climate change temperature	deep benthic habitat	Deep benthic habitat 	fish	Fish		
+		land cover	Land cover	fishing	Fishing			climate deoxygenation	Climate change deoxygenation 	cold-water coral	Cold-water coral 	bony fish	Bony fish		
+		demography	Demography	commercial fishing	Commercial fishing			climate acidification	Climate change ocean acidification	deep rocky reef	Deep rocky reef	pelagic fish	Pelagic fish		
+		env other	Other	artisanal fishing	Artisanal fishing			climate energy	Climate change energy 	deep biogenic reef	Deep biogenic reefs	deep sea fish 	Deep sea fish 		
+				recreational fishing	Recreational fishing			climate sea level 	Climate change sea level	nodules	Nodules	coral reef fish	Coral reef fish		
+				recreation	Recreation			climate coral bleaching	Climate coral bleaching 	vents	Hydrothermal vents	demersal fish	Demersal fish 		
+				tourism	Tourism			pollution	Pollution	seamounts	Seamounts	tuna	Tuna		
+				diving snorkelling	Diving and snorkelling			air emissions	Air emissions	pelagic habitat	Pelagic habitat	coelacanth	Coelacanth		
+				recreational boating	Recreational boating 			oil spill	Oil spill	phytoplankton	Phytoplankton	cartilaginous fish	Cartilaginous fish 		
+				act other	Other marine activity			organic Pollution	Organic pollution	zooplankton	Zooplankton	shark	Shark		
+								inorganic Pollution	Inorganic pollution	oxygen minimum zone	Oxygen minimum zone	ray	Ray		
+								nutrient pollution	Nutrient pollution 	hab other	Other	skate	Skate		
+								hypoxia	Hypoxia			chimaera	Chimaera 		
+								sedimentation	Sedimentation			great white shark	Great white shark		
+								plastic waste	Plastic waste			whale shark	Whale shark		
+								radionuclide	Radionuclide			manta ray	Manta ray		
+								pres other	Other			sawfish	Sawfish		
+												invertebrates	Invertebrates		
+												marine sponges	Marine sponges		
+												cnidarians	Cnidarians 		
+												marine worms	Marine worms		
+												bivalves gastropods	Bivalves and gastropods		
+												cephalopods	Cephalopods 		
+												echinoderms	Echinoderms 		
+												arthropods	Arthropods 		
+												spec other	Other		

@@ -1,0 +1,508 @@
+### IMPORTANT: Because this script is an R Markdown script, the default directory is the location of this .Rmd file.
+# To run the script from the project directory, in R Studio, you need to go to: Tools > Global Options > R Markdown
+# and set "Evaluate chunks in directory" to "Project"
+# -----------------------------------------------------------------------------------------------------------
+
+### ABOUT
+# ========================================================================================================= #
+# Brief description: Mangrove map, adding additional data from madagascar to previous version (v1.0)
+# Sripts/processes that needs to be updated prior?:
+#
+# Script by: gk, sgu, R 4.1.1
+# Updated: Initial, org, Rver, comments
+# Developer check: Initial, org, yymmdd, comments
+# External check: Initial, org, yymmdd, comments
+# ========================================================================================================= #
+### PREPARATIONS
+# ========================================================================================================= #
+
+# Install packages
+```{r, include = FALSE}
+# list all packages that this script is dependent on, remove any redundant ones
+x <- c("leaflet", "sf", "raster", "rgdal", "tidyverse", "gdalUtils")
+#install.packages(x, dependencies=TRUE)
+```
+
+# Load packages
+```{r, include = FALSE}
+library(leaflet)
+library(sf) 
+library(raster)
+library(rgdal)
+library(tidyverse)
+library(gdalUtils)
+```
+
+## Set version
+```{r}
+version = "v01" # relates to major iteration of WIOSym (v01 for grid 2021, v02 for grid 2022)
+d_version = ".1"  # detailed version (you can add another level e.g. 0.0  -> v01.0.0)
+seq = "s01" # sequential order - change accordingly if process is run in several scripts
+```
+
+## Set geographic scope
+```{r}
+read_tsv("./shiny_data_upload/locations.txt")  # prints available locations to choose from and their abbreviations
+```
+```{r}
+location = "reg" # choose applicable 3 letter abbreviation from "location_val" -  reg for whole WIO area
+```
+
+## Set main theme
+```{r}
+folders_raw <- read_tsv("./shiny_data_upload/folders.txt")
+folders_data <- read_tsv("./shiny_data_upload/folders_data.txt") # additional folders for data not applicable for data_raw 
+folders <- folders_raw %>% add_row(folders_data)
+(unique(folders["theme_folder"]))
+```
+```{r}
+theme <- "eco" # Copy from "theme_folder" (e.g. "eco")
+```
+
+## Set Subtheme
+```{r}
+folders %>%
+  filter(theme_folder == theme) %>% 
+  dplyr::select(subtheme_folder, subtheme_name) %>% 
+  print(n = Inf)
+```
+```{r}
+subtheme <- "ch_mangrove" # copy from "subtheme_folder"
+```
+
+## Set paths
+```{r}
+(dest_path <- paste("./data", location, theme, subtheme, version, "", sep="/")) # path to final product
+(work_path <- paste(dest_path, "proc/", sep=""))
+(proc_path <- paste(dest_path, "proc_log/", sep=""))
+(archive_path <- paste(dest_path, "_archive/", sep=""))
+(script_path <- "./process/r/")
+```
+
+## Create directories
+```{r}
+dir.create(dest_path, recursive = TRUE)
+dir.create(work_path, recursive = TRUE)
+dir.create(proc_path, recursive = TRUE)
+dir.create(archive_path, recursive = TRUE)
+dir.create(script_path, recursive = TRUE)
+```
+
+## Save R Script
+```{r}
+name1 <- "" # "REPLACE_" if script need additional name... don't use unless needed to avoid duplication.
+(script_path_windows <- paste(getwd(), "/process/r", sep=""))
+(script_name <- paste(theme, "_", subtheme,"_", location, "_", name1, seq, "_", version, ".Rmd", sep=""))
+```
+ # copy path and name and use File/Save As in R studio to save rmd file
+ 
+#==========================================================================================================================#
+### INDATA
+#==========================================================================================================================#
+## Set DATA_RAW sources
+# IMPORTANT all data harvested from data_raw needs to have a metasym.txt file in its root directory (not file specific)
+
+# Data_raw DIR1: mangrove data from GMW, 2010 - 2016, downloaded from wcmc website
+```{r}
+source1_dir <- source_dir <-  "./data_raw/glo/eco/ch_mangrove/gmw/gk2105281014/"
+source1 <- source_id <- "gk2105281014" # 
+(read_tsv(paste(source_dir, source_id, "_metasym.txt", sep=""))) # check the metasym file
+``` 
+```{r}
+dir(source_dir, recursive=F)
+```
+```{r}
+# read file
+source1_path <- path <- paste(source_dir, "GMW_001_GlobalMangroveWatch/01_Data/GMW_2016_v2.shp", sep="")
+mangrove_2016 <- st_read(path) # REPLACE object_name
+# add files from dir as needed
+```
+## Data_raw DIR2: TNC 2014
+```{r}
+source2_dir <- source_dir <-  "./data_raw/glo/eco/ch_mangrove/wcmc/gk2105281053/"
+source2 <- source_id <- "gk2105281053" # 
+(read_tsv(paste(source_dir, source_id, "_metasym.txt", sep=""))) # check the metasym file
+``` 
+```{r}
+source2_path <- path <- paste(source_dir, "DataPack-14_001_TNC001_MangroveForestBiomass2014_v1/01_Data/14_001_TNC001_MangroveForestBiomass2014_v1.shp", sep="")
+mangrove_2014 <- st_read(path) # REPLACE object_name
+```
+## Data_raw DIR3: wwf madagascar 1985-2018 mangrove data
+```{r}
+source3_dir <- source_dir <-  "./data_raw/reg/eco/ch_mangrove/wwf/gk2110061516/"
+source3 <- source_id <- "gk2110061516" #  
+(read_tsv(paste(source_dir, source_id, "_metasym.txt", sep=""))) # check the metasym file
+``` 
+```{r}
+source3_path <- path <- paste(source_dir, "mada_mangrove_1985_2018/mada_mangrove_1985_2018.shp", sep="")
+mangrove_2018 <- st_read(path) # REPLACE object_name
+```
+
+# declare number of "data_raw" directorys
+```{r}
+data_raw_metasym_num <- 3
+```
+
+
+## Set "DATA" sources
+# IMPORTANT Products in data are based on information in data_raw. Check that *_sourcesym.txt exists for each file to track acccumulated IDs. 
+
+# DATA 1: WIOSym standard grid 1km
+```{r}
+data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
+dir(data_dir) # check what data is in this directory
+```
+```{r}
+data_file <- "grid_1km_v01.1.tif" # REPLACE - your data file
+(data1_sourcesym <- read_tsv(paste(data_dir, data_file, "_sourcesym.txt", sep="")))
+# check that source IDs exists and make sense
+```
+```{r}
+(grid_1km <- raster(paste(data_dir, data_file, sep=""))) # read and check your data
+```
+```{r}
+plot(grid_1km)
+```
+
+# DATA 2: grid 1km na  
+```{r}
+data_dir <-  "./data/reg/grid/grid/v01/"
+dir(data_dir) # check what data is in this directory
+```
+```{r}
+data_file <- "grid_1km_na_v01.1.tif" # your data file (must be under the root of data_dir, do not use files from proc/)
+(data2_sourcesym <- read_tsv(paste(data_dir, data_file, "_sourcesym.txt", sep=""))) # REPLACE - check/change data number (e.g. data3_sourcesym)
+# check that source IDs exists and make sense
+```
+```{r}
+(grid_1km_na <- raster(paste(data_dir, data_file, sep="")))
+```
+```{r}
+#plot(grid_1km_na) # REPLACE
+```
+
+
+# DATA 3: grid_250m
+```{r}
+data_dir <-  "./data/reg/grid/grid/v01/"
+dir(data_dir) # check what data is in this directory
+```
+```{r}
+data_file <- "grid_250m_v01.1.tif" # your data file (must be under the root of data_dir, do not use files from proc/)
+(data3_sourcesym <- read_tsv(paste(data_dir, data_file, "_sourcesym.txt", sep=""))) # REPLACE - check/change data number (e.g. data3_sourcesym)
+# check that source IDs exists and make sense
+```
+```{r}
+(grid_250m <- raster(paste(data_dir, data_file, sep=""))) # REPLACE "object_name" - read in your data object
+```
+```{r}
+plot(grid_250m) # REPLACE
+```
+
+# DATA 4: standard_grid 250m NA valu 
+```{r}
+data_file <- "grid_250m_na_v01.1.tif" # your data file (must be under the root of data_dir, do not use files from proc/)
+(data4_sourcesym <- read_tsv(paste(data_dir, data_file, "_sourcesym.txt", sep=""))) # REPLACE - check/change data number (e.g. data3_sourcesym)
+# check that source IDs exists and make sense
+```
+```{r}
+(grid_250m_na <- raster(paste(data_dir, data_file, sep=""))) # REPLACE "object_name" - read in your data object
+```
+```{r}
+plot(grid_250m_na)
+```
+
+# DATA 5: bounding box shapefile 
+```{r}
+data_dir <-  "./data/reg/grid/scope/v01/" 
+dir(data_dir) # check what data is in this directory
+```
+```{r}
+data_file <- "wiosym_grid_bounding_box_v01.shp" # your data file (must be under the root of data_dir, do not use files from proc/)
+(data5_sourcesym <- read_tsv(paste(data_dir, data_file, "_sourcesym.txt", sep=""))) # REPLACE - check/change data number (e.g. data3_sourcesym)
+# check that source IDs exists and make sense
+```
+```{r}
+(grid_poly <- st_read(paste(data_dir, data_file, sep="")))
+```
+```{r}
+plot(grid_poly)
+```
+
+# declare number of "data" files
+```{r}
+data_sourcesym_num <-  5 # REPLACE - set total number of data files (e.g. <- 2), to help in export section
+```
+
+#==========================================================================================================================#
+### PROCESSING
+#==========================================================================================================================#
+
+# Map GMW mangrove polygons to 250m raster -----------------------------------------------
+```{r}
+indata_sf <- mangrove_2016
+glimpse(indata_sf)
+unique(indata_sf$pxlval)
+class(indata_sf)
+```
+```{r}
+# converting to old v00 script namings..
+path_work <- work_path
+indata_path <- source1_path
+
+# convertion from shape to raster 
+
+# write empty grid for gdalutil work
+writeRaster(grid_250m_na, paste(path_work, "grid_250m_na_mangrove_gmw2016.tif", sep= ""),  overwrite=T, COMPRESS=LZW)
+```
+```{r}
+# shapefile to 250m grid
+sf_warp <- gdalUtils::gdal_rasterize(src_datasource = indata_path,
+                                     dst_filename = paste(path_work, "grid_250m_na_mangrove_gmw2016.tif", sep= ""),
+                                     b = 1,
+                                     at = T,
+                                     a = "pxlval",
+                                     output_Raster = TRUE,
+)
+
+
+summary(sf_warp)
+```
+
+# Map TNC mangrove polygons to 250m raster
+```{r}
+indata_sf <- mangrove_2014
+glimpse(indata_sf)
+unique(indata_sf$pxlval)
+class(indata_sf)
+
+indata_sf <- indata_sf %>% 
+  mutate(pxlval = 1)
+```
+```{r}
+indata_path <- paste(path_work, "mangrove_tnc_value1.shp", sep= "")
+st_write(indata_sf,indata_path) 
+
+# write empty grid for gdalutil work
+writeRaster(grid_250m_na, paste(path_work, "grid_250m_na_mangrove_tnc2014.tif", sep= ""),  overwrite=T, COMPRESS=LZW)
+```
+```{r}
+# shape to 250m raster
+sf_warp <- gdalUtils::gdal_rasterize(src_datasource = indata_path,
+                                     dst_filename = paste(path_work, "grid_250m_na_mangrove_tnc2014.tif", sep= ""),
+                                     b = 1,
+                                     at = T,
+                                     a = "pxlval",
+                                     output_Raster = TRUE,
+)
+
+
+summary(sf_warp)
+```
+
+# Map wwf 2018 mangrove polygons to 250m raster
+```{r}
+indata_sf <- mangrove_2018
+glimpse(indata_sf)
+unique(indata_sf$pxlval)
+class(indata_sf)
+
+indata_sf <- indata_sf %>% 
+  mutate(pxlval = 1)
+```
+```{r}
+indata_path <- paste(path_work, "mangrove_2018_value1.shp", sep= "")
+st_write(indata_sf,indata_path) 
+
+# write empty grid for gdalutil work
+writeRaster(grid_250m_na, paste(path_work, "grid_250m_na_mangrove_wwf2018.tif", sep= ""),  overwrite=T, COMPRESS=LZW)
+```
+```{r}
+# shape to 250m raster
+sf_warp <- gdalUtils::gdal_rasterize(src_datasource = indata_path,
+                                     dst_filename = paste(path_work, "grid_250m_na_mangrove_wwf2018.tif", sep= ""),
+                                     b = 1,
+                                     at = T,
+                                     a = "pxlval",
+                                     output_Raster = TRUE,
+)
+
+
+summary(sf_warp)
+```
+
+
+# Combine all mangrove into one layer
+```{r}
+# paths to input rasters
+gmw_250m <- paste(path_work, "grid_250m_na_mangrove_gmw2016.tif", sep= "")
+tnc_250m <- paste(path_work, "grid_250m_na_mangrove_tnc2014.tif", sep= "")
+wwf_250m <- paste(path_work, "grid_250m_na_mangrove_wwf2018.tif", sep= "")
+
+# write empty grid for gdalutil output
+outraster <- paste(path_work, "grid_250m_na_mangrove_combined.tif", sep= "")
+
+writeRaster(grid_250m_na, outraster, overwrite=T, COMPRESS=LZW)
+
+mangrove_250m_combined <- gdalUtils::mosaic_rasters(
+  gdalfile = c(gmw_250m, tnc_250m, wwf_250m),
+  dst_dataset = outraster,
+  output.vrt = NULL,
+  output_Raster = FALSE,
+  separate = FALSE,
+  trim_margins = NULL,
+  gdalwarp_index = 1,
+  gdalwarp_params = list(r = "near"),
+  #force_ot = "Int16",
+  verbose = FALSE,
+  #COMPRESS=LZW,
+)
+
+mangrove_250m_combined <- raster(outraster)
+crs(mangrove_250m_combined) <- crs(grid_1km)
+(mangrove_250m_combined)
+#plot(mangrove_250m_combined) # ready for export if ok
+```
+
+# Aggregate 250m mangrove polygons to 1km grid
+
+```{r}
+mangrove_1km_proportion <- aggregate(mangrove_250m_combined, fact=4, fun=sum) / 16 #4*4=16, i.e. divide by the maximum cell number to get proportions
+crs(mangrove_1km_proportion) <- crs(grid_1km)
+(mangrove_1km_proportion)
+plot(mangrove_1km_proportion) # ready to be exported if OK
+```
+```{r}
+#combined_mangrove_250m_agg1km_binary <- aggregate(mangrove_250m_combined, fact=4, fun=max) 
+#writeRaster(combined_mangrove_250m_agg1km_binary, paste(path_work, "grid_1km_na_mangrove_combined.tif", sep= ""),  overwrite=T, COMPRESS=LZW)
+```
+
+# UNCERTAINTY MAP: Combine known range with shore connected pixels, and observed precenses to differentiate between "out of range, very good/good model (make seperate script? s02...)
+
+#==========================================================================================================================#
+### EXPORT
+#==========================================================================================================================#
+# Write products to root directory when checked and ready to use elsewhere, accompanied by yourfilename.ext_sourcesym.txt 
+# for each file to track source IDs as they accumulate between processes / data
+
+
+# SOURCESYM
+# Create sourcesym file with all source IDs used (data and data_raw) 
+# data raw sources (dir)
+```{r}
+print(paste("data_raw metasym files used = ", data_raw_metasym_num, sep=""))
+(data_raw_sources <- tibble(id = c(source1, source2, source3))) 
+```
+
+# data sources (files)
+```{r}
+print(paste("data_sourcym files = ", data_sourcesym_num, sep=""))
+data_sources <- data1_sourcesym %>% # add any "sourcesym" files applicable to this product (check indata section), keep adding sourcesym files as needed
+  add_row(data2_sourcesym)%>%  
+  add_row(data3_sourcesym)%>% 
+  add_row(data4_sourcesym)%>% 
+  add_row(data5_sourcesym)%>% 
+  #add_row(data6_sourcesym)%>% 
+  unique() %>% 
+  print()
+```
+# Sources combined
+```{r}
+(all_sources <- data_raw_sources %>% add_row(data_sources))
+```
+# if a product only use a subset of the total sources, copy the section above and create individual files below (e.g. product1_sources <- ...)
+
+
+# PRODUCT 1: 
+# read objects
+
+#outraster_lzw <- paste(path_work, "grid_250m_na_mangrove_combined_lzw.tif", sep="")
+writeRaster(mangrove_250m_combined, outraster_lzw, overwrite=T, COMPRESS=LZW, datatype = 'INT4S')
+
+writeRaster(mangrove_1km_proportion, paste(path_work, "grid_1km_na_mangrove_combined_proportion250m.tif", sep= ""),  overwrite=T, COMPRESS=LZW)
+
+
+```{r}
+product_orig <- mangrove_250m_combined # input and check your object to be written to file
+#product_norm01 <- REPLACE # input and check your object to be written to file
+#product_uncertainty <- REPLACE # input and check your object to be written to file
+#plot(c(product_orig, product_norm01, product_uncertainty)) # use leaflet here instead?
+```
+# set names
+```{r}
+scale <- "250m" # "1km" / "250m"
+unit <- "presence"  # add SI unit for product with original values (use short abbreviation e.g. meter = m, kilometer = km, percent = perc) 
+component_names <- read_tsv("./shiny_data_upload/component_names.txt") 
+component_names_selected <- component_names %>%
+  dplyr::filter(theme_folder == theme) %>% 
+  dplyr::select(group, file_name, description) %>% 
+  print(n = Inf)
+```
+```{r}
+descriptive_name <- "mangrove"  # name of product, for pressure/ecosystem components select from name list above
+```
+# paths
+```{r}
+(product_orig_path <- paste(dest_path, descriptive_name, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+#(product_norm01_path <- paste(dest_path, descriptive_name, "_norm01_", scale, "_", version, d_version, ".tif", sep="" ))
+#(product_uncertainty_path <- paste(dest_path, descriptive_name, "_uncertainty_", scale, "_", version, d_version, ".tif", sep="" ))
+```
+# Write to file
+```{r}
+writeRaster(product_orig, product_orig_path, COMPRESS=LZW, datatype = 'INT1U', overwrite=TRUE)
+#writeRaster(product_norm01, product_norm01_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+#writeRaster(product_uncertainty, product_uncertainty_path, COMPRESS=LZW, datatype = 'INT1U', overwrite=TRUE)
+# write sourcesym file, change "all_sources" to "selected_sources" if subset only for specific file
+write_tsv(all_sources, paste(product_orig_path, "_sourcesym.txt", sep=""))  
+#write_tsv(all_sources, paste(product_norm01_path, "_sourcesym.txt", sep=""))
+#write_tsv(all_sources, paste(product_uncertainty_path, "_sourcesym.txt", sep=""))
+```
+
+# Export 2: 1km raster
+# set names
+```{r}
+scale <- "1km" 
+unit <- "proportion"  # add unit for product with original values (e.g. m, km, perc, presence, proportion
+
+# paths 1km raster
+```{r}
+(product_orig_path <- paste(dest_path, descriptive_name, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+#(product_norm01_path <- paste(dest_path, descriptive_name, "_norm01_", scale, "_", version, d_version, ".tif", sep="" ))
+#(product_uncertainty_path <- paste(dest_path, descriptive_name, "_uncertainty_", scale, "_", version, d_version, ".tif", sep="" ))
+```
+# Write to file
+```{r}
+writeRaster(product_orig, product_orig_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+#writeRaster(product_norm01, product_norm01_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+#writeRaster(product_uncertainty, product_uncertainty_path, COMPRESS=LZW, datatype = 'INT1U', overwrite=TRUE)
+# write sourcesym file, change "all_sources" to "selected_sources" if subset only for specific file
+write_tsv(all_sources, paste(product_orig_path, "_sourcesym.txt", sep=""))  
+#write_tsv(all_sources, paste(product_norm01_path, "_sourcesym.txt", sep=""))
+#write_tsv(all_sources, paste(product_uncertainty_path, "_sourcesym.txt", sep=""))
+```
+
+### SAVE SCRIPT
+# 1. save your current R script (File/Save)
+# 2. Save a carbon copy of the R script to proc_log (identical script to what is used to create the products exported
+# Do not change the *.Rmd carbon copy in proc_log/ unless you change this version of the products (new versions are developed under process/r)
+
+```{r}
+# 2. run code below and go to File/Save As and paste link and name:
+dest_path_script <- paste(getwd(), proc_path)
+print(dest_path_script <- gsub(" .", "", dest_path_script)) # path
+print(script_name_copy <- paste(gsub(".Rmd", "", script_name), d_version, ".Rmd", sep="")) # script name
+```
+
+#==========================================================================================================================#
+### FINAL CHECK
+#==========================================================================================================================#
+# Developer check
+# Do your own final check on the products and double check sourcesym file exists and are complete for all files in root 
+# -> Sign at top of script in about section (# Approved by:)
+
+# External check 
+# To ensure repeatability and quality, make sure one colleage can run the script
+# When script is proven repeatable/understandable and products/metadata look ok 
+# -> Sign at top of script in about section (# Approved by:), and make any comments if needed
+# There is also a work_log document in onedrive / gitHUB, check current arrangement with Swedish dev team
+
