@@ -1,3 +1,8 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
 ### IMPORTANT: Because this script is an R Markdown script, the default directory is the location of this .Rmd file.
 # To run the script from the project directory, in R Studio, you need to go to: Tools > Global Options > R Markdown
 # and set "Evaluate chunks in directory" to "Project"
@@ -6,9 +11,11 @@
 ### ABOUT
 # ========================================================================================================= #
 # Brief description: 
-# Script by: Initial, org
-# Updated: Initial, org, comments
-# Developer check: Initial, org, yymmdd
+# Sripts/processes that needs to be updated prior?:
+#
+# Script by: Initial, org, Rver:
+# Updated: Initial, org, Rver, comments
+# Developer check: Initial, org, yymmdd, comments
 # External check: Initial, org, yymmdd, comments
 # ========================================================================================================= #
 
@@ -90,11 +97,11 @@ subtheme <- "REPLACE" # copy from "subtheme_folder"
 
 ## Set paths
 ```{r}
-(dest_path <- paste("./data", location, theme, subtheme, version, sep="/")) # path to final product
-(work_path <- paste(dest_path, "proc", sep="/"))
-(proc_path <- paste(dest_path, "proc_log", sep="/"))
-(archive_path <- paste(dest_path, "_archive", sep="/"))
-(script_path <- "./process/r")
+(dest_path <- paste("./data", location, theme, subtheme, version, "", sep="/")) # path to final product
+(work_path <- paste(dest_path, "proc/", sep=""))
+(proc_path <- paste(dest_path, "proc_log/", sep=""))
+(archive_path <- paste(dest_path, "_archive/", sep=""))
+(script_path <- "./process/r/")
 ```
 
 ## Create directories
@@ -120,7 +127,7 @@ name1 <- "" # "REPLACE_" if script need additional name... don't use unless need
 
 ## Set DATA_RAW sources
 # IMPORTANT all data harvested from data_raw needs to have a metasym.txt file in its root directory (not file specific)
-# Data_raw DIR1
+# Data_raw DIR1: 
 ```{r}
 source1_dir <- source_dir <-  "./data_raw/.../uniqueid/"  # REPLACE - internal path
 source1 <- source_id <- "uniqueid" # REPLACE
@@ -129,23 +136,35 @@ source1 <- source_id <- "uniqueid" # REPLACE
 ```{r}
 dir(source_dir, recursive=F)
 ```
-
-# Files DIR1
 ```{r}
-object_name <- st_read(paste(source_dir, "name.ext", sep="")) # REPLACE object_name with descriptive short name and "name.ext" - copy internal path to file in source dir
-# keep adding files from source 1 as needed
+# Files
+source1_path <- path <- paste(source_dir, "REPLACE.ext", sep="")
+object_name <- st_read(path) # REPLACE object_name
+# add files from dir as needed
 ```
 
-## Data_raw DIR2
+# Data_raw DIR2: 
 ```{r}
-# ... keep adding sources/files, copy above
+source2_dir <- source_dir <-  "./data_raw/.../uniqueid/"  # REPLACE - internal path
+source2 <- source_id <- "uniqueid" # REPLACE
+(read_tsv(paste(source_dir, source_id, "_metasym.txt", sep=""))) # check the metasym file
+``` 
+```{r}
+dir(source_dir, recursive=F)
 ```
+```{r}
+# Files
+source2_path <- path <- paste(source_dir, "REPLACE.ext", sep="")
+object_name <- st_read(path) # REPLACE object_name
+# add files from dir as needed
+```
+# Data_raw DIR...: # keep adding data_raw sources by copying above
 
-# declare number of "data_raw" directorys
+
+## number of "data_raw" directorys?
 ```{r}
 data_raw_metasym_num <-  # REPLACE - set total number of data_raw dir used (e.g. <- 1), to help in export section
 ```
-
 
 
 
@@ -211,18 +230,16 @@ data_sourcesym_num <-  # REPLACE - set total number of data files (e.g. <- 2), t
 #==========================================================================================================================#
 ### EXPORT
 #==========================================================================================================================#
-# Write products to root directory, accompanied by yourfilename_sourcesym.txt to track source IDs
-# Temp files (../proc/) generated in "PROCESS Section will lack metadata (don't use from elsewhere). Save files of value to root with correct naming & *_sourcesym.txt. 
-# Check outputs - If needed, check your outputs in /proc/ before writing to file (Make note of manual check elsewhere (e.g. qgis). perhaps integrate leaflet here?
-# Note on looped products with same sources, make sure to save *_sourcesym.txt for each individual product.
+# Write products to root directory when checked and ready to use elsewhere, accompanied by yourfilename.ext_sourcesym.txt 
+# for each file to track source IDs as they accumulate between processes / data
+
 
 # SOURCESYM
-# Create sourcesym file WITH all source IDs used (data and data_raw) 
-
+# Create sourcesym file with all source IDs used (data and data_raw) 
 # data raw sources (dir)
 ```{r}
 print(paste("data_raw metasym files used = ", data_raw_metasym_num, sep=""))
-(data_raw_sources <- tibble(id = c(source1_id, ...))) # REPLACE - keep adding all data_raw souces e.g. c( source1_id, source2_id, ...)
+(data_raw_sources <- tibble(id = c(source1, source2, ...))) # REPLACE / add all data_raw sources
 ```
 
 # data sources (files)
@@ -255,7 +272,7 @@ plot(c(product_orig, product_norm01, product_uncertainty)) # use leaflet here in
 # set names
 ```{r}
 scale <- "REPLACE" # "1km" / "250m"
-unit <- "REPLACE"  # add SI unit for product with original values (use short abbreviation e.g. meter = m, kilometer = km, percent = perc) 
+unit <- "REPLACE"  # add unit for product with original values (e.g. m, km, perc, presence, proportion
 component_names <- read_tsv("./shiny_data_upload/component_names.txt") 
 component_names_selected <- component_names %>%
   dplyr::filter(theme_folder == theme) %>% 
@@ -267,16 +284,20 @@ descriptive_name <- "REPLACE"  # name of product, for pressure/ecosystem compone
 ```
 # paths
 ```{r}
-(product_orig_path <- paste(dest_path,"/", descriptive_name, "_orig_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
-(product_norm01_path <- paste(dest_path,"/", descriptive_name, "_norm01_", scale, "_", version, d_version, ".tif", sep="" ))
-(product_uncertainty_path <- paste(dest_path,"/", descriptive_name, "_uncertainty_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig_path <- paste(dest_path, descriptive_name, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_norm01_path <- paste(dest_path, descriptive_name, "_norm01_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_uncertainty_path <- paste(dest_path, descriptive_name, "_uncertainty_", scale, "_", version, d_version, ".tif", sep="" ))
 ```
 # Write to file
 ```{r}
-writeRaster(product_orig, product_orig_path, COMPRESS=LZW, datatype = raster_data_type, overwrite=TRUE)
+# check datatype to be appropriate for values (flt or int, 'INT4S' option to..)
+writeRaster(product_orig, product_orig_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
 writeRaster(product_norm01, product_norm01_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
 writeRaster(product_uncertainty, product_uncertainty_path, COMPRESS=LZW, datatype = 'INT1U', overwrite=TRUE)
-write_tsv(all_sources, paste(product_orig_path, "_sourcesym.txt", sep=""))  # writes unique sourcesym file for all products, change "all_sources" to "product1_sources" if subset only
+# write sourcesym file, change "all_sources" to "selected_sources" if subset only for specific file
+write_tsv(all_sources, paste(product_orig_path, "_sourcesym.txt", sep=""))  
+write_tsv(all_sources, paste(product_norm01_path, "_sourcesym.txt", sep=""))
+write_tsv(all_sources, paste(product_uncertainty_path, "_sourcesym.txt", sep=""))
 ```
 
 

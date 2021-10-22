@@ -3,51 +3,22 @@
 # ========================================================================================================= #
 # Purpose: Script to create WIOSym regional standard grid
 #
-# Brief description: 
+# Brief description: Coral components, shallow and mesophotic
 
-# Suggestions on future imporvements: 
+# Suggestions on future improvements: 
 #
-# Created: Initial, organisation, yymmdd
-# Updated: Initial, organisation, yymmdd, comments
+# Created: gk, sgu, yymmdd
+# Updated: gk, sgu, 211021, adding new data from coral atlas (somalia region), and fixing problems with old version
 
 # Script and products checked by: (initial, organisation), yymmdd, 
   # comments: 
-
-# ========================================================================================================= #
-
-#### Note for developers ####
-# ========================================================================================================= #    
-# Style
-  # Design the code for any process within WIOSym to be as human readable and repeatable as possibel.
-  # This includes using tidyverse coding to the extent the programmer is comfortable with. An excellent style guide 
-  # is found here https://style.tidyverse.org/index.html, use it to your best ability (but dont worry about PerfeCtion!) 
-
-# Metadata
-  # To track data flow in WIOSym its important to make sure all indata have a unique ID and a _metasym.txt file to go along
-  # and that the are all logged in the final products, this ensures we know what sources where used.
-  # Note that there is a difference how we ingest this information if the indata comes from "data" or from "data_raw", 
-  # instructions found in "set destinations"
-
-# Naming and folders
-  # To standardise how we name products as well as create folders there are instructions under "set destinations" 
-  # in short, we try to use predfined standard names for any main folders and final products we create. 
-  # They are stored in a seperate textfile that we can update when need be. 
-  # Naming conventions in "proc" folder is up to developer. see it as a skratch space blizzfully free of conventiones! 
-  # Main version is synked with the overall development for WIOSym, 2021 we are working with V1, version controll might include git or simply V01.1 etc..
-  # Layers that are ready to be used by other scripts/processes are stored under the root destination folder together with 
-  # a nameofmyfile_datasym.txt files with all ids used. No other files here.
-# ========================================================================================================= # 
-
-# PREPERATIONS ----------------------------------------------------------------------------------------------
-# List dependencis - any code or processes that needs to be run for this script to work
-# Make sure the following processes are run first: 1. ..., 2. ..., 
 
 
 # Read packages ---------------------------------------------------------------------------------------------
 # list all packages that this script is dependent on, remove any redundant ones
 x <- c("tidyverse", "sf", "raster", "rgdal", "fasterize", "labelled", "gdalUtils", "foreign")
 
-#install.packages(x, dependencies=TRUE)
+install.packages(x, dependencies=TRUE)
                                             
 library(tidyverse)
 library(sf)
