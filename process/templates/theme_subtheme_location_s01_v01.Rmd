@@ -1,5 +1,5 @@
 # ========================================================================================================= #
-### IMPORTANT - To get started:
+# IMPORTANT - To get started:
 Because this script is an R Markdown script, the default directory is the location of this .Rmd file.
 You must open this script from within the .Rproj file associated with your wiosym database for it to work.
 If you haven't used R notebooks before (.Rmd), each of the code "chunks" can be executed by clicking the green play
@@ -8,28 +8,28 @@ button at the top right of the chunk.
 To run the script from the project directory, in R Studio, you need to go to: Tools > Global Options > R Markdown
 and set "Evaluate chunks in directory" to "Project", though for latest version of R/Rstudio it may not be needed...
 # ========================================================================================================= #
-### ABOUT
+# ABOUT
 # ========================================================================================================= #
-# Brief description: 
-# Sripts/processes that needs to be updated prior?:
-#
-# Script by: Initial, org, Rver:
-# Updated: Initial, org, Rver, comments
-# Developer check: Initial, org, yymmdd, comments
-# External check: Initial, org, yymmdd, comments
+## Brief description: 
+### Sripts/processes that needs to be updated prior?:
+###
+### Script by: Initial, org, Rver:
+### Updated: Initial, org, Rver, comments
+### Developer check: Initial, org, yymmdd, comments
+### External check: Initial, org, yymmdd, comments
 # ========================================================================================================= #
-### INSTRUCTIONS
+# INSTRUCTIONS
 # ========================================================================================================= #    
-# Style
+## Style
   # Write code that is easy to follow and repeat.
   # Suggested R style is tidyverse. Style guide here https://style.tidyverse.org/index.html
 
-# Metadata
+## Metadata
   # All indata from "data_raw" must have a unique ID with *_metasym.txt file to go along, check before you add data.
   # All indata from and outputs to "data" must have a *_sourcesym.txt file with all (accumulated) sourceIDs used to create the layer.
   # The metasym files and tracking of those in the sourcesym files ensures correct sources for products and ISO metadata. This template helps you get it right..
   
-# Naming and folders
+## Naming and folders
   # Predefined standard names for main/sub folders and final products in two text files that can be added to in need.
   # ..\shiny_data_upload\modify_txt_files_v01.2.xlsx and ..\process\templates\modify_txt_files_data_v01.0.xlsx
   # Main version (e.g. v01 for 2021) follows dev cycles for all WIOSYm. For version control within v01 use V01.1, V01.2 etc..
@@ -38,17 +38,17 @@ and set "Evaluate chunks in directory" to "Project", though for latest version o
   # All final products are stored under the root folder (e.g. ..\data\reg\eco\bh_coral\v01) together with 
   # a nameofmyfile_sourcesym.txt file with all source IDs used. No other files here. move products to _archive\ dir if defunct 
 # ========================================================================================================= # 
-### PREPARATIONS
+# PREPARATIONS
 # ========================================================================================================= #
 
-# Install packages
+### Install packages
 ```{r, include = FALSE}
 # list all packages that this script is dependent on, remove any redundant ones
 x <- c("leaflet", "sf", "raster", "rgdal", "tidyverse")
 #install.packages(x, dependencies=TRUE)
 ```
 
-# Load packages
+### Load packages
 ```{r, include = FALSE}
 library(leaflet)
 library(sf) 
@@ -124,12 +124,11 @@ name1 <- "" # "REPLACE_" if script need additional name... don't use unless need
  # copy path and name and use File/Save As in R studio to save rmd file
  
 #==========================================================================================================================#
-### INDATA
+# INDATA
 #==========================================================================================================================#
-
-## Set DATA_RAW sources
-# IMPORTANT all data harvested from data_raw needs to have a metasym.txt file in its root directory (not file specific)
-# Data_raw DIR1: 
+# Set DATA_RAW sources
+IMPORTANT all data harvested from data_raw needs to have a metasym.txt file in its root directory (not file specific)
+## DIR1: 
 ```{r}
 source1_dir <- source_dir <-  "./data_raw/.../uniqueid/"  # REPLACE - internal path
 source1 <- source_id <- "uniqueid" # REPLACE
@@ -147,7 +146,7 @@ object_name <- st_read(path) # REPLACE object_name
 # add files from dir as needed
 ```
 
-# Data_raw DIR2: 
+## DIR2: 
 ```{r}
 source2_dir <- source_dir <-  "./data_raw/.../uniqueid/"  # REPLACE - internal path
 source2 <- source_id <- "uniqueid" # REPLACE
@@ -164,70 +163,83 @@ source2_path <- path <- paste(source_dir, "REPLACE.ext", sep="")
 object_name <- st_read(path) # REPLACE object_name
 # add files from dir as needed
 ```
-# Data_raw DIR...: # keep adding data_raw sources by copying above
 
 
-## number of "data_raw" directorys?
+### declare number of "data_raw" directorys above
 ```{r}
-data_raw_metasym_num <-  # REPLACE - set total number of data_raw dir used (e.g. <- 1), to help in export section
+data_raw_metasym_num <-  REPLACE # set total number of data_raw dir used (e.g. <- 1), to help in export section
 ```
 
 
+# DATA sources
+IMPORTANT Products in data are based on information in data_raw. Check that *_sourcesym.txt exists for each file to track acccumulated IDs. 
 
-## Set "DATA" sources
-# IMPORTANT Products in data are based on information in data_raw. Check that *_sourcesym.txt exists for each file to track acccumulated IDs. 
-
-# DATA 1: WIOSym standard grid 1km
+## DATA1: Grid 1km - loading all flavours (watermask 1, 0, NA) at once since identical sourcesym apply
 ```{r}
 data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
 dir(data_dir) # check what data is in this directory
-```
 
-```{r}
-data_file <- "grid_1km_v01.1.tif" # REPLACE - your data file
-(data1_sourcesym <- read_tsv(paste(data_dir, data_file, "_sourcesym.txt", sep="")))
+data1_file <- "grid_1km_v01.1.tif" 
+data1_file2 <- "grid_1km_0_v01.1.tif" 
+data1_file3 <- "grid_1km_na_v01.1.tif" 
+
+(grid_1km_path <- path <- paste(data_dir, data1_file, sep=""))
+(grid_1km <- raster(path)) # read and check your data
+(grid_1km_0_path <- path <- paste(data_dir, data1_file2, sep=""))
+(grid_1km_0 <- path <- raster(path)) # read and check your data
+(grid_1km_na_path <- path <- paste(data_dir, data1_file3, sep=""))
+(grid_1km_na <- path <- raster(path)) # read and check your data
+
+data1_sourcesym <- read_tsv(paste(data_dir, data1_file, "_sourcesym.txt", sep=""))
 # check that source IDs exists and make sense
-```
 
-```{r}
-(grid_1km <- raster(paste(data_dir, data_file, sep=""))) # read and check your data
-```
-
-```{r}
 plot(grid_1km)
 ```
 
-# DATA 2: ...  
+## DATA2: Grid 250m - loading all flavours (watermask 1, 0, NA) at once since same sourcesym apply
 ```{r}
-data_dir <-  "./data/.../v01/"  # REPLACE - input your data directory
-dir(data_dir) # check what data is in this directory
+data2_dir <- data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
 
-```
-```{r}
-data_file <- "REPLACE" # your data file (must be under the root of data_dir, do not use files from proc/)
-(data2_sourcesym <- read_tsv(paste(data_dir, data_file, "_sourcesym.txt", sep=""))) # REPLACE - check/change data number (e.g. data3_sourcesym)
+data2_file <- "grid_250m_v01.1.tif" # your data file
+data2_file2 <- "grid_250m_0_v01.1.tif" # your data file
+data2_file3 <- "grid_250m_na_v01.1.tif" # your data file
+
+(grid_250m_path <- path <- paste(data_dir, data2_file, sep=""))
+(grid_250m <- raster(path)) # read and check your data
+(grid_250m_0_path <- path <- paste(data_dir, data2_file2, sep=""))
+(grid_250m_0 <- path <- raster(path)) # read and check your data
+(grid_250m_na_path <- path <- paste(data_dir, data2_file3, sep=""))
+(grid_250m_na <- path <- raster(path)) # read and check your data
+
+(data2_sourcesym <- read_tsv(paste(data_dir, data2_file, "_sourcesym.txt", sep="")))
+# check so source IDs exists and make sense
 # check that source IDs exists and make sense
-```
-
-```{r}
-(object_name <- raster(paste(data_dir, data_file, sep=""))) # REPLACE "object_name" - read in your data object
-```
-
-```{r}
-plot(object_name) # REPLACE
+#plot(grid_250m)
 ```
 
 
-# DATA3: ...
-# keep adding as needed, copy from data 2 above
-
-# declare number of "data" files
+## DATA 3: bounding box shapefile
 ```{r}
-data_sourcesym_num <-  # REPLACE - set total number of data files (e.g. <- 2), to help in export section
+data3_dir <- data_dir <-  "./data/reg/grid/scope/v01/"  # input your data directory
+
+data3_file <- "wiosym_grid_bounding_box_v01.shp" # your data file
+
+data3_sourcesym <- read_tsv(paste(data_dir, data3_file, "_sourcesym.txt", sep=""))
+#data3_sourcesym # check so source IDs exists and make sense - ok for these
+data3_path <- data_path <- paste(data_dir, data3_file, sep="")
+
+grid_poly <- st_read(data_path) # read in your data object if appropriate and perhaps change name to more informative...
+#grid_poly
+#plot(grid_poly)
+```
+
+## declare number of "data" files
+```{r}
+data_sourcesym_num <-  REPLACE # set total number of data files (e.g. <- 2), to help in export section
 ```
 
 #==========================================================================================================================#
-### PROCESSING
+# PROCESSING
 #==========================================================================================================================#
 
 
@@ -244,21 +256,21 @@ data_sourcesym_num <-  # REPLACE - set total number of data files (e.g. <- 2), t
 *****************************************************************
 
 #==========================================================================================================================#
-### EXPORT
+# EXPORT
 #==========================================================================================================================#
 # Write products to root directory when checked and ready to use elsewhere, accompanied by yourfilename.ext_sourcesym.txt 
 # for each file to track source IDs as they accumulate between processes / data
 
 
 # SOURCESYM
-# Create sourcesym file with all source IDs used (data and data_raw) 
+### Create sourcesym file with all source IDs used (data and data_raw) 
 # data raw sources (dir)
 ```{r}
 print(paste("data_raw metasym files used = ", data_raw_metasym_num, sep=""))
 (data_raw_sources <- tibble(id = c(source1, source2, ...))) # REPLACE / add all data_raw sources
 ```
 
-# data sources (files)
+## data sources (files)
 ```{r}
 print(paste("data_sourcym files = ", data_sourcesym_num, sep=""))
 data_sources <- data1_sourcesym %>% # add any "sourcesym" files applicable to this product (check indata section), keep adding sourcesym files as needed
@@ -270,22 +282,22 @@ data_sources <- data1_sourcesym %>% # add any "sourcesym" files applicable to th
   unique() %>% 
   print()
 ```
-# Sources combined
+## Sources combined
 ```{r}
 (all_sources <- data_raw_sources %>% add_row(data_sources))
 ```
-# if a product only use a subset of the total sources, copy the section above and create individual files below (e.g. product1_sources <- ...)
+### if a product only use a subset of the total sources, copy the section above and create individual files below (e.g. product1_sources <- ...)
 
 
 # PRODUCT 1: 
-# read objects
+## read objects
 ```{r}
 product_orig <- REPLACE # input and check your object to be written to file
 #product_norm01 <- REPLACE # input and check your object to be written to file
 #product_uncertainty <- REPLACE # input and check your object to be written to file
 plot(c(product_orig))
 ```
-# set names
+## set names
 ```{r}
 scale <- "REPLACE" # "1km" / "250m"
 unit <- "REPLACE"  # add unit for product with original values (e.g. m, km, perc, presence, proportion
@@ -299,13 +311,13 @@ component_names_selected <- component_names %>%
 ```{r}
 descriptive_name <- "REPLACE"  # name of product, for pressure/ecosystem components select from name list above
 ```
-# paths
+## paths
 ```{r}
 (product_orig_path <- paste(dest_path, descriptive_name, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
 #(product_norm01_path <- paste(dest_path, descriptive_name, "_norm01_", scale, "_", version, d_version, ".tif", sep="" ))
 #(product_uncertainty_path <- paste(dest_path, descriptive_name, "_uncertainty_", scale, "_", version, d_version, ".tif", sep="" ))
 ```
-# Write to file
+## Write to file
 ```{r}
 # check datatype to be appropriate for values (flt or int, 'INT4S' option to..)
 writeRaster(product_orig, product_orig_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
@@ -318,10 +330,10 @@ write_tsv(all_sources, paste(product_orig_path, "_sourcesym.txt", sep=""))
 ```
 
 
-### SAVE SCRIPT
-# 1. save your current R script (File/Save)
-# 2. Save a carbon copy of the R script to proc_log (identical script to what is used to create the products exported
-# Do not change the *.Rmd carbon copy in proc_log/ unless you change this version of the products (new versions are developed under process/r)
+# SAVE SCRIPT
+## 1. save your current R script (File/Save)
+## 2. Save a carbon copy of the R script to proc_log (identical script to what is used to create the products exported
+## Do not change the *.Rmd carbon copy in proc_log/ unless you change this version of the products (new versions are developed under process/r)
 
 ```{r}
 # 2. run code below and go to File/Save As and paste link and name:
@@ -331,15 +343,15 @@ print(script_name_copy <- paste(gsub(".Rmd", "", script_name), d_version, ".Rmd"
 ```
 
 #==========================================================================================================================#
-### FINAL CHECK
+# FINAL CHECK
 #==========================================================================================================================#
 # Developer check
-# Do your own final check on the products and double check sourcesym file exists and are complete for all files in root 
-# -> Sign at top of script in about section (# Approved by:)
+## Do your own final check on the products and double check sourcesym file exists and are complete for all files in root 
+## -> Sign at top of script in about section (# Approved by:)
 
 # External check 
-# To ensure repeatability and quality, make sure one colleage can run the script
-# When script is proven repeatable/understandable and products/metadata look ok 
-# -> Sign at top of script in about section (# Approved by:), and make any comments if needed
-# There is also a work_log document in onedrive / gitHUB, check current arrangement with Swedish dev team
+## To ensure repeatability and quality, make sure one colleage can run the script
+## When script is proven repeatable/understandable and products/metadata look ok 
+## -> Sign at top of script in about section (# Approved by:), and make any comments if needed
+## There is also a work_log document in onedrive / gitHUB, check current arrangement with Swedish dev team
 
