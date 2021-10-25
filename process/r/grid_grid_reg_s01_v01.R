@@ -110,8 +110,7 @@ data2_bounding_box <- st_read(data2_path)   # "gridbox" in v00. Bounding box for
 
 # set version
 version = "v01" # (1, 2, 3... relates to major releases for WIOSym, use v01.1, or v01.1.1 if you need additional version control use "detailed version" below)
-d_version = ".2"  # detailed version (you can add another level e.g. 0.0  -> v01.0.0)
-
+d_version = ".1" 
 # set main location (i.e. regional for products for whole WIO area, or individual countries for local WIOSym products)
 read_tsv("./shiny_data_upload/locations.txt")  # prints available locations to choose from and their abbreviations
 
@@ -676,6 +675,11 @@ grid_5km_na <- raster(outfile6)
 
 
 
+
+
+
+
+
 # OUTPUTS -----------------------------------------------------------------------------------------
 # OBS only write final files to the root directory using the exampels from here and on, any files generated in the 
 # "PROCESS Section will lake proper metadata (i.e. ..._sourcesym.txt) should be written only to ../proc/
@@ -805,6 +809,65 @@ script_name_copy # name
 
 
 # OBS! If you make more edits after this "final" save make sure to go back to your original R script under /process/r again, then resave this one in the end
+
+
+## more edits... adding 0 grids and making 50m final - same sources so fixing "sourcesym files" manually 
+# Map to 0 - additional products... grid with 0 value instead of 1. added a later stage...  ------------------------------------------
+
+# 50m grid: read in data - the 50m raster is not yet extended and cropped to analysis box, but simply in its "warped form" there is one reclassified 1/NA version of the same in /proc as well as well as the expertd 50m pixel shoreline
+dest1_path_file0 <-paste(dest1_path, subtheme1, "_50m_warped", "_", version, d_version, ".tif", sep="")
+dest1_path_file0
+grid_50m_ <- raster(dest1_path_file0)
+
+#we can work to complete the 50m if needed, just build on full process for 250m raster above...
+
+
+# 250m grid to 0: read in data 
+dest1_path_file1 <-paste(dest1_path, subtheme1, "_250m", "_", version, d_version, ".tif", sep="")
+grid_250m <- raster(dest1_path_file1) #path copied from output below...
+grid_250m
+# reclassify values so land is NA and water 1
+m <- c(0, 1, 0) # (from, to, new_value)
+
+#m <- matrix(m, ncol=3, byrow=TRUE)
+grid_250m_0 <- reclassify(grid_250m, m)
+
+dest1_path_file1_0 <-paste(dest1_path, subtheme1, "_250m_0", "_", version, d_version, ".tif", sep="")
+dest1_path_file1_0
+writeRaster(grid_250m_0, dest1_path_file1_0, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
+
+
+
+# 1km grid to 0: read in data 
+dest1_path_file3 <-paste(dest1_path, subtheme1, "_1km", "_", version, d_version, ".tif", sep="")
+grid_1km <- raster(dest1_path_file3) #path copied from output below...
+grid_1km
+# reclassify values so land is NA and water 1
+m <- c(0, 1, 0) # (from, to, new_value)
+
+#m <- matrix(m, ncol=3, byrow=TRUE)
+grid_1km_0 <- reclassify(grid_1km, m)
+
+dest1_path_file3_0 <-paste(dest1_path, subtheme1, "_1km_0", "_", version, d_version, ".tif", sep="")
+writeRaster(grid_1km_0, dest1_path_file3_0, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
+
+
+# 5km grid to 0: read in data 
+dest1_path_file5 <-paste(dest1_path, subtheme1, "_5km", "_", version, d_version, ".tif", sep="")
+grid_5km <- raster(dest1_path_file5) #path copied from output below...
+grid_5km
+# reclassify values so land is NA and water 1
+m <- c(0, 1, 0) # (from, to, new_value)
+
+#m <- matrix(m, ncol=3, byrow=TRUE)
+grid_5km_0 <- reclassify(grid_5km, m)
+
+dest1_path_file5_0 <-paste(dest1_path, subtheme1, "_5km_0", "_", version, d_version, ".tif", sep="")
+dest1_path_file5_0
+writeRaster(grid_5km_0, dest1_path_file5_0, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
+
+
+
 
 
 # FINAL CHECK  -------------------------------------------------------------------------------------------
