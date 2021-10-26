@@ -31,12 +31,12 @@ and set "Evaluate chunks in directory" to "Project", though for latest version o
   
 ## Naming and folders
   # Predefined standard names for main/sub folders and final products in two text files that can be added to in need.
-  # ..\shiny_data_upload\modify_txt_files_v01.2.xlsx and ..\process\templates\modify_txt_files_data_v01.0.xlsx
+  # ../shiny_data_upload/modify_txt_files_v01.2.xlsx and ../process/templates/modify_txt_files_data_v01.0.xlsx
   # Main version (e.g. v01 for 2021) follows dev cycles for all WIOSYm. For version control within v01 use V01.1, V01.2 etc..
   # More code/instructions to standardize folders and names under "set destinations" section
   # Each product dir have a "proc" folder. It's the temp space where all workfiles are stored. No final products here.  
-  # All final products are stored under the root folder (e.g. ..\data\reg\eco\bh_coral\v01) together with 
-  # a nameofmyfile_sourcesym.txt file with all source IDs used. No other files here. move products to _archive\ dir if defunct 
+  # All final products are stored under the root folder (e.g. ../data/reg/eco/bh_coral/v01) together with 
+  # a nameofmyfile_sourcesym.txt file with all source IDs used. No other files here. move products to _archive/ dir if defunct 
 # ========================================================================================================= # 
 # PREPARATIONS
 # ========================================================================================================= #
@@ -81,7 +81,7 @@ folders <- folders_raw %>% add_row(folders_data)
 ```
 
 ```{r}
-theme <- "REPLACE" # Copy from "theme_folder" (e.g. "eco")
+theme <- "eco" # Copy from "theme_folder" (e.g. "eco")
 ```
 
 ## Set Subtheme
@@ -93,7 +93,7 @@ folders %>%
 ```
 
 ```{r}
-subtheme <- "REPLACE" # copy from "subtheme_folder"
+subtheme <- "bh_hardsoft" # copy from "subtheme_folder"
 ```
 
 ## Set paths
@@ -125,48 +125,10 @@ name1 <- "" # "REPLACE_" if script need additional name... don't use unless need
 #==========================================================================================================================#
 # INDATA
 #==========================================================================================================================#
-# Set DATA_RAW sources
-IMPORTANT all data harvested from data_raw needs to have a metasym.txt file in its root directory (not file specific)
-## DIR1: 
-```{r}
-source1_dir <- source_dir <-  "./data_raw/.../uniqueid/"  # REPLACE - internal path
-source1 <- source_id <- "uniqueid" # REPLACE
-(read_tsv(paste(source_dir, source_id, "_metasym.txt", sep=""))) # check the metasym file
-``` 
-
-```{r}
-dir(source_dir, recursive=F)
-```
-
-```{r}
-# Files
-source1_path <- path <- paste(source_dir, "REPLACE.ext", sep="")
-object_name <- st_read(path) # REPLACE object_name
-# add files from dir as needed
-```
-
-## DIR2: 
-```{r}
-source2_dir <- source_dir <-  "./data_raw/.../uniqueid/"  # REPLACE - internal path
-source2 <- source_id <- "uniqueid" # REPLACE
-(read_tsv(paste(source_dir, source_id, "_metasym.txt", sep=""))) # check the metasym file
-``` 
-
-```{r}
-dir(source_dir, recursive=F)
-```
-
-```{r}
-# Files
-source2_path <- path <- paste(source_dir, "REPLACE.ext", sep="")
-object_name <- st_read(path) # REPLACE object_name
-# add files from dir as needed
-```
-
 
 ### declare number of "data_raw" directorys above
 ```{r}
-data_raw_metasym_num <-  REPLACE # set total number of data_raw dir used (e.g. <- 1), to help in export section
+data_raw_metasym_num <-  0 # set total number of data_raw dir used (e.g. <- 1), to help in export section
 ```
 
 
@@ -219,40 +181,79 @@ data2_file3 <- "grid_250m_na_v01.1.tif" # your data file
 
 ## DATA 3: bounding box shapefile
 ```{r}
-data3_dir <- data_dir <-  "./data/reg/grid/scope/v01/"  # input your data directory
+# "./data_raw/reg/env/geo_sub/dbseabed/gk2110151456/"
 
-data3_file <- "wiosym_grid_bounding_box_v01.shp" # your data file
+data3_dir <- data_dir <-  "./data/reg/env/geo_sub/v01/"  # input your data directory
+dir(data_dir, recursive=F)
 
-data3_sourcesym <- read_tsv(paste(data_dir, data3_file, "_sourcesym.txt", sep=""))
-#data3_sourcesym # check so source IDs exists and make sense - ok for these
-data3_path <- data_path <- paste(data_dir, data3_file, sep="")
+sub_stack_names <- list.files(data_dir, pattern = "proportion_1km_v01.0.tif$", recursive=F)
+data3_sourcesym <- read_tsv(paste(data_dir, sub_stack_names[[2]], "_sourcesym.txt", sep=""))
+sub_stack <- stack(paste(data_dir, list.files(data_dir, pattern = "proportion_1km_v01.0.tif$", recursive=F), sep=''))
 
-grid_poly <- st_read(data_path) # read in your data object if appropriate and perhaps change name to more informative...
-#grid_poly
-#plot(grid_poly)
+plot(sub_stack[[1]])
 ```
+## DATA4: depth
+```{r}
+data4_dir <- data_dir <-  "./data/reg/env/topo/v01/"  # input your data directory
+dir(data_dir) # check what data is in this directory
+data_file <- "bathymetry_mean_m_1km_v01.1.tif" # your data file
+data4_sourcesym <- read_tsv(paste(data_dir, data_file, "_sourcesym.txt", sep=""))
+data4_path <- data_path <- paste(data_dir, data_file, sep="")
+
+depth_1km <- raster(data_path) # read in your data object if appropriate and perhaps change name to more informative...
+plot(depth_1km)
+```
+
+
+
 
 ## declare number of "data" files
 ```{r}
-data_sourcesym_num <-  REPLACE # set total number of data files (e.g. <- 2), to help in export section
+data_sourcesym_num <-  4 # set total number of data files (e.g. <- 2), to help in export section
 ```
 
 #==========================================================================================================================#
 # PROCESSING
 #==========================================================================================================================#
 
+## write function to classify into habitats..
+```{r}
 
-*****************************************************************
-*****************************************************************
-## Here you can perform any processing to generate the data layer
-## Ensure the code is clearly described with comments (#)
-*****************************************************************
-*****************************************************************
+# linear rescale 0-1
+soft <- sub_stack[[6]]
+hard <- sub_stack[[4]]
 
-*****************************************************************
-## NOTE 1. Normalisation will happen at later "final" stage, do not integrate in main scripts
-## NOTE 2. Create the uncertainty map separate (script *_s02_v01) once main data is ready (script *_s01_v01)
-*****************************************************************
+r <- hard
+r.min=cellStats(r,"min")
+r.max=cellStats(r,"max")
+hard <- (r-r.min)/(r.max-r.min)
+
+
+r <- soft
+r.min=cellStats(r,"min")
+r.max=cellStats(r,"max")
+soft <- (r-r.min)/(r.max-r.min)
+
+# calculate habitat
+shallow_soft <- (reclassify(depth_1km, c(-40, 1, 1,-7000, -40, 0)) * soft)
+shallow_hard <- (reclassify(depth_1km, c(-40, 1, 1,-7000, -40, 0)) * hard)
+
+shelf_soft <- reclassify(depth_1km, c(-200, -40, 1,-7000, -200, 0, -40, 1, 0)) * soft
+shelf_hard <- reclassify(depth_1km, c(-200, -40, 1,-7000, -200, 0, -40, 1, 0)) * hard
+
+continental_slope_soft <- reclassify(depth_1km, c(-1000, -200, 1,-7000, -1000, 0, -200, 1, 0)) * soft
+continental_slope_hard <- reclassify(depth_1km, c(-1000, -200, 1,-7000, -1000, 0, -200, 1, 0)) * hard
+
+abyssal_1000m_soft <- reclassify(depth_1km, c(-3000, -1000, 1,-7000, -3000, 0, -1000, 1, 0)) * soft
+abyssal_1000m_hard <- reclassify(depth_1km, c(-3000, -1000, 1,-7000, -3000, 0, -1000, 1, 0)) * hard
+
+abyssal_3000m_soft <- reclassify(depth_1km, c(-7000, -3000, 1,-3000, 1, 0)) * soft
+abyssal_3000m_hard <- reclassify(depth_1km, c(-7000, -3000, 1,-3000, 1, 0)) * hard
+
+
+```
+
+
 
 #==========================================================================================================================#
 # EXPORT
@@ -262,11 +263,11 @@ data_sourcesym_num <-  REPLACE # set total number of data files (e.g. <- 2), to 
 
 
 # SOURCESYM
-### Create sourcesym file with all source IDs used (data and data_raw) 
+Create sourcesym file with all source IDs used (data and data_raw) 
 # data raw sources (dir)
 ```{r}
 print(paste("data_raw metasym files used = ", data_raw_metasym_num, sep=""))
-(data_raw_sources <- tibble(id = c(source1, source2, ...))) # REPLACE / add all data_raw sources
+(data_raw_sources <- tibble(id = c())) # REPLACE / add all data_raw sources
 ```
 
 ## data sources (files)
@@ -274,32 +275,38 @@ print(paste("data_raw metasym files used = ", data_raw_metasym_num, sep=""))
 print(paste("data_sourcym files = ", data_sourcesym_num, sep=""))
 data_sources <- data1_sourcesym %>% # add any "sourcesym" files applicable to this product (check indata section), keep adding sourcesym files as needed
   add_row(data2_sourcesym)%>%  
-  #add_row(data3_sourcesym)%>% 
-  #add_row(data4_sourcesym)%>% 
+  add_row(data3_sourcesym)%>% 
+  add_row(data4_sourcesym)%>% 
   #add_row(data5_sourcesym)%>% 
   #add_row(data6_sourcesym)%>% 
   unique() %>% 
-  print()
+  #print()
 ```
 ## Sources combined
 ```{r}
-(all_sources <- data_raw_sources %>% add_row(data_sources))
+(all_sources <- (data_sources))
 ```
-### if a product only use a subset of the total sources, copy the section above and create individual files below (e.g. product1_sources <- ...)
-
+if a product only use a subset of the total sources, copy the section above and create individual files below (e.g. product1_sources <- ...)
 
 # PRODUCT 1: 
 ## read objects
 ```{r}
-product_orig <- REPLACE # input and check your object to be written to file
-#product_norm01 <- REPLACE # input and check your object to be written to file
-#product_uncertainty <- REPLACE # input and check your object to be written to file
-plot(c(product_orig))
+product_orig <- shallow_soft # input and check your object to be written to file
+product_orig2 <- shallow_hard # input and check your object to be written to file
+product_orig3 <- shelf_soft # input and check your object to be written to file
+product_orig4 <- shelf_hard # input and check your object to be written to file
+product_orig5 <- continental_slope_soft # input and check your object to be written to file
+product_orig6 <- continental_slope_hard # input and check your object to be written to file
+product_orig7 <- abyssal_1000m_soft # input and check your object to be written to file
+product_orig8 <- abyssal_1000m_hard # input and check your object to be written to file
+product_orig9 <- abyssal_3000m_soft # input and check your object to be written to file
+product_orig10 <- abyssal_3000m_hard # input and check your object to be written to file
+plot(product_orig10)
 ```
 ## set names
 ```{r}
-scale <- "REPLACE" # "1km" / "250m"
-unit <- "REPLACE"  # add unit for product with original values (e.g. m, km, perc, presence, proportion
+scale <- "1km" # "1km" / "250m"
+unit <- "proportion"  # add unit for product with original values (e.g. m, km, perc, presence, proportion
 component_names <- read_tsv("./shiny_data_upload/component_names.txt") 
 component_names_selected <- component_names %>%
   dplyr::filter(theme_folder == theme) %>% 
@@ -308,24 +315,61 @@ component_names_selected <- component_names %>%
 ```
 
 ```{r}
-descriptive_name <- "REPLACE"  # name of product, for pressure/ecosystem components select from name list above
+
+descriptive_name <- "shallow_soft"  # name of product, for pressure/ecosystem components select from name list above
+descriptive_name2 <- "shallow_hard"  # name of product, for pressure/ecosystem components select from name list above
+descriptive_name3 <- "shelf_soft"  # name of product, for pressure/ecosystem components select from name list above
+descriptive_name4 <- "shelf_hard"  # name of product, for pressure/ecosystem components select from name list above
+descriptive_name5 <- "continental_slope_soft"  # name of product, for pressure/ecosystem components select from name list above
+descriptive_name6 <- "continental_slope_hard"  # name of product, for pressure/ecosystem components select from name list above
+descriptive_name7 <- "abyssal_1000m_soft"  # name of product, for pressure/ecosystem components select from name list above
+descriptive_name8 <- "abyssal_1000m_hard"  # name of product, for pressure/ecosystem components select from name list above
+descriptive_name9 <- "abyssal_3000m_soft"  # name of product, for pressure/ecosystem components select from name list above
+descriptive_name10 <- "abyssal_3000m_hard"  # name of product, for pressure/ecosystem components select from name list above
+
+
 ```
 ## paths
 ```{r}
 (product_orig_path <- paste(dest_path, descriptive_name, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
-#(product_norm01_path <- paste(dest_path, descriptive_name, "_norm01_", scale, "_", version, d_version, ".tif", sep="" ))
-#(product_uncertainty_path <- paste(dest_path, descriptive_name, "_uncertainty_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig_path2 <- paste(dest_path, descriptive_name2, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig_path3 <- paste(dest_path, descriptive_name3, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig_path4 <- paste(dest_path, descriptive_name4, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig_path5 <- paste(dest_path, descriptive_name5, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig_path6 <- paste(dest_path, descriptive_name6, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig_path7 <- paste(dest_path, descriptive_name7, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig_path8 <- paste(dest_path, descriptive_name8, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig_path9 <- paste(dest_path, descriptive_name9, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig_path10 <- paste(dest_path, descriptive_name10, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+
 ```
 ## Write to file
 ```{r}
 # check datatype to be appropriate for values (flt or int, 'INT4S' option to..)
 writeRaster(product_orig, product_orig_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
-#writeRaster(product_norm01, product_norm01_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
-#writeRaster(product_uncertainty, product_uncertainty_path, COMPRESS=LZW, datatype = 'INT1U', overwrite=TRUE)
+writeRaster(product_orig2, product_orig_path2, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+writeRaster(product_orig3, product_orig_path3, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+writeRaster(product_orig4, product_orig_path4, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+writeRaster(product_orig5, product_orig_path5, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+writeRaster(product_orig6, product_orig_path6, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+writeRaster(product_orig7, product_orig_path7, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+writeRaster(product_orig8, product_orig_path8, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+writeRaster(product_orig9, product_orig_path9, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+writeRaster(product_orig10, product_orig_path10, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+
+
 # write sourcesym file, change "all_sources" to "selected_sources" if subset only for specific file
 write_tsv(all_sources, paste(product_orig_path, "_sourcesym.txt", sep=""))  
-#write_tsv(all_sources, paste(product_norm01_path, "_sourcesym.txt", sep=""))
-#write_tsv(all_sources, paste(product_uncertainty_path, "_sourcesym.txt", sep=""))
+write_tsv(all_sources, paste(product_orig_path2, "_sourcesym.txt", sep=""))  
+write_tsv(all_sources, paste(product_orig_path3, "_sourcesym.txt", sep=""))  
+write_tsv(all_sources, paste(product_orig_path4, "_sourcesym.txt", sep=""))  
+write_tsv(all_sources, paste(product_orig_path5, "_sourcesym.txt", sep=""))  
+write_tsv(all_sources, paste(product_orig_path6, "_sourcesym.txt", sep=""))  
+write_tsv(all_sources, paste(product_orig_path7, "_sourcesym.txt", sep=""))  
+write_tsv(all_sources, paste(product_orig_path8, "_sourcesym.txt", sep=""))  
+write_tsv(all_sources, paste(product_orig_path9, "_sourcesym.txt", sep=""))  
+write_tsv(all_sources, paste(product_orig_path10, "_sourcesym.txt", sep=""))  
+)  
 ```
 
 
@@ -345,12 +389,12 @@ print(script_name_copy <- paste(gsub(".Rmd", "", script_name), d_version, ".Rmd"
 # FINAL CHECK
 #==========================================================================================================================#
 # Developer check
-## Do your own final check on the products and double check sourcesym file exists and are complete for all files in root 
-## -> Sign at top of script in about section (# Approved by:)
+ Do your own final check on the products and double check sourcesym file exists and are complete for all files in root 
+ -> Sign at top of script in about section (# Approved by:)
 
 # External check 
-## To ensure repeatability and quality, make sure one colleage can run the script
-## When script is proven repeatable/understandable and products/metadata look ok 
-## -> Sign at top of script in about section (# Approved by:), and make any comments if needed
-## There is also a work_log document in onedrive / gitHUB, check current arrangement with Swedish dev team
+ To ensure repeatability and quality, make sure one colleage can run the script
+ When script is proven repeatable/understandable and products/metadata look ok 
+ -> Sign at top of script in about section (# Approved by:), and make any comments if needed
+ There is also a work_log document in onedrive / gitHUB, check current arrangement with Swedish dev team
 

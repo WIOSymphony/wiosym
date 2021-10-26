@@ -10,33 +10,13 @@ and set "Evaluate chunks in directory" to "Project", though for latest version o
 # ========================================================================================================= #
 # ABOUT
 # ========================================================================================================= #
-## Brief description: 
-### Sripts/processes that needs to be updated prior?:
+## Brief description: AIS / Shipping and noise pressure to standard grid
+### Sripts/processes that needs to be updated prior?: currently none, but future ersion should atleast include depth
 ###
-### Script by: Initial, org, Rver:
+### Script by: gk, sgu, Rver 4.1.1.
 ### Updated: Initial, org, Rver, comments
 ### Developer check: Initial, org, yymmdd, comments
 ### External check: Initial, org, yymmdd, comments
-# ========================================================================================================= #
-# INSTRUCTIONS
-# ========================================================================================================= #    
-## Style
-  # Write code that is easy to follow and repeat.
-  # Suggested R style is tidyverse. Style guide here https://style.tidyverse.org/index.html
-
-## Metadata
-  # All indata from "data_raw" must have a unique ID with *_metasym.txt file to go along, check before you add data.
-  # All indata from and outputs to "data" must have a *_sourcesym.txt file with all (accumulated) sourceIDs used to create the layer.
-  # The metasym files and tracking of those in the sourcesym files ensures correct sources for products and ISO metadata. This template helps you get it right..
-  
-## Naming and folders
-  # Predefined standard names for main/sub folders and final products in two text files that can be added to in need.
-  # ..\shiny_data_upload\modify_txt_files_v01.2.xlsx and ..\process\templates\modify_txt_files_data_v01.0.xlsx
-  # Main version (e.g. v01 for 2021) follows dev cycles for all WIOSYm. For version control within v01 use V01.1, V01.2 etc..
-  # More code/instructions to standardize folders and names under "set destinations" section
-  # Each product dir have a "proc" folder. It's the temp space where all workfiles are stored. No final products here.  
-  # All final products are stored under the root folder (e.g. ..\data\reg\eco\bh_coral\v01) together with 
-  # a nameofmyfile_sourcesym.txt file with all source IDs used. No other files here. move products to _archive\ dir if defunct 
 # ========================================================================================================= # 
 # PREPARATIONS
 # ========================================================================================================= #
@@ -44,12 +24,13 @@ and set "Evaluate chunks in directory" to "Project", though for latest version o
 ### Install packages
 ```{r, include = FALSE}
 # list all packages that this script is dependent on, remove any redundant ones
-x <- c("sf", "raster", "rgdal", "tidyverse")
-#install.packages(x, dependencies=TRUE)
+x <- c("sf", "raster", "rgdal", "tidyverse", "gdalUtils")
+#install.packages("gdalUtils", dependencies=TRUE)
 ```
 
 ### Load packages
 ```{r, include = FALSE}
+library(gdalUtils)
 library(sf) 
 library(raster)
 library(rgdal)
@@ -59,7 +40,7 @@ library(tidyverse)
 ## Set version
 ```{r}
 version = "v01" # relates to major iteration of WIOSym (v01 for grid 2021, v02 for grid 2022)
-d_version = ".0"  # detailed version (you can add another level e.g. 0.0  -> v01.0.0)
+d_version = ".1"  # detailed version (you can add another level e.g. 0.0  -> v01.0.0)
 seq = "s01" # sequential order - change accordingly if process is run in several scripts
 ```
 
@@ -81,7 +62,7 @@ folders <- folders_raw %>% add_row(folders_data)
 ```
 
 ```{r}
-theme <- "REPLACE" # Copy from "theme_folder" (e.g. "eco")
+theme <- "act" # Copy from "theme_folder" (e.g. "eco")
 ```
 
 ## Set Subtheme
@@ -93,7 +74,7 @@ folders %>%
 ```
 
 ```{r}
-subtheme <- "REPLACE" # copy from "subtheme_folder"
+subtheme <- "ship" # this script will adress many pressurs bot working from shipping activity dir
 ```
 
 ## Set paths
@@ -129,44 +110,27 @@ name1 <- "" # "REPLACE_" if script need additional name... don't use unless need
 IMPORTANT all data harvested from data_raw needs to have a metasym.txt file in its root directory (not file specific)
 ## DIR1: 
 ```{r}
-source1_dir <- source_dir <-  "./data_raw/.../uniqueid/"  # REPLACE - internal path
-source1 <- source_id <- "uniqueid" # REPLACE
+source1_dir <- source_dir <-  "./data_raw/glo/act/ship/wb/gk2110121713/"  # REPLACE - internal path
+source1 <- source_id <- "gk2110121713" # 
 (read_tsv(paste(source_dir, source_id, "_metasym.txt", sep=""))) # check the metasym file
 ``` 
 
 ```{r}
-dir(source_dir, recursive=F)
+dir(source_dir, recursive=T, pattern= ".tif$")
 ```
 
 ```{r}
 # Files
-source1_path <- path <- paste(source_dir, "REPLACE.ext", sep="")
-object_name <- st_read(path) # REPLACE object_name
+ship_stack_names <- list.files(source_dir, pattern = ".tif$", recursive=T)
+ship_stack <- stack(paste(source_dir, list.files(source_dir, pattern = ".tif$", recursive=T), sep=''))
+ship_stack
+names(ship_stack)
 # add files from dir as needed
 ```
-
-## DIR2: 
-```{r}
-source2_dir <- source_dir <-  "./data_raw/.../uniqueid/"  # REPLACE - internal path
-source2 <- source_id <- "uniqueid" # REPLACE
-(read_tsv(paste(source_dir, source_id, "_metasym.txt", sep=""))) # check the metasym file
-``` 
-
-```{r}
-dir(source_dir, recursive=F)
-```
-
-```{r}
-# Files
-source2_path <- path <- paste(source_dir, "REPLACE.ext", sep="")
-object_name <- st_read(path) # REPLACE object_name
-# add files from dir as needed
-```
-
 
 ### declare number of "data_raw" directorys above
 ```{r}
-data_raw_metasym_num <-  REPLACE # set total number of data_raw dir used (e.g. <- 1), to help in export section
+data_raw_metasym_num <- 1 # set total number of data_raw dir used (e.g. <- 1), to help in export section
 ```
 
 
@@ -216,43 +180,231 @@ data2_file3 <- "grid_250m_na_v01.1.tif" # your data file
 #plot(grid_250m)
 ```
 
+# data3: bounding box for the grid (created by SGU in GIS so no data_raw sources involved)
+data3_dir <- "./data/reg/grid/scope/v01/" 
+dir(data2_dir)
+data3_file <- "wiosym_data_bounding_box_v01.shp" 
+data3_sourcesym <- read_tsv(paste(data2_dir, data2_file, "_sourcesym.txt", sep=""))
+data3_sourcesym # check so source IDs exists and make sense
+data3_path <- paste(data3_dir, data3_file, sep="")
+data3_path # note: this data is not read in as an object since the process in this script happens in GDAL outside R
 
-## DATA 3: bounding box shapefile
-```{r}
-data3_dir <- data_dir <-  "./data/reg/grid/scope/v01/"  # input your data directory
+extent_box <- st_read(data3_path)
 
-data3_file <- "wiosym_grid_bounding_box_v01.shp" # your data file
 
-data3_sourcesym <- read_tsv(paste(data_dir, data3_file, "_sourcesym.txt", sep=""))
-#data3_sourcesym # check so source IDs exists and make sense - ok for these
-data3_path <- data_path <- paste(data_dir, data3_file, sep="")
 
-grid_poly <- st_read(data_path) # read in your data object if appropriate and perhaps change name to more informative...
-#grid_poly
-#plot(grid_poly)
-```
 
 ## declare number of "data" files
 ```{r}
-data_sourcesym_num <-  REPLACE # set total number of data files (e.g. <- 2), to help in export section
+data_sourcesym_num <-  2 # set total number of data files (e.g. <- 2), to help in export section
 ```
 
 #==========================================================================================================================#
 # PROCESSING
 #==========================================================================================================================#
 
+## Map to 1km grid 
+it may be better to map to first map to 250m grid next iteration, check the source resolution, 0.005 deg should be about 500m.. and do some thinking..
+```{r}
+#ship_sum <- calc(ship_stack, sum) # total sum of all cells (should be 100% for substrate components, but isnt yet)
 
-*****************************************************************
-*****************************************************************
-## Here you can perform any processing to generate the data layer
-## Ensure the code is clearly described with comments (#)
-*****************************************************************
-*****************************************************************
+# divide by total sum and print to file
+stack <- ship_stack
+stack <- crop(ship_stack, extent_box)
 
-*****************************************************************
-## NOTE 1. Normalisation will happen at later "final" stage, do not integrate in main scripts
-## NOTE 2. Create the uncertainty map separate (script *_s02_v01) once main data is ready (script *_s01_v01)
-*****************************************************************
+for (i in c(1:6)) {
+(indata_path <- paste(source1_dir, ship_stack_names[i], sep=""))
+
+(outdata_path <- paste(work_path, names(stack)[i], "_grid1km_.tif", sep=""))
+writeRaster(grid_1km_na, outdata_path, overwrite=TRUE, COMPRESS=LZW)
+
+sr <- "+proj=cea +lat_ts=-12 +lon_0=12 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"    
+
+raster_warp <- gdalUtils::gdalwarp(srcfile = indata_path,
+                                dstfile = outdata_path,
+                                s_srs = "+proj=longlat +datum=WGS84 +no_defs",
+                                t_srs = sr,
+                                tr = c(1000, 1000),
+                                tap = TRUE,
+                                output_Raster = TRUE,
+                                overwrite = TRUE,
+                                r = "average",
+                                multi = TRUE,
+                                srcnodata = "NA"
+)
+
+
+r <- raster(outdata_path) 
+
+r <- crop(r, extent(grid_1km))
+r <- mask(r, grid_1km)
+
+(r_path <- paste(work_path, names(stack)[i], "_grid1km_lzw.tif", sep=""))
+writeRaster(r, r_path, overwrite=TRUE, datatype = 'FLT4S', COMPRESS=LZW)
+}
+
+```
+
+
+## turn AIS into noise disturbance
+https://www.frontiersin.org/articles/10.3389/fmars.2019.00606/full#supplementary-material
+more work needed...
+```{r}
+#ship_sum <- calc(ship_stack, sum) # total sum of all cells (should be 100% for substrate components, but isnt yet)
+
+stack <- stack(paste(work_path, list.files(work_path, pattern = "_grid1km_lzw.tif$", recursive=T), sep=''))
+  
+plot(stack[[1]])
+names(stack)
+
+# adding 0 to nodata areas...
+stack_merge <- merge(stack, grid_1km_0)
+stack <- stack_merge
+
+
+# factor for dB of different shiptypes, approximate from Dr. Hammar...
+
+f_high <- 100000 # Watt at 170dB mainly commersal traffic (assuming oil vessels are the same..)
+f_med <- 10000 # W at 160 dB
+f_low  <- 1000 # W at 150 dB
+
+noise <-  (stack[[1]] + stack[[5]])*f_high + (stack[[2]] + stack[[6]])*f_med + (stack[[3]] + stack[[4]])*f_low  
+
+r <- noise
+
+#r <- reclassify(r, c(-5, 0.5, 0))
+#plot(r)
+
+noise_com <- (stack[[1]])*f_high
+a <- matrix(1/9801, nc=99, nr=99)
+r5 <- focal(r, w=matrix(1/25,nrow=5,ncol=5)) 
+
+r_focal_100km <- focal(noise_com, a, na.rm=F) 
+
+
+w <- focalWeight(grid_1km, 10000, "Gauss")
+r_focal <- focal(r, w, na.rm=T) 
+
+w <- focalWeight(grid_1km, 1000, "Gauss")
+r_focal_1km <- focal(r, w, na.rm=T) 
+
+#noise_com <- (stack[[1]])*f_high
+#w <- focalWeight(grid_1km, 100000, "Gauss")
+#r_focal_50km <- focal(noise_com, w, na.rm=T) 
+
+
+
+
+r_comb <- r_focal + r_focal_1km + r_focal_100km
+#r <- r_comb
+#r <- reclassify(r, c(50, 100000000000000, 50))
+
+r <- r_comb
+
+r <- merge(r, grid_1km_0)
+r <- crop(r, grid_1km)
+r <- mask(r, grid_1km)
+r
+
+#r <- reclassify(r, c(10, 50, 10))
+
+noise_focal <- r   # noise impact ready for export!
+
+```
+
+
+
+## turn AIS into shipstrikes
+more work needed...
+```{r}
+#ship_sum <- calc(ship_stack, sum) # total sum of all cells (should be 100% for substrate components, but isnt yet)
+
+#stack <- stack(paste(work_path, list.files(work_path, pattern = "_grid1km_lzw.tif$", recursive=T), sep=''))
+#plot(stack[[1]])
+names(stack)
+
+f_high <- 10 # assumption that needs more careful consideration. assuming commersal traffic have bigger impact due to size and speed
+f_med <- 5 # W at 160 dB
+f_low  <- 3 # W at 150 dB
+ship_strikes <-  ((stack[[1]] + stack[[5]])*f_high + (stack[[2]] + stack[[6]])*f_med + (stack[[3]] + stack[[4]])*f_low)
+
+r <- ship_strikes
+
+#r <- reclassify(r, c(-5, 0.5, 0))
+#plot(r)
+w <- focalWeight(r, 1000, "Gauss") # "blurring" data to account for uncertainty
+r_focal <- focal(r, w, na.rm=T) 
+
+r_focal
+plot(r_focal)
+
+r <- r_focal
+
+#r <- merge(r, grid_1km_0)
+r <- crop(r, grid_1km)
+r <- mask(r, grid_1km)
+r
+
+#r <- reclassify(r, c(10, 50, 10))
+
+shipstrike_focal <- r   # noise impact ready for export!
+
+```
+
+## turn AIS into "pollution"
+more work needed...
+```{r}
+names(stack)
+
+r <- stack[[3]] # going only with "global layer here..., more thinking needed
+w <- focalWeight(r, 50000, "Gauss") # simulating spread of pollutants
+r_focal_50km <- focal(r, w, na.rm=T) 
+
+w <- focalWeight(r, 2000, "Gauss") # simulating spread of pollutants
+r_focal_2km <- focal(r, w, na.rm=T) 
+
+r <- r_focal_50km + r_focal_2km
+
+plot(r)
+
+r <- merge(r, grid_1km_0)
+r <- crop(r, grid_1km)
+r <- mask(r, grid_1km)
+
+r
+
+#r <- reclassify(r, c(10, 50, 10))
+
+pollution_focal <- r   # pollution impact ready for export!
+
+```
+
+
+## turn AIS into "recreational_boating"
+more work needed...
+```{r}
+names(stack)
+
+r <- stack[[4]] # going only with "global layer here..., more thinking needed
+w <- focalWeight(r, 2000, "Gauss") # simulating spread of disturbance
+r_focal_2km <- focal(r, w, na.rm=T) 
+
+r <- r_focal_1km + r
+
+plot(r)
+
+r <- merge(r, grid_1km_0)
+r <- crop(r, grid_1km)
+r <- mask(r, grid_1km)
+
+r
+
+#r <- reclassify(r, c(10, 50, 10))
+
+recreational_boating <- r   # ready for export
+
+```
+
 
 #==========================================================================================================================#
 # EXPORT
@@ -266,7 +418,7 @@ data_sourcesym_num <-  REPLACE # set total number of data files (e.g. <- 2), to 
 # data raw sources (dir)
 ```{r}
 print(paste("data_raw metasym files used = ", data_raw_metasym_num, sep=""))
-(data_raw_sources <- tibble(id = c(source1, source2, ...))) # REPLACE / add all data_raw sources
+(data_raw_sources <- tibble(id = c(source1))) # REPLACE / add all data_raw sources
 ```
 
 ## data sources (files)
@@ -291,15 +443,17 @@ data_sources <- data1_sourcesym %>% # add any "sourcesym" files applicable to th
 # PRODUCT 1: 
 ## read objects
 ```{r}
-product_orig <- REPLACE # input and check your object to be written to file
-#product_norm01 <- REPLACE # input and check your object to be written to file
-#product_uncertainty <- REPLACE # input and check your object to be written to file
-plot(c(product_orig))
+product_orig <- noise_focal # input and check your object to be written to file
+product_orig2 <- shipstrike_focal # input and check your object to be written to file
+product_orig3 <- pollution_focal # input and check your object to be written to file
+product_orig4 <- recreational_boating # input and check your object to be written to file
+
+plot(product_orig3)
 ```
 ## set names
 ```{r}
-scale <- "REPLACE" # "1km" / "250m"
-unit <- "REPLACE"  # add unit for product with original values (e.g. m, km, perc, presence, proportion
+scale <- "1km" # "1km" / "250m"
+unit <- "relative"  # add unit for product with original values (e.g. m, km, perc, presence, proportion
 component_names <- read_tsv("./shiny_data_upload/component_names.txt") 
 component_names_selected <- component_names %>%
   dplyr::filter(theme_folder == theme) %>% 
@@ -308,24 +462,37 @@ component_names_selected <- component_names %>%
 ```
 
 ```{r}
-descriptive_name <- "REPLACE"  # name of product, for pressure/ecosystem components select from name list above
+descriptive_name <- "underwater_noise"  # name of product, for pressure/ecosystem components select from name list above
+descriptive_name2 <- "ship_strike"  # name of product, for pressure/ecosystem components select from name list above
+descriptive_name3 <- "ship_pollution"  # name of product, for pressure/ecosystem components select from name list above
+descriptive_name4 <- "recreational_boating"  # name of product, for pressure/ecosystem components select from name list above
+
 ```
 ## paths
 ```{r}
-(product_orig_path <- paste(dest_path, descriptive_name, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
-#(product_norm01_path <- paste(dest_path, descriptive_name, "_norm01_", scale, "_", version, d_version, ".tif", sep="" ))
-#(product_uncertainty_path <- paste(dest_path, descriptive_name, "_uncertainty_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig_path <- paste(dest_path, descriptive_name, "_", "relative_intensity_w", "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig2_path <- paste(dest_path, descriptive_name2, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig3_path <- paste(dest_path, descriptive_name3, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig4_path <- paste(dest_path, descriptive_name4, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+
+
+
+
 ```
 ## Write to file
 ```{r}
 # check datatype to be appropriate for values (flt or int, 'INT4S' option to..)
 writeRaster(product_orig, product_orig_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
-#writeRaster(product_norm01, product_norm01_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
-#writeRaster(product_uncertainty, product_uncertainty_path, COMPRESS=LZW, datatype = 'INT1U', overwrite=TRUE)
+writeRaster(product_orig2, product_orig2_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+writeRaster(product_orig3, product_orig3_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+writeRaster(product_orig4, product_orig4_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+
+
 # write sourcesym file, change "all_sources" to "selected_sources" if subset only for specific file
 write_tsv(all_sources, paste(product_orig_path, "_sourcesym.txt", sep=""))  
-#write_tsv(all_sources, paste(product_norm01_path, "_sourcesym.txt", sep=""))
-#write_tsv(all_sources, paste(product_uncertainty_path, "_sourcesym.txt", sep=""))
+write_tsv(all_sources, paste(product_orig2_path, "_sourcesym.txt", sep="")) 
+write_tsv(all_sources, paste(product_orig3_path, "_sourcesym.txt", sep="")) 
+write_tsv(all_sources, paste(product_orig4_path, "_sourcesym.txt", sep="")) 
 ```
 
 

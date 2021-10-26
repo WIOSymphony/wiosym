@@ -652,8 +652,15 @@ allen_habitat_250m_r <- raster(output_path)
 allen_habitat_250m_va11_r <- reclassify(allen_habitat_250m_r, c(-1,1,1))
 allen_habitat_250m_val1_path <- output_path <- paste(work_path, "grid_250m_allen_habitat_val1_lzw.tif", sep= "")
 writeRaster(allen_habitat_250m_va11_r , output_path,  overwrite=T, datatype = 'FLT4S', COMPRESS=LZW)
+r <- raster(output_path)
+
+allen_mapfootprint_250m_zero # input and check your object to be written to file
 
 
+product_orig <- combined_coral_250m_zero # input and check your object to be written to file
+product_orig2 <- combined_mapfootprint_250m_zero # input and check your object to be written to file
+product_orig3 <- wcmc_coral_250m_zero # input and check your object to be written to file
+product_orig4 <- allen_coral_250m_zero # input and check your object to be written to file
 
 ```
 
@@ -849,6 +856,47 @@ data_sources <- data1_sourcesym %>% # add any "sourcesym" files applicable to th
 (all_sources <- data_raw_sources %>% add_row(data_sources))
 ```
 # if a product only use a subset of the total sources, copy the section above and create individual files below (e.g. product1_sources <- ...)
+
+
+# PRODUCT 2: Coral 250m
+### read objects
+```{r}
+product_orig <- combined_coral_250m_zero # input and check your object to be written to file
+product_orig2 <- combined_mapfootprint_250m_zero # input and check your object to be written to file
+product_orig3 <- wcmc_coral_250m_zero # input and check your object to be written to file
+product_orig4 <- allen_coral_250m_zero # input and check your object to be written to file
+product_orig5 <- allen_mapfootprint_250m_zero # input and check your object to be written to file
+plot(product_orig)
+```
+### set names
+```{r}
+scale <- "1km"
+unit <- "proportion"  # add unit for product with original values (e.g. m, km, perc, presence, proportion
+unit2 <- "proportion_mapnorm"
+component_names <- read_tsv("./shiny_data_upload/component_names.txt") 
+component_names_selected <- component_names %>%
+  dplyr::filter(theme_folder == theme) %>% 
+  dplyr::select(group, file_name, description) %>% 
+  print(n = Inf)
+```
+
+```{r}
+descriptive_name <- "coral_reef"  # name of product, for pressure/ecosystem components select from name list above
+```
+### paths
+```{r}
+(product_orig_path <- paste(dest_path, descriptive_name, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig2_path <- paste(dest_path, descriptive_name, "_", unit2, "_", scale, "_", version, d_version, ".tif", sep="" ))
+```
+### Write to file
+```{r}
+# check datatype to be appropriate for values (flt or int, 'INT4S' option to..)
+writeRaster(product_orig, product_orig_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+writeRaster(product_orig2, product_orig2_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+write_tsv(all_sources, paste(product_orig_path, "_sourcesym.txt", sep=""))  
+write_tsv(all_sources, paste(product_orig2_path, "_sourcesym.txt", sep=""))  
+```
+
 
 
 # PRODUCT 1: Coral 1km

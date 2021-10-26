@@ -10,33 +10,16 @@ and set "Evaluate chunks in directory" to "Project", though for latest version o
 # ========================================================================================================= #
 # ABOUT
 # ========================================================================================================= #
-## Brief description: 
-### Sripts/processes that needs to be updated prior?:
+## Brief description: converting airports to pollution...
+
+### Sripts/processes that needs to be updated prior?: made buffers of the points in GM v21 (5km radius)
 ###
-### Script by: Initial, org, Rver:
+### Script by: gk, sgu, r4.1.1
 ### Updated: Initial, org, Rver, comments
 ### Developer check: Initial, org, yymmdd, comments
 ### External check: Initial, org, yymmdd, comments
-# ========================================================================================================= #
-# INSTRUCTIONS
-# ========================================================================================================= #    
-## Style
-  # Write code that is easy to follow and repeat.
-  # Suggested R style is tidyverse. Style guide here https://style.tidyverse.org/index.html
+# =============================================================================================
 
-## Metadata
-  # All indata from "data_raw" must have a unique ID with *_metasym.txt file to go along, check before you add data.
-  # All indata from and outputs to "data" must have a *_sourcesym.txt file with all (accumulated) sourceIDs used to create the layer.
-  # The metasym files and tracking of those in the sourcesym files ensures correct sources for products and ISO metadata. This template helps you get it right..
-  
-## Naming and folders
-  # Predefined standard names for main/sub folders and final products in two text files that can be added to in need.
-  # ..\shiny_data_upload\modify_txt_files_v01.2.xlsx and ..\process\templates\modify_txt_files_data_v01.0.xlsx
-  # Main version (e.g. v01 for 2021) follows dev cycles for all WIOSYm. For version control within v01 use V01.1, V01.2 etc..
-  # More code/instructions to standardize folders and names under "set destinations" section
-  # Each product dir have a "proc" folder. It's the temp space where all workfiles are stored. No final products here.  
-  # All final products are stored under the root folder (e.g. ..\data\reg\eco\bh_coral\v01) together with 
-  # a nameofmyfile_sourcesym.txt file with all source IDs used. No other files here. move products to _archive\ dir if defunct 
 # ========================================================================================================= # 
 # PREPARATIONS
 # ========================================================================================================= #
@@ -81,7 +64,7 @@ folders <- folders_raw %>% add_row(folders_data)
 ```
 
 ```{r}
-theme <- "REPLACE" # Copy from "theme_folder" (e.g. "eco")
+theme <- "act" # Copy from "theme_folder" (e.g. "eco")
 ```
 
 ## Set Subtheme
@@ -93,7 +76,7 @@ folders %>%
 ```
 
 ```{r}
-subtheme <- "REPLACE" # copy from "subtheme_folder"
+subtheme <- "lb_other" # copy from "subtheme_folder"
 ```
 
 ## Set paths
@@ -129,8 +112,8 @@ name1 <- "" # "REPLACE_" if script need additional name... don't use unless need
 IMPORTANT all data harvested from data_raw needs to have a metasym.txt file in its root directory (not file specific)
 ## DIR1: 
 ```{r}
-source1_dir <- source_dir <-  "./data_raw/.../uniqueid/"  # REPLACE - internal path
-source1 <- source_id <- "uniqueid" # REPLACE
+source1_dir <- source_dir <-  "./data_raw/glo/act/lb_other/wfp/pz2110251520/"  # REPLACE - internal path
+source1_id <- source_id <- "pz2110251520" # 
 (read_tsv(paste(source_dir, source_id, "_metasym.txt", sep=""))) # check the metasym file
 ``` 
 
@@ -140,33 +123,15 @@ dir(source_dir, recursive=F)
 
 ```{r}
 # Files
-source1_path <- path <- paste(source_dir, "REPLACE.ext", sep="")
-object_name <- st_read(path) # REPLACE object_name
-# add files from dir as needed
-```
-
-## DIR2: 
-```{r}
-source2_dir <- source_dir <-  "./data_raw/.../uniqueid/"  # REPLACE - internal path
-source2 <- source_id <- "uniqueid" # REPLACE
-(read_tsv(paste(source_dir, source_id, "_metasym.txt", sep=""))) # check the metasym file
-``` 
-
-```{r}
-dir(source_dir, recursive=F)
-```
-
-```{r}
-# Files
-source2_path <- path <- paste(source_dir, "REPLACE.ext", sep="")
-object_name <- st_read(path) # REPLACE object_name
+source1_path <- path <- paste(source_dir, "wld_trs_airports_wfp", sep="")
+airports <- st_read(path) # REPLACE object_name
 # add files from dir as needed
 ```
 
 
 ### declare number of "data_raw" directorys above
 ```{r}
-data_raw_metasym_num <-  REPLACE # set total number of data_raw dir used (e.g. <- 1), to help in export section
+data_raw_metasym_num <-  1 # set total number of data_raw dir used (e.g. <- 1), to help in export section
 ```
 
 
@@ -192,7 +157,7 @@ data1_file3 <- "grid_1km_na_v01.1.tif"
 data1_sourcesym <- read_tsv(paste(data_dir, data1_file, "_sourcesym.txt", sep=""))
 # check that source IDs exists and make sense
 
-plot(grid_1km)
+#plot(grid_1km)
 ```
 
 ## DATA2: Grid 250m - loading all flavours (watermask 1, 0, NA) at once since same sourcesym apply
@@ -232,29 +197,86 @@ grid_poly <- st_read(data_path) # read in your data object if appropriate and pe
 #plot(grid_poly)
 ```
 
+## DATA 4: buffered airports shapefile
+```{r}
+data4_dir <- data_dir <-  "./data/reg/act/lb_other/v01/proc/"  # input your data directory
+
+dir(data_dir)
+
+data4_file <- "buffer_5km.shp" # your data file
+
+data4_path <- data_path <- paste(data_dir, data4_file, sep="")
+
+buffer5km <- st_read(data_path) # read in your data object if appropriate and perhaps change name to more informative...
+#grid_poly
+```
+
+
 ## declare number of "data" files
 ```{r}
-data_sourcesym_num <-  REPLACE # set total number of data files (e.g. <- 2), to help in export section
+data_sourcesym_num <-  2 # set total number of data files (e.g. <- 2), to help in export section
 ```
 
 #==========================================================================================================================#
 # PROCESSING
 #==========================================================================================================================#
 
+```{r}
+pol <- buffer5km
 
-*****************************************************************
-*****************************************************************
-## Here you can perform any processing to generate the data layer
-## Ensure the code is clearly described with comments (#)
-*****************************************************************
-*****************************************************************
+sf <- pol
+#glimpse(sf)
+#unique(sf$pxlval)
+sf <- sf %>% 
+  mutate(pxlval = 100) %>% 
+  dplyr::select(pxlval)
 
-*****************************************************************
-## NOTE 1. Normalisation will happen at later "final" stage, do not integrate in main scripts
-## NOTE 2. Create the uncertainty map separate (script *_s02_v01) once main data is ready (script *_s01_v01)
-*****************************************************************
 
-#==========================================================================================================================#
+sf <- st_transform(sf, crs=crs(grid_1km))
+
+r <- rasterize(sf, grid_1km_na, 100, fun="mean")
+
+plot(r)
+
+#r <- reclassify(r, c(-5, 0.5, 0))
+#plot(r)
+#w <- focalWeight(r, 5000, "Gauss")
+#r_focal <- focal(r, w,) 
+#r_comb <- r + r_focal
+#r <- r_comb
+#r <- reclassify(r, c(50, 100000000000000, 50))
+#r <- reclassify(r, c(0, 2, 100))
+
+w <- focalWeight(r, 10000, "Gauss")
+r_focal_5km <- focal(r, w, na.rm=T) 
+
+r_focal_5km2 <- focal(r_focal_5km, w, na.rm=T) 
+
+
+
+#w <- focalWeight(r, 1000, "Gauss")
+#r_focal_1km <- focal(r, w, na.rm=T) 
+
+
+r <- r_focal_5km + r_focal_5km2 
+plot(r)
+r
+
+# making sure output is snapped and cut...
+r <- merge(r, grid_1km_0)
+r <- crop(r, grid_1km)
+r <- mask(r, grid_1km)
+airport <- r # ready for export
+```
+
+
+#writeRaster(r, data_outpath, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+
+
+
+
+
+
 # EXPORT
 #==========================================================================================================================#
 # Write products to root directory when checked and ready to use elsewhere, accompanied by yourfilename.ext_sourcesym.txt 
@@ -266,14 +288,14 @@ data_sourcesym_num <-  REPLACE # set total number of data files (e.g. <- 2), to 
 # data raw sources (dir)
 ```{r}
 print(paste("data_raw metasym files used = ", data_raw_metasym_num, sep=""))
-(data_raw_sources <- tibble(id = c(source1, source2, ...))) # REPLACE / add all data_raw sources
+(data_raw_sources <- tibble(id = c(source1_id))) # / add all data_raw sources
 ```
 
 ## data sources (files)
 ```{r}
 print(paste("data_sourcym files = ", data_sourcesym_num, sep=""))
 data_sources <- data1_sourcesym %>% # add any "sourcesym" files applicable to this product (check indata section), keep adding sourcesym files as needed
-  add_row(data2_sourcesym)%>%  
+  #add_row(data2_sourcesym)%>%  
   #add_row(data3_sourcesym)%>% 
   #add_row(data4_sourcesym)%>% 
   #add_row(data5_sourcesym)%>% 
@@ -291,15 +313,15 @@ data_sources <- data1_sourcesym %>% # add any "sourcesym" files applicable to th
 # PRODUCT 1: 
 ## read objects
 ```{r}
-product_orig <- REPLACE # input and check your object to be written to file
+product_orig <- airport # input and check your object to be written to file
 #product_norm01 <- REPLACE # input and check your object to be written to file
 #product_uncertainty <- REPLACE # input and check your object to be written to file
-plot(c(product_orig))
+plot(product_orig)
 ```
 ## set names
 ```{r}
-scale <- "REPLACE" # "1km" / "250m"
-unit <- "REPLACE"  # add unit for product with original values (e.g. m, km, perc, presence, proportion
+scale <- "1km" # "1km" / "250m"
+unit <- "relative"  # add unit for product with original values (e.g. m, km, perc, presence, proportion
 component_names <- read_tsv("./shiny_data_upload/component_names.txt") 
 component_names_selected <- component_names %>%
   dplyr::filter(theme_folder == theme) %>% 
@@ -308,7 +330,7 @@ component_names_selected <- component_names %>%
 ```
 
 ```{r}
-descriptive_name <- "REPLACE"  # name of product, for pressure/ecosystem components select from name list above
+descriptive_name <- "air_traffic_airport"  # name of product, for pressure/ecosystem components select from name list above
 ```
 ## paths
 ```{r}

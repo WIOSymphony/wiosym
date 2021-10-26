@@ -1,0 +1,150 @@
+# ========================================================================================================= #
+# IMPORTANT - To get started:
+Because this script is an R Markdown script, the default directory is the location of this .Rmd file.
+You must open this script from within the .Rproj file associated with your wiosym database for it to work.
+If you haven't used R notebooks before (.Rmd), each of the code "chunks" can be executed by clicking the green play
+button at the top right of the chunk.
+
+To run the script from the project directory, in R Studio, you need to go to: Tools > Global Options > R Markdown
+and set "Evaluate chunks in directory" to "Project", though for latest version of R/Rstudio it may not be needed...
+# ========================================================================================================= #
+# ABOUT
+# ========================================================================================================= #
+## Brief description: cript to make sure rasters are mapped to the grid with 0 values...
+### Sripts/processes that needs to be updated prior?:
+###
+### Script by: gk, sgu, r4.1.1
+### Updated: Initial, org, Rver, comments
+### Developer check: Initial, org, yymmdd, comments
+### External check: Initial, org, yymmdd, comments
+
+### Install packages
+```{r, include = FALSE}
+# list all packages that this script is dependent on, remove any redundant ones
+x <- c("leaflet", "sf", "raster", "rgdal", "tidyverse")
+#install.packages(x, dependencies=TRUE)
+```
+
+### Load packages
+```{r, include = FALSE}
+library(sf) 
+library(raster)
+library(rgdal)
+library(tidyverse)
+```
+
+# DATA sources
+IMPORTANT Products in data are based on information in data_raw. Check that *_sourcesym.txt exists for each file to track acccumulated IDs. 
+
+## DATA1: Grid 1km - loading all flavours (watermask 1, 0, NA) at once since identical sourcesym apply
+```{r}
+data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
+dir(data_dir) # check what data is in this directory
+
+data1_file <- "grid_1km_v01.1.tif" 
+data1_file2 <- "grid_1km_0_v01.1.tif" 
+data1_file3 <- "grid_1km_na_v01.1.tif" 
+
+(grid_1km_path <- path <- paste(data_dir, data1_file, sep=""))
+(grid_1km <- raster(path)) # read and check your data
+(grid_1km_0_path <- path <- paste(data_dir, data1_file2, sep=""))
+(grid_1km_0 <- path <- raster(path)) # read and check your data
+(grid_1km_na_path <- path <- paste(data_dir, data1_file3, sep=""))
+(grid_1km_na <- path <- raster(path)) # read and check your data
+
+data1_sourcesym <- read_tsv(paste(data_dir, data1_file, "_sourcesym.txt", sep=""))
+# check that source IDs exists and make sense
+
+plot(grid_1km)
+```
+
+## DATA2: Grid 250m - loading all flavours (watermask 1, 0, NA) at once since same sourcesym apply
+```{r}
+data2_dir <- data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
+
+data2_file <- "grid_250m_v01.1.tif" # your data file
+data2_file2 <- "grid_250m_0_v01.1.tif" # your data file
+data2_file3 <- "grid_250m_na_v01.1.tif" # your data file
+
+(grid_250m_path <- path <- paste(data_dir, data2_file, sep=""))
+(grid_250m <- raster(path)) # read and check your data
+(grid_250m_0_path <- path <- paste(data_dir, data2_file2, sep=""))
+(grid_250m_0 <- path <- raster(path)) # read and check your data
+(grid_250m_na_path <- path <- paste(data_dir, data2_file3, sep=""))
+(grid_250m_na <- path <- raster(path)) # read and check your data
+
+(data2_sourcesym <- read_tsv(paste(data_dir, data2_file, "_sourcesym.txt", sep="")))
+# check so source IDs exists and make sense
+# check that source IDs exists and make sense
+#plot(grid_250m)
+```
+
+
+## DATA 3: bounding box shapefile
+```{r}
+data3_dir <- data_dir <-  "./data/reg/grid/scope/v01/"  # input your data directory
+
+data3_file <- "wiosym_grid_bounding_box_v01.shp" # your data file
+
+data3_sourcesym <- read_tsv(paste(data_dir, data3_file, "_sourcesym.txt", sep=""))
+#data3_sourcesym # check so source IDs exists and make sense - ok for these
+data3_path <- data_path <- paste(data_dir, data3_file, sep="")
+
+grid_poly <- st_read(data_path) # read in your data object if appropriate and perhaps change name to more informative...
+#grid_poly
+#plot(grid_poly)
+```
+
+# INRASTER TO FIX
+```{r}
+data4_dir <- data_dir <-  "./data/reg/pres/nrg_light/v01/proc/nrg_light/"  # input your data directory
+dir(data_dir)
+data4_file <- data_file <- "VNL_v2_2020_median_1kmResample_n_clip_reg_t1.tif" # your data file
+data4_path <- paste(data4_dir, data_file, sep="")
+data_dir <-  "./data/reg/pres/nrg_light/v01/"
+data_outpath <- paste(data4_dir, "light_pollution_nighsat_v01.0_qc.tif", sep="")
+r_orig <- raster(data4_path) #
+r_orig
+plot(r_orig)
+```
+
+
+
+
+
+## declare number of "data" files
+```{r}
+data_sourcesym_num <-  4 # set total number of data files (e.g. <- 2), to help in export section
+```
+
+#==========================================================================================================================#
+# PROCESSING / Export - manuel nödlösning under tidspress... måste fixas om det ska bli något att använda för alla sen...
+#==========================================================================================================================#
+```{r}
+r <- r_orig
+r <- reclassify(r, c(-5, 0.5, 0))
+plot(r)
+
+w <- focalWeight(r, 5000, "Gauss")
+
+r_focal <- focal(r, w,) 
+
+r_comb <- r + r_focal
+
+r <- r_comb
+
+r <- reclassify(r, c(50, 100000000000000, 50))
+
+
+
+r <- merge(r, grid_1km_0)
+r <- crop(r, grid_1km)
+r <- mask(r, grid_1km)
+r
+
+r <- reclassify(r, c(10, 50, 10))
+
+writeRaster(r, data_outpath, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+
+
+```
