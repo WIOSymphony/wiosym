@@ -172,6 +172,7 @@ data_raw_metasym_num <-  REPLACE # set total number of data_raw dir used (e.g. <
 
 # DATA sources
 IMPORTANT Products in data are based on information in data_raw. Check that *_sourcesym.txt exists for each file to track acccumulated IDs. 
+The sourcesym files can be identical within some directory in which case you can load only one, but its not always the case which is why there is one file for each file. 
 
 ## DATA1: Grid 1km - loading all flavours (watermask 1, 0, NA) at once since identical sourcesym apply
 ```{r}
@@ -188,11 +189,10 @@ data1_file3 <- "grid_1km_na_v01.1.tif"
 (grid_1km_0 <- path <- raster(path)) # read and check your data
 (grid_1km_na_path <- path <- paste(data_dir, data1_file3, sep=""))
 (grid_1km_na <- path <- raster(path)) # read and check your data
-
 data1_sourcesym <- read_tsv(paste(data_dir, data1_file, "_sourcesym.txt", sep=""))
 # check that source IDs exists and make sense
 
-plot(grid_1km)
+#plot(grid_1km)
 ```
 
 ## DATA2: Grid 250m - loading all flavours (watermask 1, 0, NA) at once since same sourcesym apply
@@ -209,7 +209,6 @@ data2_file3 <- "grid_250m_na_v01.1.tif" # your data file
 (grid_250m_0 <- path <- raster(path)) # read and check your data
 (grid_250m_na_path <- path <- paste(data_dir, data2_file3, sep=""))
 (grid_250m_na <- path <- raster(path)) # read and check your data
-
 (data2_sourcesym <- read_tsv(paste(data_dir, data2_file, "_sourcesym.txt", sep="")))
 # check so source IDs exists and make sense
 # check that source IDs exists and make sense
@@ -220,13 +219,10 @@ data2_file3 <- "grid_250m_na_v01.1.tif" # your data file
 ## DATA 3: bounding box shapefile
 ```{r}
 data3_dir <- data_dir <-  "./data/reg/grid/scope/v01/"  # input your data directory
-
 data3_file <- "wiosym_grid_bounding_box_v01.shp" # your data file
-
 data3_sourcesym <- read_tsv(paste(data_dir, data3_file, "_sourcesym.txt", sep=""))
 #data3_sourcesym # check so source IDs exists and make sense - ok for these
 data3_path <- data_path <- paste(data_dir, data3_file, sep="")
-
 grid_poly <- st_read(data_path) # read in your data object if appropriate and perhaps change name to more informative...
 #grid_poly
 #plot(grid_poly)
@@ -313,8 +309,8 @@ descriptive_name <- "REPLACE"  # name of product, for pressure/ecosystem compone
 ## paths
 ```{r}
 (product_orig_path <- paste(dest_path, descriptive_name, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
-#(product_norm01_path <- paste(dest_path, descriptive_name, "_norm01_", scale, "_", version, d_version, ".tif", sep="" ))
-#(product_uncertainty_path <- paste(dest_path, descriptive_name, "_uncertainty_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_norm01_path <- paste(product_orig_path, "_uncertainty.tif", sep="" ))
+(product_uncertainty_path <- paste(product_orig_path, "_norm01.tif", sep="" ))
 ```
 ## Write to file
 ```{r}
@@ -344,13 +340,13 @@ print(script_name_copy <- paste(gsub(".Rmd", "", script_name), d_version, ".Rmd"
 #==========================================================================================================================#
 # FINAL CHECK
 #==========================================================================================================================#
-# Developer check
-## Do your own final check on the products and double check sourcesym file exists and are complete for all files in root 
-## -> Sign at top of script in about section (# Approved by:)
+## Developer check
+ Do your own final check on the products and double check sourcesym file exists and are complete for all files in root 
+ -> Sign at top of script in about section (# Approved by:)
 
-# External check 
-## To ensure repeatability and quality, make sure one colleage can run the script
-## When script is proven repeatable/understandable and products/metadata look ok 
-## -> Sign at top of script in about section (# Approved by:), and make any comments if needed
-## There is also a work_log document in onedrive / gitHUB, check current arrangement with Swedish dev team
+## External check 
+ To ensure repeatability and quality, make sure one colleage can run the script
+ When script is proven repeatable/understandable and products/metadata look ok 
+ -> Sign at top of script in about section (# Approved by:), and make any comments if needed
+ There is also a work_log document in onedrive / gitHUB, check current arrangement with Swedish dev team
 

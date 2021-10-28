@@ -1,0 +1,390 @@
+# ========================================================================================================= #
+# IMPORTANT - To get started:
+Because this script is an R Markdown script, the default directory is the location of this .Rmd file.
+You must open this script from within the .Rproj file associated with your wiosym database for it to work.
+If you haven't used R notebooks before (.Rmd), each of the code "chunks" can be executed by clicking the green play
+button at the top right of the chunk.
+
+To run the script from the project directory, in R Studio, you need to go to: Tools > Global Options > R Markdown
+and set "Evaluate chunks in directory" to "Project", though for latest version of R/Rstudio it may not be needed...
+# ========================================================================================================= #
+# ABOUT
+# ========================================================================================================= #
+## Brief description: 
+This script is calculating uncertainty for benthic habitat
+### Sripts/processes that needs to be updated prior?:
+###
+### Script by: Initial, org, Rver:
+### Updated: Initial, org, Rver, comments
+### Developer check: Initial, org, yymmdd, comments
+### External check: Initial, org, yymmdd, comments
+# ========================================================================================================= #
+# INSTRUCTIONS
+# ========================================================================================================= #    
+This is a simplified template to build on existing data products, for a full template to produce new data use the main template (ensures you get names and metadata right)
+# ========================================================================================================= # 
+# PREPARATIONS
+# ========================================================================================================= #
+
+### Install packages
+```{r, include = FALSE}
+# list all packages that this script is dependent on, remove any redundant ones
+x <- c("tidyverse", "sf", "raster", "rgdal", "fasterize", "labelled", "gdalUtils", "foreign")
+#install.packages(x, dependencies=TRUE)
+```
+
+### Load packages
+```{r, include = FALSE}
+library(tidyverse)
+library(sf)
+library(raster)
+library(rgdal)
+library(fasterize)
+library(labelled)
+library(gdalUtils)
+library(foreign)
+```
+
+## Set version / theme / subtheme (copy from original script or path to get right..)
+```{r}
+version = "v01" # relates to major iteration of WIOSym (v01 for grid 2021, v02 for grid 2022)
+d_version = ".0"  # detailed version (you can add another level e.g. 0.0  -> v01.0.0)
+seq = "s02" # sequential order - change accordingly if process is run in several scripts
+location = "reg"
+theme = "env"
+subtheme = "topo"
+name1 <- "_uncertainty" # add name what this script does if appropriate ("uncertainty", "norm01")
+```
+
+
+## Set paths
+Locate the relative path (from wiosym folder) to the root directpry of the data folder you are working in, copy and paste to "dest_path", the rest will update itself
+```{r}
+#(dest_path <- "REPLACE") # path to final product
+(dest_path <- "./data/reg/env/topo/v01/") # example of path to product directory
+
+(work_path <- paste(dest_path, "proc/", sep=""))
+(proc_log_path <- paste(dest_path, "proc_log/", sep=""))
+(archive_path <- paste(dest_path, "_archive/", sep=""))
+(script_path <- "./process/r/")
+```
+
+## Create directories
+```{r}
+dir.create(dest_path, recursive = TRUE)
+dir.create(work_path, recursive = TRUE)
+dir.create(proc_path, recursive = TRUE)
+dir.create(archive_path, recursive = TRUE)
+dir.create(script_path, recursive = TRUE)
+```
+
+
+## Save R Script
+```{r}
+(script_path_windows <- paste(getwd(), "/process/r", sep=""))
+(script_name <- paste(theme, "_", subtheme,"_", location, "_", seq, "_", version, name1, ".Rmd", sep=""))
+```
+ # copy path and name and use File/Save As in R studio to save rmd file
+ 
+#==========================================================================================================================#
+# INDATA
+#==========================================================================================================================#
+
+# Load exisiting sourcesym file
+Load a sourcesym file and make sure you update it for the final expert if any new source IDs are added for this script
+```{r}
+dir(dest_path, pattern = "sourcesym.txt")
+(sourcesym <-  read_tsv(paste(dest_path, "bathymetry_mean_m_1km_v01.1.tif_sourcesym.txt", sep="")))
+```
+
+# Set DATA_RAW sources
+IMPORTANT all data harvested from data_raw needs to have a metasym.txt file in its root directory (not file specific)
+When building on a a previous script you ight already have a complete sourcesym file that you can copy and paste for the product you do in this script (filename_sourcesym.txt), its ok! 
+## copy and paste your data_raw sources from previous script. 
+if you add new ones make sure to ingest the metasym file (see original template if code example is needed)
+
+## DIR1: Bathymetry uncertainty from gebco
+```{r}
+source1_dir <- source_dir <-  "./data_raw/reg/env/topo/gebco/gk2110122231/"
+dir(source_dir) # check what data is in data_raw directory
+source_file <- "GEBCO_12_Oct_2021_6088be3dfc79/gebco_2021_tid_n18.0_s-42.0_w6.0_e80.0.tif"  # your data file(s)
+(gebco_tid_path <- source_path <- paste(source_dir, source_file, sep=""))
+(gebco_tid <- raster(source_path))
+#plot(gebco_tid)
+```
+
+
+# DATA sources
+IMPORTANT Products in data are based on information in data_raw. Check that *_sourcesym.txt exists for each file to track acccumulated IDs. 
+The sourcesym files can be identical within some directory in which case you can load only one, but its not always the case which is why there is one file for each file. 
+
+## DATA1: Grid 1km - loading all flavours (watermask 1, 0, NA) at once since identical sourcesym apply
+```{r}
+data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
+dir(data_dir) # check what data is in this directory
+
+data1_file <- "grid_1km_v01.1.tif" 
+data1_file2 <- "grid_1km_0_v01.1.tif" 
+data1_file3 <- "grid_1km_na_v01.1.tif" 
+
+grid_1km_path <- path <- paste(data_dir, data1_file, sep="")
+grid_1km <- raster(path) # read and check your data
+grid_1km_0_path <- path <- paste(data_dir, data1_file2, sep="")
+grid_1km_0 <- path <- raster(path) # read and check your data
+grid_1km_na_path <- path <- paste(data_dir, data1_file3, sep="")
+grid_1km_na <- path <- raster(path) # read and check your data
+data1_sourcesym <- read_tsv(paste(data_dir, data1_file, "_sourcesym.txt", sep=""))
+# check that source IDs exists and make sense
+
+#plot(grid_1km)
+```
+
+## DATA2: Grid 250m - loading all flavours (watermask 1, 0, NA) at once since same sourcesym apply
+```{r}
+data2_dir <- data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
+
+data2_file <- "grid_250m_v01.1.tif" # your data file
+data2_file2 <- "grid_250m_0_v01.1.tif" # your data file
+data2_file3 <- "grid_250m_na_v01.1.tif" # your data file
+
+grid_250m_path <- path <- paste(data_dir, data2_file, sep="")
+grid_250m <- raster(path) # read and check your data
+grid_250m_0_path <- path <- paste(data_dir, data2_file2, sep="")
+grid_250m_0 <- path <- raster(path) # read and check your data
+grid_250m_na_path <- path <- paste(data_dir, data2_file3, sep="")
+grid_250m_na <- path <- raster(path) # read and check your data
+data2_sourcesym <- read_tsv(paste(data_dir, data2_file, "_sourcesym.txt", sep=""))
+# check so source IDs exists and make sense
+# check that source IDs exists and make sense
+# plot(grid_250m)
+```
+
+## DATA3: example - final products you are building on 
+```{r}
+dir(dest_path)
+#object_name <- raster(paste(dest_path, "REPLACE", sep=""))
+depth_1km <- raster(paste(dest_path, "bathymetry_mean_m_1km_v01.1.tif", sep=""))
+#plot(depth_1km)
+```
+
+## DATA4: example - workfiles you are building on 8
+```{r}
+dir(work_path)
+#object_name  <- raster(paste(work_path, "file", sep=""))
+```
+
+#==========================================================================================================================#
+# PROCESSING
+#==========================================================================================================================#
+
+
+
+## 250m warp to grid
+```{r}
+# indata
+
+indata <- gebco_tid
+indata_path <- gebco_tid_path
+
+# write empty grid for gdalutil work
+r_temp <- grid_250m  # template raster to map to
+r_temp_0 <- grid_250m_0
+outdata_path <- paste(work_path, "grid_250m_na_mean_depth_tid_gebco2021.tif", sep= "")
+writeRaster(r_temp_0, outdata_path,  overwrite=T, COMPRESS=LZW)
+
+
+sr <- crs(indata)
+tr <- crs(grid_1km)
+#  "+proj=cea +lat_ts=-12 +lon_0=12 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"    
+
+warp <- gdalUtils::gdalwarp(srcfile = indata_path,
+                                dstfile = outdata_path,
+                                s_srs = sr,
+                                t_srs = tr,
+                                tr = res(r_temp),
+                                tap = TRUE,
+                                output_Raster = FALSE,
+                                overwrite = TRUE,
+                                r = "med",
+                                multi = TRUE,
+)
+
+(r <- raster(outdata_path))
+plot(r)
+outdata_path <- paste(work_path, "grid_250m_na_mean_depth_tid_gebco2021_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'FLT4S', COMPRESS=LZW)
+r <- raster(output_path)
+
+r <- merge(r, r_temp_0) 
+r <- crop(r, r_temp) 
+r <- mask(r, r_temp) 
+(gebco_tid_250m <- r)
+
+```
+
+
+## 1km warp to grid
+```{r}
+# indata
+
+indata <- gebco_tid
+indata_path <- gebco_tid_path
+
+# write empty grid for gdalutil work
+r_temp <- grid_1km  # template raster to map to
+r_temp_0 <- grid_1km_0
+outdata_path <- paste(work_path, "grid_1km_na_mean_depth_tid_gebco2021.tif", sep= "")
+writeRaster(r_temp_0, outdata_path,  overwrite=T, COMPRESS=LZW)
+
+
+sr <- crs(indata)
+tr <- crs(grid_1km)
+#  "+proj=cea +lat_ts=-12 +lon_0=12 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"    
+
+warp <- gdalUtils::gdalwarp(srcfile = indata_path,
+                                dstfile = outdata_path,
+                                s_srs = sr,
+                                t_srs = tr,
+                                tr = res(r_temp),
+                                tap = TRUE,
+                                output_Raster = FALSE,
+                                overwrite = TRUE,
+                                r = "med",
+                                multi = TRUE,
+)
+
+(r <- raster(outdata_path))
+plot(r)
+outdata_path <- paste(work_path, "grid_1km_na_mean_depth_tid_gebco2021_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'FLT4S', COMPRESS=LZW)
+r <- raster(output_path)
+
+r <- merge(r, r_temp_0) 
+r <- crop(r, r_temp) 
+r <- mask(r, r_temp) 
+
+(gebco_tid_1km <- r)
+
+```
+
+
+# UNCERTAINTY
+We need to define in more words, We have something writen for the symphony project. while you dig that up or do a better spec just follow this as best you can:
+Do your best, most important is to record outside of range, data of any flavor (poor - observation) and "no data
+## Cathegories
+```{r}
+or <- outside_range <- 0 # outside range/habitat of ecosystem component
+cp <- confirmed_presence <- 1 # observed in the location (assuming from a reasonably a trusted source, a sea mount observed in low res global bathymetry would not qualify for example..)
+vgm <- very_good_model <- 2 # remote sensing/ sonar or other high quality sources of data
+gm <- good_model <- 3 # most will fall in here I presume, use "very good model" with care
+pm <- poor_model <- 4 # low resolution for what we do, or poor data quality
+nd <- no_data <- 5 # no data available, a 0 value in the analysis
+```
+
+```{r}
+# reclassify based on gebco metadata GEBCO_12_Oct_2021_6088be3dfc79/GEBCO_Grid_documentation.pdf
+r <- gebco_tid_1km
+
+#alternative way..
+# reclassify quality raster into direct and indirect measurements
+#quality_reclass <- function(quality) {
+#ifelse(quality <= 25, 1, 2) 
+#}
+#gebco_quality <- overlay(quality, fun = quality_reclass) 
+
+
+m <-c(-1,1,cp, 1,10,gm, 10,11,vgm, 11,14,gm, 14,25,vgm, 25,55,pm, 55,100,pm)
+m
+rc <- reclassify(r, m)
+plot(rc)
+
+uncertainty_1km <- rc
+
+```
+
+```{r}
+# reclassify based on gebco metadata GEBCO_12_Oct_2021_6088be3dfc79/GEBCO_Grid_documentation.pdf
+r <- gebco_tid_250m
+
+
+m <-c(-1,1,cp, 1,10,gm, 10,11,vgm, 11,14,gm, 14,25,vgm, 25,55,pm, 55,100,pm)
+m
+rc <- reclassify(r, m)
+plot(rc)
+
+uncertainty_250m <- rc
+
+```
+#==========================================================================================================================#
+# EXPORT
+#==========================================================================================================================#
+
+# SOURCESYM
+Create sourcesym file with all source IDs used (data and data_raw) 
+```{r}
+## data raw sources (dir)
+(sourcesym)
+#(data_raw_sources <- tibble(id = c(source1_id, source2_id,))) # REPLACE / add all new data_raw sources (if they are already in the loaded sourcesym file disregard)
+
+## data sources (files)
+#add any new sourcesym files that are not already represented in the loaded sourcesym
+
+#data_sources <- data1_sourcesym %>% # add any "sourcesym" files applicable to this product (check indata section), keep adding sourcesym files as needed
+#  add_row(data2_sourcesym)%>%  
+#  #add_row(data3_sourcesym)%>% 
+#  unique() %>% 
+#  print()
+
+## Sources combined
+
+all_sources <- sourcesym %>% #add_row(data_sources) %>%data_raw_sources
+print(all_sources)
+```
+
+
+# PRODUCT 1: Uncertainty
+OBS if you need pointers for other naming, the full template has the instructions e.g. pointing to the component list with names, and using theme/subtheme to make the name...
+```{r}
+
+export_object1 <- uncertainty_1km # REPLACE... 
+export_object2 <- uncertainty_250m # REPLACE... 
+
+dir(dest_path)
+product_orig1 <- "bathymetry_mean_m_1km_v01.1.tif" 
+product_orig2 <- "bathymetry_mean_m_250m_v01.1.tif"
+
+(product_path1 <- paste(dest_path, product_orig1, "_uncertainty.tif", sep="" ))
+(product_path2 <- paste(dest_path, product_orig2, "_uncertainty.tif", sep="" ))
+
+# check datatype to be appropriate for values ('FLT4S' (normalised data) / 'INT4S' (uncertainty data) main standards to use)
+writeRaster(export_object1, product_path1, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
+writeRaster(export_object2, product_path2, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
+
+write_tsv(all_sources, paste(product_path1, "_sourcesym.txt", sep="")) 
+write_tsv(all_sources, paste(product_path2, "_sourcesym.txt", sep=""))  
+```
+
+
+# SAVE SCRIPT
+1. save your current R script (File/Save)
+2. Save a carbon copy of the R script to proc_log (identical script to what is used to create the products exported
+Do not change the *.Rmd carbon copy in proc_log/ unless you change this version of the products (new versions are developed under process/r)
+
+```{r}
+# 2. run code below and go to File/Save As and paste link and name:
+print(script_name_copy <- paste(proc_log_path, gsub(".Rmd", "", script_name), d_version, ".Rmd", sep="")) # script name
+```
+
+#==========================================================================================================================#
+# FINAL CHECK
+#==========================================================================================================================#
+# Developer check
+ Do your own final check on the products and double check sourcesym file exists and are complete for all files in root 
+ -> Sign at top of script in about section (# Approved by:)
+
+# External check 
+ To ensure repeatability and quality, make sure one colleage can run the script
+ When script is proven repeatable/understandable and products/metadata look ok 
+ -> Sign at top of script in about section (# Approved by:), and make any comments if needed
+ There is also a work_log document in onedrive / gitHUB, check current arrangement with Swedish dev team
+
