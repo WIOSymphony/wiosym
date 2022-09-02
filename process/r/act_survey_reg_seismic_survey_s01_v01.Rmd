@@ -1,0 +1,164 @@
+# =========================================================================================================
+# Script by Edmond Sacre, SLU
+# =========================================================================================================
+
+# PREPARATIONS
+```{r, include = FALSE}
+# Install / load packages
+#x <- c("sf", "raster", "tidyr", "dplyr")
+#install.packages(x, dependencies=TRUE)
+```
+
+## Install packages
+```{r, include = FALSE}
+library(sp)
+library(sf) 
+library(raster)
+library(fasterize)
+library(tidyr)
+library(dplyr)
+library(rgdal)
+library(tidyverse)
+library(leaflet)
+```
+
+## View folders/themes
+```{r}
+folders_raw <- read.table("./shiny_data_upload/folders.txt", sep = "\t", header = TRUE)
+folders_data <- read.table("./process/templates/folders_data.txt", sep = "\t", header = TRUE)
+#folders <- folders_raw %>% add_row(folders_data)
+```
+
+## Define versions/directories
+```{r}
+version = "v01"
+d_version = ".0"
+location = "reg"
+theme1 <- "act"
+subtheme1 <- "survey"
+name1 <- "seismic_survey"
+(dest1_path <- paste("./data", location, theme1, subtheme1, name1, version, sep="/"))
+(work1_path <- paste(dest1_path, "proc", sep="/"))
+(proc1_path <- paste(dest1_path, "proc_log", sep="/"))
+script_path <- "./process/r"
+(script_path_windows <- paste(getwd(), "/process/r", sep=""))
+(script_name <- paste(theme1, "_", subtheme1,"_", location, "_", name1,"_s01_",version, ".R", sep=""))
+```
+
+## Create directories
+```{r}
+dir.create(dest1_path, recursive = TRUE)
+dir.create(work1_path, recursive = TRUE)
+dir.create(proc1_path, recursive = TRUE)
+```
+
+## Read in WIOSym standard grid
+```{r}
+grid_1km <- raster("./data/reg/grid/grid/v01/grid_1km_v01.1.tif")
+#grid_1km_wgs <- projectRaster(grid_1km, crs = CRS("+proj=longlat +datum=WGS84 +no_defs"))
+```
+
+## Define sources
+```{r}
+num_sources <- 1  # write the number of sources you will use in this script (to be used later for exporting metadata)
+  
+source1_dir <-  "./data_raw/glo/act/survey/mapstand/es2110251252/"
+source1_id <- "es2110251252"
+source1_metasym <- read.table(paste0(source1_dir, source1_id, "_metasym.txt"), sep = "\t")
+source1_metasym # check that metasym file is populated, and fix if not - before finalising the processing
+
+source_list <- c(source1_id) # for multiple sources, should look like - c(source1_id, source2_id, source3_id) etc.
+```
+
+*****************************************************************
+*****************************************************************
+# PROCESSING
+
+## NOTE: Some pre-processing steps were performed in ArcGIS for efficiency - converted spatial lines to raster
+
+# Install processing specific packages
+```{r, include = FALSE}
+library(spatstat)
+library(spatialEco)
+library(mapview)
+library(stars)
+library(fasterize)
+library(rgdal)
+library(rgeos)
+library(climateStability)
+```
+
+# Import data
+```{r}
+data_file <- "./data/reg/act/survey/seismic_survey/v01/proc/seismic_ras.tif"
+seismic <- raster(data_file)
+```
+
+# Give seismic surveys with unknown date minimum raster value
+```{r}
+s.temp <- seismic
+s.temp[s.temp == 0] <- NA
+minValue(s.temp)
+seismic[seismic == 0] <- 1969
+```
+
+# Minimum year is 1969 and max year is 2019
+# Scale data so that the highest values are seismic surveys done more recently
+# as these would be expected to have more recent impact
+```{r}
+seismic <- projectRaster(seismic, grid_1km)
+seismic <- resample(seismic, grid_1km)
+minValue(seismic)
+maxValue(seismic)
+seismic <- rescale0to1(seismic)
+mapview(seismic, col.regions = brewer.pal(11, "Spectral"))
+```
+
+# Convert to integer (using ceiling function) and give NA cells a value of 0
+```{r}
+seismic <- seismic * 100
+seismic <- ceiling(seismic)
+seismic[seismic == 0] <- 1
+seismic[is.na(seismic)] <- 0
+seismic[is.na(grid_1km)] <- NA
+mapview(seismic, col.regions = brewer.pal(11, "Spectral"))
+```
+
+```{r}
+product1 <- seismic
+```
+
+*****************************************************************
+*****************************************************************
+
+
+# EXPORT
+
+## Specify output directory and product file name
+
+```{r}
+(dest1_path_file1 <-paste0(dest1_path, "/", subtheme1, "_", name1, "_", version, d_version, ".tif"))
+```
+
+## Export metadata
+```{r}
+sourcesym <- data.frame(matrix(data = NA, nrow = num_sources, ncol = 1))
+colnames(sourcesym) <- "id"
+
+for(i in 1:num_sources){
+  sourcesym[i,1] <- source_list[i]
+}
+
+sourcesym
+```
+
+```{r}
+sourcesym_path <- paste0(dest1_path_file1, "_sourcesym.txt")
+write.table(sourcesym, sourcesym_path, row.names = F, sep = "\t")
+```
+
+## Export product
+```{r}
+writeRaster(product1, dest1_path_file1, COMPRESS=LZW, datatype = 'INT2S', overwrite=TRUE)
+```
+

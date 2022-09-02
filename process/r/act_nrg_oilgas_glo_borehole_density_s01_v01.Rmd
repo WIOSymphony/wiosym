@@ -1,0 +1,180 @@
+# =========================================================================================================
+# Script by Edmond Sacre, SLU
+# This script creates rasters from the from the shapefiles available on the IUCN red list of threatened species
+# (https://www.iucnredlist.org/resources/spatial-data-download)
+# This script also resamples the rasters to the same resolution and extent as the standard WIOSym grid
+# =========================================================================================================
+
+# PREPARATIONS
+```{r, include = FALSE}
+# Install / load packages
+#x <- c("sf", "raster", "tidyr", "dplyr")
+#install.packages(x, dependencies=TRUE)
+```
+
+## Install packages
+```{r, include = FALSE}
+library(sp)
+library(sf) 
+library(raster)
+library(fasterize)
+library(tidyr)
+library(dplyr)
+library(rgdal)
+library(tidyverse)
+library(leaflet)
+```
+
+## View folders/themes
+```{r}
+folders_raw <- read.table("./shiny_data_upload/folders.txt", sep = "\t", header = TRUE)
+folders_data <- read.table("./process/templates/folders_data.txt", sep = "\t", header = TRUE)
+#folders <- folders_raw %>% add_row(folders_data)
+```
+
+## Define versions/directories
+```{r}
+version = "v01"
+d_version = ".0"
+location = "glo"
+theme1 <- "act"
+subtheme1 <- "nrg_oilgas"
+name1 <- "borehole_density"
+(dest1_path <- paste("./data", location, theme1, subtheme1, name1, version, sep="/"))
+(work1_path <- paste(dest1_path, "proc", sep="/"))
+(proc1_path <- paste(dest1_path, "proc_log", sep="/"))
+script_path <- "./process/r"
+(script_path_windows <- paste(getwd(), "/process/r", sep=""))
+(script_name <- paste(theme1, "_", subtheme1,"_", location, "_", name1,"_s01_",version, ".R", sep=""))
+```
+
+## Create directories
+```{r}
+dir.create(dest1_path, recursive = TRUE)
+dir.create(work1_path, recursive = TRUE)
+dir.create(proc1_path, recursive = TRUE)
+```
+
+## Read in WIOSym standard grid
+```{r}
+grid_1km <- raster("./data/reg/grid/grid/v01/grid_1km_v01.1.tif")
+```
+
+## Define sources
+```{r}
+num_sources <- 1  # write the number of sources you will use in this script (to be used later for exporting metadata)
+  
+source1_dir <-  "./data_raw/glo/act/nrg_oilgas/mapstand/es2110251315/"
+source1_id <- "es2110251315"
+source1_metasym <- read.table(paste0(source1_dir, source1_id, "_metasym.txt"), sep = "\t")
+source1_metasym # check that metasym file is populated, and fix if not - before finalising the processing
+
+source_list <- c(source1_id) # for multiple sources, should look like - c(source1_id, source2_id, source3_id) etc.
+```
+
+*****************************************************************
+*****************************************************************
+# PROCESSING
+
+
+## Here you can perform any processing to generate the data layer
+## Ensure the code is clearly described with comments (#)
+
+# Install processing specific packages
+```{r, include = FALSE}
+library(spatstat)
+library(spatialEco)
+```
+
+# Import borehole points
+```{r}
+data_file <- "./data_raw/glo/act/nrg_oilgas/mapstand/es2110251315/Boreholes/mps_mapping_wellheader/mps_mapping_wellheaderPoint.shp"
+
+oil <- st_read(data_file)
+```
+
+# Crop point to smaller extent for processing
+
+```{r}
+box <- c(xmin = 0, xmax = 88, ymin = -50,  ymax = 22)
+
+oil_sp <- sf::as_Spatial(oil)
+
+oil_sp <- raster::crop(oil_sp, extent(box))
+
+plot(oil_sp, max.plot = 1)
+```
+
+# Create kernel density map. Note "bw" specifies the bandwidth of the Gaussian Kernel, in map units.
+```{r}
+oil_sp$value <- 1
+
+time1 <- Sys.time()
+
+  oil_kernel <- sp.kde(x = oil_sp,
+                          y = oil$value,
+                          newdata = oil_sp,
+                          nr=5000,
+                          nc=5000,
+                          bw = 1,
+                          mask = FALSE)
+
+time2 <- Sys.time()
+step1.time <- difftime(time2, time1, units = "hours")
+cat("Total time STEP 1: ")
+step1.time
+```
+
+```{r}
+plot(oil_kernel)
+```
+
+```{r}
+oil_kernel <- projectRaster(oil_kernel, crs = crs(grid_1km))
+```
+
+
+# Resample kernel to wiosym grid
+```{r}
+oil_kernel <- resample(oil_kernel, grid_1km)
+oil_kernel[is.na(grid_1km)==TRUE] <- NA
+
+plot(oil_kernel)
+```
+
+*****************************************************************
+*****************************************************************
+
+
+# EXPORT
+
+## Specify output directory and product file name
+
+```{r}
+(dest1_path_file1 <-paste0(dest1_path, "/", subtheme1, "_", name1, "_", version, d_version, ".tif"))
+```
+
+## Export metadata
+```{r}
+sourcesym <- data.frame(matrix(data = NA, nrow = num_sources, ncol = 1))
+colnames(sourcesym) <- "id"
+
+for(i in 1:num_sources){
+  sourcesym[i,1] <- source_list[i]
+}
+
+sourcesym
+```
+
+```{r}
+sourcesym_path <- paste0(dest1_path_file1, "_sourcesym.txt")
+write.table(sourcesym, sourcesym_path, row.names = F, sep = "\t")
+```
+
+
+## Export product
+
+```{r}
+writeRaster(oil_kernel, dest1_path_file1, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
+```
+

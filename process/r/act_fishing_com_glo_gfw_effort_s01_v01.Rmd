@@ -1,0 +1,294 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# ========================================================================================================= #
+# Script by Edmond Sacre, SLU
+# This script creates rasters from the Global Fishing Watch raw data
+# ========================================================================================================= #
+
+# PREPARATIONS
+
+```{r, include = FALSE}
+# Install / load packages
+#x <- c("sp", "raster", "tidyr", "dplyr")
+#install.packages(x, dependencies=TRUE)
+```
+
+## Install packages
+```{r, include = FALSE}
+library(sf) 
+library(raster)
+library(fasterize)
+library(tidyr)
+library(dplyr)
+library(rgdal)
+library(tidyverse)
+library(leaflet)
+```
+
+## View folders/themes
+```{r}
+folders_raw <- read.table("./shiny_data_upload/folders.txt", sep = "\t", header = TRUE)
+folders_data <- read.table("./process/templates/folders_data.txt", sep = "\t", header = TRUE) 
+#folders <- folders_raw %>% add_row(folders_data)
+```
+
+## Define versions/directories
+```{r}
+version = "v01"
+d_version = ".0"
+location = "glo"
+theme1 <- "act"
+subtheme1 <- "fishing_com"
+name1 <- "gfw_effort"
+(dest1_path <- paste("./data", location, theme1, subtheme1, name1, version, sep="/"))
+(work1_path <- paste(dest1_path, "proc", sep="/"))
+(proc1_path <- paste(dest1_path, "proc_log", sep="/"))
+script_path <- "./process/r"
+(script_path_windows <- paste(getwd(), "/process/r", sep=""))
+(script_name <- paste(theme1, "_", subtheme1,"_", location, "_", name1,"_s01_",version, ".R", sep=""))
+```
+
+## Create directories
+```{r}
+#dir.create(dest1_path, recursive = TRUE)
+#dir.create(work1_path, recursive = TRUE)
+#dir.create(proc1_path, recursive = TRUE)
+```
+
+## Read in WIOSym standard grid
+```{r}
+grid_1km <- raster("./data/reg/grid/grid/v01/grid_1km_v01.1.tif")
+```
+
+```{r}
+extent(grid_1km)
+```
+
+## Define sources
+```{r}
+source1_dir <-  "./data_raw/glo/act/fishing_com/gfw/es2105270900/"
+source1_id <- "es2105270900"
+source1_metasym <- read.table(paste0(source1_dir, source1_id, "_metasym.txt"), sep = "\t")
+#source1_metasym # check that metasym file is populated, and fix if not - before finalising the processing
+```
+
+# PROCESSING
+
+## Import specific year
+
+```{r}
+# gfw_year <- 2020
+# 
+# base_grid <- grid_1km
+# base_grid[base_grid == 1] <- 0
+# 
+# file_name = paste0("./data_raw/glo/act/fishing_com/gfw/es2105270900/fleet-daily-csvs-100-v2-", gfw_year)
+# 
+# data_list <- list.files(file_name, full.names = TRUE)
+# data_file <- data_list[1]
+# 
+# fishing <- read.csv(data_file)
+
+#summary(fishing$geartype)
+```
+
+
+```{r}
+#levels(droplevels(fishing$geartype))
+```
+
+```{r}
+#fishing <- filter(fishing, geartype ==  "other_purse_seines" | geartype ==  "tuna_purse_seines")
+```
+
+
+ [1] "dredge_fishing"     "drifting_longlines" "fishing"            "fixed_gear"         "other_purse_seines" "other_seines"      
+ [7] "pole_and_line"      "pots_and_traps"     "purse_seines"       "seiners"            "set_gillnets"       "set_longlines"     
+[13] "squid_jigger"       "trawlers"           "trollers"           "tuna_purse_seines"
+
+### Categorizatin of gear types
+
+"fixed_gear" name includes: "fixed_gear", "set_longlines", "set_gillnets", "pots_and_traps"
+"other_fishing" name includes: "trollers", "pole_and_line",  
+
+
+## Import all years and combine
+
+### First choose a gear type
+```{r}
+gear_name <- "drifting_longlines"  #for the file name
+```
+
+### Reproject grid raster if necessary (encountered some problems using standard projection)
+```{r}
+grid_1km <- projectRaster(grid_1km, crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs", method = "ngb")
+```
+
+```{r, include = FALSE}
+
+for(j in 2020:2020){
+
+  gfw_year <- j
+  
+  base_grid <- grid_1km
+  
+  base_grid[base_grid == 1] <- 0
+  
+  #data_list <- list.files("./data_raw/glo/act/fishing_com/gfw/es2105270900/fleet-daily-csvs-100-v2-2017", full.names = TRUE)
+  
+  file_name = paste0("./data_raw/glo/act/fishing_com/gfw/es2105270900/fleet-daily-csvs-100-v2-", j)
+  data_list <- list.files(file_name, full.names = TRUE)
+  
+  #######
+  
+  time1 <- Sys.time()
+  
+  nit <- length(data_list)
+  
+  for(i in 1:nit) {
+  
+    t0 <- proc.time()
+    
+    data_file <- data_list[i]
+    fishing <- read.csv(data_file)
+    
+    fishing <- filter(fishing, geartype == "drifting_longlines") # EDIT HERE
+    
+    fishing$cell_ll_lon_fact <- as.factor(fishing$cell_ll_lon)
+    fishing$cell_ll_lat_fact <- as.factor(fishing$cell_ll_lat)
+    
+    fishing_sum <- fishing %>% group_by(cell_ll_lon_fact, cell_ll_lat_fact) %>% summarise(sum_fishing_hours = sum(fishing_hours))
+    
+    fishing_sum$x <- as.numeric(levels(fishing_sum$cell_ll_lon_fact))[fishing_sum$cell_ll_lon_fact]
+    fishing_sum$y <- as.numeric(levels(fishing_sum$cell_ll_lat_fact))[fishing_sum$cell_ll_lat_fact]
+    fishing_sum$z <- fishing_sum$sum_fishing_hours
+    
+    fishing_sum <- fishing_sum %>% ungroup() %>% select(x, y, z)
+    
+    fishing_sum <- filter(fishing_sum, x > 5 & x < 82)
+    fishing_sum <- filter(fishing_sum, y > -43 & y < 20)
+    
+    if(nrow(fishing_sum) == 0) {
+      
+      t1 <- proc.time() - t0
+      dt <- as.numeric(t1[3])
+      cat("\n", "Iteration", i, "complete", " - processing time", dt, "seconds")
+      
+    }
+    
+    else{
+      
+      fishing_ras <- rasterFromXYZ(fishing_sum, res=c(0.01,0.01), crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
+      #fishing_ras <- rasterFromXYZ(fishing_sum, res=c(0.01,0.01), crs = "+proj=cea +lat_ts=-12 +lon_0=12 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs")
+      
+      fishing_ras <- resample(fishing_ras, grid_1km, method = "ngb")
+      
+      fishing_ras <- crop(fishing_ras, grid_1km)
+      
+      fishing_ras[is.na(fishing_ras) == TRUE] <- 0
+      
+      base_grid <- fishing_ras + base_grid
+      
+      # remove (necessary)
+      #rm(fishing)
+      #rm(fishing_sum)
+      #rm(fishing_ras)
+      
+      t1 <- proc.time() - t0
+      dt <- as.numeric(t1[3])
+      cat("\n", "Iteration", i, "complete", " - processing time", dt, "seconds")
+      
+      }
+    
+  }
+  
+  time2 <- Sys.time()
+  
+  total.time <- time2 - time1
+  total.time
+  
+  
+  store_base_grid <- base_grid
+  base_grid[base_grid == 0] <- NA
+  
+  
+  
+  
+  # EXPORT
+  
+  grid_1km_original <- raster("./data/reg/grid/grid/v01/grid_1km_v01.1.tif")
+  
+  base_grid_proj <- projectRaster(base_grid, crs = crs(grid_1km_original), method = "ngb")
+  
+  (dest1_path_file1 <-paste(dest1_path, "/", subtheme1, "_", gear_name, "_", gfw_year, "_1km_", version, d_version, ".tif", sep=""))
+  
+  writeRaster(base_grid_proj, dest1_path_file1, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+
+}
+```
+
+## Import yearly maps and combine
+
+```{r}
+grid_1km_original <- raster("./data/reg/grid/grid/v01/grid_1km_v01.1.tif")
+```
+
+```{r}
+gfw2012 <- raster("./data/glo/act/fishing_com/gfw_effort/v01/fishing_com_gfw_effort_2012_1km_v01.0.tif")
+gfw2013 <- raster("./data/glo/act/fishing_com/gfw_effort/v01/fishing_com_gfw_effort_2013_1km_v01.0.tif")
+gfw2014 <- raster("./data/glo/act/fishing_com/gfw_effort/v01/fishing_com_gfw_effort_2014_1km_v01.0.tif")
+gfw2015 <- raster("./data/glo/act/fishing_com/gfw_effort/v01/fishing_com_gfw_effort_2015_1km_v01.0.tif")
+gfw2016 <- raster("./data/glo/act/fishing_com/gfw_effort/v01/fishing_com_gfw_effort_2016_1km_v01.0.tif")
+gfw2017 <- raster("./data/glo/act/fishing_com/gfw_effort/v01/fishing_com_gfw_effort_2017_1km_v01.0.tif")
+gfw2018 <- raster("./data/glo/act/fishing_com/gfw_effort/v01/fishing_com_gfw_effort_2018_1km_v01.0.tif")
+gfw2019 <- raster("./data/glo/act/fishing_com/gfw_effort/v01/fishing_com_gfw_effort_2019_1km_v01.0.tif")
+gfw2020 <- raster("./data/glo/act/fishing_com/gfw_effort/v01/fishing_com_gfw_effort_2020_1km_v01.0.tif")
+```
+
+```{r}
+gfw2012[is.na(gfw2012) == TRUE] <- 0
+gfw2013[is.na(gfw2013) == TRUE] <- 0
+gfw2014[is.na(gfw2014) == TRUE] <- 0
+gfw2015[is.na(gfw2015) == TRUE] <- 0
+gfw2016[is.na(gfw2016) == TRUE] <- 0
+gfw2017[is.na(gfw2017) == TRUE] <- 0
+gfw2018[is.na(gfw2018) == TRUE] <- 0
+gfw2019[is.na(gfw2019) == TRUE] <- 0
+gfw2020[is.na(gfw2020) == TRUE] <- 0
+```
+
+```{r}
+gfw_sum <- gfw2012 + gfw2013 + gfw2014 + gfw2015 + gfw2016 + gfw2017 + gfw2018 + gfw2019 + gfw2020
+```
+
+```{r}
+#gfw_sum[is.na(grid_1km_original) == TRUE] <- NA
+gfw_sum[gfw_sum == 0] <- NA
+```
+
+```{r}
+(dest1_path_file1 <-paste(dest1_path, "/", subtheme1, "_", name1, "_", "sum_1km_", version, d_version, ".tif", sep=""))
+  
+writeRaster(gfw_sum, dest1_path_file1, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+```
+## Log sum version
+
+```{r}
+gfw_sum <- log10(gfw_sum)
+```
+
+```{r}
+(dest1_path_file1 <-paste(dest1_path, "/", subtheme1, "_", name1, "_", "log10sum_1km_", version, d_version, ".tif", sep=""))
+  
+writeRaster(gfw_sum, dest1_path_file1, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+```
+
+
+```{r}
+writeRaster(grid_1km, "./grid_1km_WGS84nodefs.tif", overwrite=TRUE)
+```
+
+
