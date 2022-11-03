@@ -1,0 +1,368 @@
+# ========================================================================================================= #
+# IMPORTANT - To get started:
+Because this script is an R Markdown script, the default directory is the location of this .Rmd file.
+You must open this script from within the .Rproj file associated with your wiosym database for it to work.
+If you haven't used R notebooks before (.Rmd), each of the code "chunks" can be executed by clicking the green play
+button at the top right of the chunk.
+
+To run the script from the project directory, in R Studio, you need to go to: Tools > Global Options > R Markdown
+and set "Evaluate chunks in directory" to "Project", though for latest version of R/Rstudio it may not be needed...
+# ========================================================================================================= #
+# ABOUT
+# ========================================================================================================= #
+## Brief description: 
+Modifying plastic pollution to get more realistic spread - though needs more advanced model in future update
+### Scripts/processes that needs to be updated prior?:
+###
+### Script by: Initial, org, Rver: 
+gk, sgu, r4.1.1
+### Updated: Initial, org, Rver, comments
+### Developer check: Initial, org, yymmdd, comments
+### External check: Initial, org, yymmdd, comments
+# ========================================================================================================= #
+# INSTRUCTIONS
+# ========================================================================================================= #    
+This is a simplified template that is made to adjust already exsisting data products, for a full template to producce new data use the main temaplte
+# ========================================================================================================= # 
+# PREPARATIONS
+# ========================================================================================================= #
+
+### Install packages
+```{r, include = FALSE}
+# list all packages that this script is dependent on, remove any redundant ones
+x <- c("sf", "raster", "rgdal", "tidyverse")
+#install.packages(x, dependencies=TRUE)
+```
+
+### Load packages
+```{r, include = FALSE}
+library(sf) 
+library(raster)
+library(rgdal)
+library(tidyverse)
+```
+
+## Set version / theme / subtheme (copy from original script or path to get right..)
+```{r}
+version = "v01" # relates to major iteration of WIOSym (v01 for grid 2021, v02 for grid 2022)
+d_version = ".1"  # detailed version (you can add another level e.g. 0.0  -> v01.0.0)
+seq = "s02" # sequential order - change accordingly if process is run in several scripts
+location = "reg"
+theme = "pres"
+subtheme = "pol_plastic"
+name1 <- "dispersal" # add name what this script does if appropriate ("uncertainty", "norm01")
+```
+
+
+## Set paths
+Locate the relative path (from wiosym folder) to the root directpry of the data folder you are working in, copy and paste to "dest_path", the rest will update itself
+```{r}
+#(dest_path <- "REPLACE") # path to final product
+(dest_path <- "./data/reg/pres/pol_plastic/v01/") # example of path to product directory
+(work_path <- paste(dest_path, "proc/", sep=""))
+(proc_log_path <- paste(dest_path, "proc_log/", sep=""))
+(archive_path <- paste(dest_path, "_archive/", sep=""))
+(script_path <- "./process/r/")
+```
+
+## Create directories
+```{r}
+dir.create(dest_path, recursive = TRUE)
+dir.create(work_path, recursive = TRUE)
+dir.create(proc_path, recursive = TRUE)
+dir.create(archive_path, recursive = TRUE)
+dir.create(script_path, recursive = TRUE)
+```
+
+
+## Save R Script
+```{r}
+(script_path_windows <- paste(getwd(), "/process/r", sep=""))
+(script_name <- paste(theme, "_", subtheme,"_", location, "_", seq, "_", version, name1, ".Rmd", sep=""))
+```
+ # copy path and name and use File/Save As in R studio to save rmd file
+ 
+#==========================================================================================================================#
+# INDATA
+#==========================================================================================================================#
+
+# Load exisiting sourcesym file
+Load a sourcesym file and make sure you update it for the final expert if any new source IDs are added for this script
+```{r}
+dir(dest_path, pattern = "sourcesym.txt")
+(sourcesym <-  read_tsv(paste(dest_path, "plastic_v2.tif_sourcesym.txt", sep="")))
+```
+
+# Set DATA_RAW sources
+IMPORTANT all data harvested from data_raw needs to have a metasym.txt file in its root directory (not file specific)
+When building on a a previous script you ight already have a complete sourcesym file that you can copy and paste for the product you do in this script (filename_sourcesym.txt), its ok! 
+## copy and paste your data_raw sources from previous script. 
+if you add new ones make sure to ingest the metasym file (see original template if code example is needed)
+
+# no data raw sources...
+
+# DATA sources
+IMPORTANT Products in data are based on information in data_raw. Check that *_sourcesym.txt exists for each file to track acccumulated IDs. 
+The sourcesym files can be identical within some directory in which case you can load only one, but its not always the case which is why there is one file for each file. 
+
+## DATA1: Grid 1km - loading all flavours (watermask 1, 0, NA) at once since identical sourcesym apply
+```{r}
+data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
+dir(data_dir) # check what data is in this directory
+
+data1_file <- "grid_1km_v01.1.tif" 
+data1_file2 <- "grid_1km_0_v01.1.tif" 
+data1_file3 <- "grid_1km_na_v01.1.tif" 
+
+(grid_1km_path <- path <- paste(data_dir, data1_file, sep=""))
+(grid_1km <- raster(path)) # read and check your data
+(grid_1km_0_path <- path <- paste(data_dir, data1_file2, sep=""))
+(grid_1km_0 <- path <- raster(path)) # read and check your data
+(grid_1km_na_path <- path <- paste(data_dir, data1_file3, sep=""))
+(grid_1km_na <- path <- raster(path)) # read and check your data
+(data1_sourcesym <- read_tsv(paste(data_dir, data1_file, "_sourcesym.txt", sep="")))
+# check that source IDs exists and make sense
+
+#plot(grid_1km)
+```
+
+## DATA2: Grid 250m - loading all flavours (watermask 1, 0, NA) at once since same sourcesym apply
+```{r}
+data2_dir <- data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
+
+data2_file <- "grid_250m_v01.1.tif" # your data file
+data2_file2 <- "grid_250m_0_v01.1.tif" # your data file
+data2_file3 <- "grid_250m_na_v01.1.tif" # your data file
+
+grid_250m_path <- path <- paste(data_dir, data2_file, sep="")
+grid_250m <- raster(path) # read and check your data
+grid_250m_0_path <- path <- paste(data_dir, data2_file2, sep="")
+grid_250m_0 <- path <- raster(path) # read and check your data
+grid_250m_na_path <- path <- paste(data_dir, data2_file3, sep="")
+grid_250m_na <- path <- raster(path) # read and check your data
+(data2_sourcesym <- read_tsv(paste(data_dir, data2_file, "_sourcesym.txt", sep="")))
+# check so source IDs exists and make sense
+# check that source IDs exists and make sense
+# plot(grid_250m)
+```
+
+## DATA4: shoreline
+```{r}
+
+data_dir <-  "./data/reg/eco/ch_shore/v01/"  # input your data directory
+dir(data_dir) # check what data is in this directory
+
+data4_file <- "eco_ch_shore_shoreline_proportion_norm01_1km_v01.0.tif" 
+
+(shore_path <- path <- paste(data_dir, data4_file, sep=""))
+(shore_1km <- raster(path)) # read and check your data
+(data4_sourcesym <- read_tsv(paste(data_dir, data4_file, "_sourcesym.txt", sep="")))
+#
+```
+## DATA4: example - workfiles you are building on
+
+```{r}
+dir(dest_path)
+
+plastic <- raster(paste(dest_path, "plastic_v2.tif", sep=""))
+
+plot(plastic)
+```
+
+#==========================================================================================================================#
+# PROCESSING
+#==========================================================================================================================#
+
+# PLASTIC DISPERSAL - adding spread to 5km resolution plastic layer
+```{r}
+r <- plastic
+(crs(r))
+(res(r))
+
+r_5km <- aggregate(r, fact=5, fun=sum)
+
+r <- r_5km
+
+# 100km dispersal
+w <- focalWeight(r, 20000, "Gauss") # simulating spread of spill related pollutants assuming about 2 days dispersal time at 0.5 knot current speed
+(w)
+
+r_focal_100km <- focal(r, w, fun=sum, na.rm=T, pad=T, NAonly=F) 
+plot(r_focal_100km)
+
+
+# 50km dispersal
+w <- focalWeight(r, 10000, "Gauss") # simulating spread of spill related pollutants assuming about 2 days dispersal time at 0.5 knot current speed
+(w)
+
+r_focal_50km <- focal(r, w, fun=sum, na.rm=T, pad=T, NAonly=F) 
+plot(r_focal_50km)
+
+#10km dispersal
+
+w <- focalWeight(r, 2000, "Gauss") # estimating spread of local pollutant effects
+
+
+r_focal_10km <- focal(r, w, fun=sum, na.rm=T, pad=T, NAonly=F) 
+
+plot(r_focal_10km)
+
+r_5km_plastic <- (r_focal_100km/0.0099816800 + r_focal_50km/0.0398703562 + r_focal_10km/0.84497315)/3
+
+
+
+
+# log transforming plastic, this can be futher discussed in an update. better model needed.
+
+#r_5km_plastic_loge <- log((r_5km_plastic+1), base = exp(1))
+
+#r_5km_plastic_log <- log(r_5km_plastic+1)
+
+
+# alternative way - removing outliers
+(r_5km_plastic)
+
+r_5km_plastic[r_5km_plastic>15000] <- 15000 # removing outliers based on histogram and GIS observations
+
+plot(r_5km_plastic)
+
+```
+
+## Resample to 1km
+```{r}
+#Resample to approximately 1km resolution
+
+r <- r_5km_plastic
+
+s <- raster(extent(r), resolution=res(r)/5, crs=crs(r))
+
+r_res <- resample(r, s, method='bilinear')
+
+plot(r_res)
+
+
+r <- r_res
+
+
+# Final check that all is good...
+r <- merge(r, grid_1km_0)
+r <- crop(r, grid_1km)
+r <- mask(r, grid_1km)
+
+
+plastic_1km <- r
+
+
+plot(plastic_1km)
+(plastic_1km)
+
+
+# add shoreline accumulation effect
+
+r <- shore_1km
+# 2km dispersal
+
+w <- focalWeight(r, 500, "Gauss")
+(w)
+
+r <- r_focal_3km <- focal(r, w, fun=sum, na.rm=T, pad=T, NAonly=F) 
+plot(r)
+
+r <- merge(r, grid_1km_0)
+r <- crop(r, grid_1km)
+r <- mask(r, grid_1km)
+
+
+
+shore_1km <- r
+
+
+
+
+r <- plastic_shore <- plastic_1km * (shore_1km+1)
+
+plastic_1km_norm <- r/cellStats(r,"max") * 100
+(plastic_1km_norm)
+plot(plastic_1km_norm)
+
+
+# write to raster
+
+plastic_norm_path <- path <-  paste(work_path, "plastic_shore_gaus3km_norm_1km.tif", sep="")
+
+writeRaster(plastic_1km_norm, path, overwrite=T, COMPRESS=LZW)
+
+plastic_1km_norm <- raster(path)
+
+```
+
+#==========================================================================================================================#
+# EXPORT
+#==========================================================================================================================#
+
+# SOURCESYM
+Create sourcesym file with all source IDs used (data and data_raw) 
+```{r}
+## data raw sources (dir)
+(sourcesym)
+#(data_raw_sources <- tibble(id = c(source1_id, source2_id,))) # REPLACE / add all new data_raw sources (if they are already in the loaded sourcesym file disregard)
+
+## data sources (files)
+#add any new sourcesym files that are not already represented in the loaded sourcesym
+
+data_sources <- data4_sourcesym %>% # add any "sourcesym" files applicable to this product (check indata section), keep adding sourcesym files as needed
+#  add_row(data2_sourcesym)%>%  
+#  #add_row(data3_sourcesym)%>% 
+  unique() %>% 
+  print()
+
+## Sources combined
+
+all_sources <- sourcesym %>% #add_row(data_sources) %>%data_raw_sources
+print(all_sources)
+```
+
+
+# PRODUCT 1: Plastic pollution
+OBS if you need pointers for other naming, the full template has the instructions e.g. pointing to the component list with names, and using theme/subtheme to make the name...
+```{r}
+
+export_object1 <- plastic_1km_norm # REPLACE... 
+
+dir(dest_path)
+product_orig1 <- "pol_plastic_shore_norm_" 
+
+(product_path1 <- paste(dest_path, product_orig1, name1, "_1km_", version, d_version, ".tif", sep="" ))  # Example, change the "uncertainty part as needed (norm01 for example)
+#(product_path2 <- paste(dest_path, product_orig2, name1, ".tif", sep="" ))
+
+# check datatype to be appropriate for values ('FLT4S' (normalised data) / 'INT4S' (uncertainty data) main standards to use)
+writeRaster(export_object1, product_path1, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
+#writeRaster(export_object2, product_path2, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
+
+write_tsv(all_sources, paste(product_path1, "_sourcesym.txt", sep="")) 
+#write_tsv(all_sources, paste(product_path2, "_sourcesym.txt", sep=""))  
+```
+
+
+# SAVE SCRIPT
+1. save your current R script (File/Save)
+2. Save a carbon copy of the R script to proc_log (identical script to what is used to create the products exported
+Do not change the *.Rmd carbon copy in proc_log/ unless you change this version of the products (new versions are developed under process/r)
+
+```{r}
+# 2. run code below and go to File/Save As and paste link and name:
+(script_name <- paste(theme, "_", subtheme,"_", location, "_", seq, "_", version, d_version, "_",name1, ".Rmd", sep=""))
+```
+
+#==========================================================================================================================#
+# FINAL CHECK
+#==========================================================================================================================#
+# Developer check
+ Do your own final check on the products and double check sourcesym file exists and are complete for all files in root 
+ -> Sign at top of script in about section (# Approved by:)
+
+# External check 
+ To ensure repeatability and quality, make sure one colleage can run the script
+ When script is proven repeatable/understandable and products/metadata look ok 
+ -> Sign at top of script in about section (# Approved by:), and make any comments if needed
+ There is also a work_log document in onedrive / gitHUB, check current arrangement with Swedish dev team

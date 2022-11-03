@@ -114,3 +114,5 @@ World Resources Institute (wri)	wri
 World Wide Fund for Nature (wwf)	wwf
 UN Biodiversity Lab (unbl)	unbl
 Norsk Polarinstitutt (npi)	npi
+HUB Ocean (hub)	hub
+

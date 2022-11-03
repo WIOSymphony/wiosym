@@ -1,0 +1,319 @@
+# ========================================================================================================= #
+# IMPORTANT - To get started:
+# To run the script from the project directory, in R Studio, you need to go to: Tools > Global Options > R Markdown
+# and set "Evaluate chunks in directory" to "Project"
+# ========================================================================================================= #
+# ABOUT
+# ========================================================================================================= #
+## Brief description: cropping of substrate models created by Chris Jenkins to temperate and tropical --
+## Hard and Soft substrates cut-off at 30oS Latitude 
+### Scripts/processes that needs to be updated prior?:
+###
+### Script by: ff, SGU, R 4.1.1:
+### Updated: Initial, org, Rver, comments
+### Developer check: Initial, org, yymmdd, comments
+### External check: Initial, org, yymmdd, comments
+
+# ========================================================================================================= # 
+# PREPARATIONS
+# ========================================================================================================= #
+
+### Install packages
+```{r, include = FALSE}
+# list all packages that this script is dependent on, remove any redundant ones
+x <- c("sf", "raster", "rgdal", "tidyverse", "gdalUtils")
+install.packages(x, dependencies=TRUE)
+```
+
+### Load packages
+```{r, include = FALSE}
+library(sf) 
+library(raster)
+library(rgdal)
+library(tidyverse)
+library(gdalUtils)
+```
+
+
+## Set version
+```{r}
+version = "v01" # relates to major iteration of WIOSym (v01 for grid 2021, v02 for grid 2022)
+d_version = ".0"  # detailed version (you can add another level e.g. 0.0  -> v01.0.0)
+seq = "s01" # sequential order - change accordingly if process is run in several scripts
+```
+
+## Set geographic scope
+```{r}
+read_tsv("./shiny_data_upload/locations.txt")  # prints available locations to choose from and their abbreviations
+```
+
+```{r}
+location = "reg" # choose applicable 3 letter abbreviation from "location_val" -  reg for whole WIO area
+```
+
+## Set main theme
+```{r}
+folders_raw <- read_tsv("./shiny_data_upload/folders.txt")
+folders_data <- read_tsv("./shiny_data_upload/folders_data.txt") # additional folders for data not applicable for data_raw 
+folders <- folders_raw %>% add_row(folders_data)
+(unique(folders["theme_folder"]))
+```
+
+```{r}
+theme <- "env" # Copy from "theme_folder" (e.g. "eco")
+```
+
+## Set Subtheme
+```{r}
+folders %>%
+  filter(theme_folder == theme) %>% 
+  dplyr::select(subtheme_folder, subtheme_name) %>% 
+  print(n = Inf)
+```
+
+```{r}
+subtheme <- "soft_substrate" # copy from "subtheme_folder"
+```
+
+
+## Set paths
+```{r}
+(dest_path <- paste("./data", location, theme, subtheme, version, "", sep="/")) # path to final product
+(work_path <- paste(dest_path, "proc/", sep=""))
+(proc_path <- paste(dest_path, "proc_log/", sep=""))
+(archive_path <- paste(dest_path, "_archive/", sep=""))
+(script_path <- "./process/r/")
+```
+
+## Create directories
+```{r}
+dir.create(dest_path, recursive = TRUE)
+dir.create(work_path, recursive = TRUE)
+dir.create(proc_path, recursive = TRUE)
+dir.create(archive_path, recursive = TRUE)
+dir.create(script_path, recursive = TRUE)
+```
+
+## Save R Script
+```{r}
+name1 <- "sof_substrate" # "REPLACE_" if script need additional name... don't use unless needed to avoid duplication.
+(script_path_windows <- paste(getwd(), "/process/r", sep=""))
+(script_name <- paste(theme, "_", subtheme,"_", location, "_", name1, seq, "_", version, ".Rmd", sep=""))
+```
+ # copy path and name and use File/Save As in R studio to save rmd file
+ 
+#==========================================================================================================================#
+# INDATA
+#==========================================================================================================================#
+# Set DATA_RAW sources
+IMPORTANT all data harvested from data_raw needs to have a metasym.txt file in its root directory (not file specific)
+
+
+## DIR1: 
+```{r}
+source1_dir <- source_dir <-  "./data_raw/reg/env/geo_sub/dbseabed/pz2206131533/"  # REPLACE - internal path
+source1 <- source_id <- "pz2206131533" # REPLACE
+(read_tsv(paste(source_dir, source_id, "_metasym.txt", sep=""))) # check the metasym file
+``` 
+
+```{r}
+dir(source_dir, recursive=F)
+```
+
+
+
+### declare number of "data_raw" directorys above
+
+```{r}
+data_raw_metasym_num <-  1 # set total number of data_raw dir used (e.g. <- 1), to help in export section
+```
+
+
+## DATA sources
+IMPORTANT Products in data are based on information in data_raw. Check that *_sourcesym.txt exists for each file to track acccumulated IDs. 
+The sourcesym files can be identical within some directory in which case you can load only one, but its not always the case which is why there is one file for each file. 
+
+## DATA1: Grid 1km - loading all flavours (watermask 1, 0, NA) at once since identical sourcesym apply
+```{r}
+data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
+dir(data_dir) # check what data is in this directory
+
+data1_file <- "grid_1km_v01.1.tif" 
+data1_file2 <- "grid_1km_0_v01.1.tif" 
+data1_file3 <- "grid_1km_na_v01.1.tif" 
+data1_file4 <- "bounding_box_1km.tif"
+
+(grid_1km_path <- path <- paste(data_dir, data1_file,sep=""))
+(grid_1km <- raster(path)) # read and check your data
+(grid_1km_0_path <- path <- paste(data_dir, data1_file2, sep=""))
+(grid_1km_0 <- path <- raster(path)) # read and check your data
+(grid_1km_na_path <- path <- paste(data_dir, data1_file3, sep=""))
+(grid_1km_na <- path <- raster(path)) # read and check your data
+data1_sourcesym <- read_tsv(paste(data_dir, data1_file, "_sourcesym.txt", sep=""))
+bounding_box_raster <- raster(paste(data_dir, data1_file4, sep = ""))
+# check that source IDs exists and make sense
+
+#plot(grid_1km)
+```
+
+## DATA2: Grid 250m - loading all flavours (watermask 1, 0, NA) at once since same sourcesym apply
+```{r}
+data2_dir <- data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
+
+data2_file <- "grid_250m_v01.1.tif" # your data file
+data2_file2 <- "grid_250m_0_v01.1.tif" # your data file
+data2_file3 <- "grid_250m_na_v01.1.tif" # your data file
+
+(grid_250m_path <- path <- paste(data_dir, data2_file, sep=""))
+(grid_250m <- raster(path)) # read and check your data
+(grid_250m_0_path <- path <- paste(data_dir, data2_file2, sep=""))
+(grid_250m_0 <- path <- raster(path)) # read and check your data
+(grid_250m_na_path <- path <- paste(data_dir, data2_file3, sep=""))
+(grid_250m_na <- path <- raster(path)) # read and check your data
+(data2_sourcesym <- read_tsv(paste(data_dir, data2_file, "_sourcesym.txt", sep="")))
+# check so source IDs exists and make sense
+# check that source IDs exists and make sense
+#plot(grid_250m)
+```
+
+
+## DATA 3: bounding box shapefile
+```{r}
+data3_dir <- data_dir <-  "./data/reg/grid/scope/v01/"  # input your data directory
+data3_file <- "wiosym_data_bounding_box_v01.shp" # your data file
+data3_sourcesym <- read_tsv(paste(data_dir, data3_file, "_sourcesym.txt", sep=""))
+#data3_sourcesym # check so source IDs exists and make sense - ok for these
+data3_path <- data_path <- paste(data_dir, data3_file, sep="")
+grid_poly <- st_read(data_path) # read in your data object if appropriate and perhaps change name to more informative...
+grid_poly
+plot(grid_poly)
+```
+## DATA 4: mask shapefile for 30degrees cut-off PROBABLY DELETE?????
+```{r}
+data4_dir <- data_dir <-  "./data/reg/grid/mask/v00/"  # input your data directory
+data4_file <- "30_degree_lat.shp" # your data file
+data4_sourcesym <- read_tsv(paste(data_dir, data4_file, "_sourcesym.txt", sep=""))
+#data3_sourcesym # check so source IDs exists and make sense - ok for these
+data4_path <- data_path <- paste(data_dir, data4_file, sep="")
+grid_poly <- st_read(data_path) # read in your data object if appropriate and perhaps change name to more informative...
+grid_poly
+plot(grid_poly)
+```
+
+
+## declare number of "data" files
+```{r}
+data_sourcesym_num <-  2 # set total number of data files (e.g. <- 2), to help in export section
+```
+
+#==========================================================================================================================#
+# PROCESSING
+#==========================================================================================================================#
+
+# collate separate downloaded intertidal rasters to the project area and create the grid -----------------------------------------------
+```{r}
+library(terra)
+cropping_polygon <- vect(paste("./data/reg/grid/mask/v00/","30_degree_lat.shp", sep = "")) #clipping polygon for 30oS and below
+cropping_polygon_60 <- vect(paste("./data/reg/grid/mask/v00/","60_degree_lat.shp", sep = "")) #clipping polygon for 30oS and above
+
+export_directory <- "./data/reg/env/soft_substrate/v01/"
+
+#check the directories
+list.dirs(source_dir)
+
+sft_btm_files <- list.files(paste(source_dir,"hardSoftValues_byDepthZones", sep = ""), pattern = "*SoftBotm*")
+
+
+
+
+for (tif_obj in sft_btm_files) {
+  asc_file_name = tif_obj
+  exportfile_name <- substr((substring(tif_obj, 25)),1,nchar(substring(tif_obj, 25))-4)
+  raster_file_export <- rast(paste(source_dir,"hardSoftValues_byDepthZones/", tif_obj, sep = ""))
+  crs(raster_file_export) <-  "+proj=longlat +datum=WGS84 +no_defs"
+  
+  x <- crop(raster_file_export, ext(cropping_polygon))
+  x_60 <- crop(raster_file_export, ext(cropping_polygon_60))
+  
+  x1 <- project(x, grid_1km)
+  x1_60 <- project(x_60, grid_1km)
+  
+  x2 <- x1
+  x2_60 <- x1_60
+  
+  res(x2) <- 1000
+  res(x2_60) <- 1000
+  
+  x2 <- resample(x1, x2)
+  x2_60 <- resample(x1_60, x2_60)
+  
+  #Export geotiffs here
+  writeRaster(x2,filename=file.path(paste(export_directory,"Tropical_SoftBottom_Substrate_",exportfile_name,"_1km",".tif", sep = "")), overwrite=TRUE )
+  writeRaster(x2_60,filename=file.path(paste(export_directory,"Temperate_SoftBottom_Substrate_",exportfile_name,"_1km",".tif", sep = "")), overwrite=TRUE )
+  
+}
+
+
+
+
+```
+
+
+
+#==========================================================================================================================#
+# EXPORT
+#==========================================================================================================================#
+# Write products to root directory when checked and ready to use elsewhere, accompanied by yourfilename.ext_sourcesym.txt 
+# for each file to track source IDs as they accumulate between processes / data
+
+
+# SOURCESYM
+### Create sourcesym file with all source IDs used (data and data_raw) 
+# data raw sources (dir)
+
+```{r}
+print(paste("data_raw metasym files used = ", data_raw_metasym_num, sep=""))
+(data_raw_sources <- tibble(id = c(source1))) # REPLACE / add all data_raw sources
+```
+
+## data sources (files)
+```{r}
+print(paste("data_sourcym files = ", data_sourcesym_num, sep=""))
+data_sources <- data1_sourcesym %>% # add any "sourcesym" files applicable to this product (check indata section), keep adding sourcesym files as needed
+  #add_row(data2_sourcesym)%>%  
+  #add_row(data3_sourcesym)%>% 
+  #add_row(data4_sourcesym)%>% 
+  #add_row(data5_sourcesym)%>% 
+  #add_row(data6_sourcesym)%>% 
+  unique() %>% 
+  print()
+```
+## Sources combined
+```{r}
+(all_sources <- data_raw_sources %>% add_row(data_sources))
+write_tsv(all_sources, paste(export_directory, "Tropical_SoftBottom_Substrate_sourcesym.txt", sep=""))
+write_tsv(all_sources, paste(export_directory, "Temperate_SoftBottom_Substrate_sourcesym.txt", sep=""))
+```
+
+
+
+```{r}
+# 2. run code below and go to File/Save As and paste link and name:
+dest_path_script <- paste(getwd(), proc_path)
+print(dest_path_script <- gsub(" .", "", dest_path_script)) # path
+print(script_name_copy <- paste(gsub(".Rmd", "", script_name), d_version, ".Rmd", sep="")) # script name
+```
+
+#==========================================================================================================================#
+# FINAL CHECK
+#==========================================================================================================================#
+## Developer check
+ Do your own final check on the products and double check sourcesym file exists and are complete for all files in root 
+ -> Sign at top of script in about section (# Approved by:)
+
+## External check 
+ To ensure repeatability and quality, make sure one colleage can run the script
+ When script is proven repeatable/understandable and products/metadata look ok 
+ -> Sign at top of script in about section (# Approved by:), and make any comments if needed
+ There is also a work_log document in onedrive / gitHUB, check current arrangement with Swedish dev team
+

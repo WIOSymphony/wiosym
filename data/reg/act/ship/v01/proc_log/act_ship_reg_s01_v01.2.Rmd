@@ -1,0 +1,916 @@
+# ========================================================================================================= #
+# IMPORTANT - To get started:
+Because this script is an R Markdown script, the default directory is the location of this .Rmd file.
+You must open this script from within the .Rproj file associated with your wiosym database for it to work.
+If you haven't used R notebooks before (.Rmd), each of the code "chunks" can be executed by clicking the green play
+button at the top right of the chunk.
+
+To run the script from the project directory, in R Studio, you need to go to: Tools > Global Options > R Markdown
+and set "Evaluate chunks in directory" to "Project", though for latest version of R/Rstudio it may not be needed...
+# ========================================================================================================= #
+# ABOUT
+# ========================================================================================================= #
+## Brief description: 
+AIS / Shipping and noise pressure to standard grid
+### Scripts/processes that needs to be updated prior?: 
+###
+### Script by: 
+gk, sgu, Rver 4.1.1.
+### Updated: 
+gk, sgu, Rver 4.1.1. New AIS data from HUB Ocean 2022-09
+### Developer check: Initial, org, yymmdd, comments
+### External check: Initial, org, yymmdd, comments
+# ========================================================================================================= # 
+# PREPARATIONS
+# ========================================================================================================= #
+
+### Install packages
+```{r, include = FALSE}
+# list all packages that this script is dependent on, remove any redundant ones
+x <- c("sf", "raster", "rgdal", "tidyverse", "gdalUtils")
+#install.packages("gdalUtils", dependencies=TRUE)
+```
+
+### Load packages
+```{r, include = FALSE}
+library(gdalUtils)
+library(sf) 
+library(raster)
+library(rgdal)
+library(tidyverse)
+library(readxl)
+```
+
+## Set version
+```{r}
+version = "v01" # relates to major iteration of WIOSym (v01 for grid 2021, v02 for grid 2022)
+d_version = ".2"  # detailed version (you can add another level e.g. 0.0  -> v01.0.0)
+seq = "s01" # sequential order - change accordingly if process is run in several scripts
+```
+
+## Set geographic scope
+```{r}
+read_tsv("./shiny_data_upload/locations.txt")  # prints available locations to choose from and their abbreviations
+```
+
+```{r}
+location = "reg" # choose applicable 3 letter abbreviation from "location_val" -  reg for whole WIO area
+```
+
+## Set main theme
+```{r}
+folders_raw <- read_tsv("./shiny_data_upload/folders.txt")
+folders_data <- read_tsv("./shiny_data_upload/folders_data.txt") # additional folders for data not applicable for data_raw 
+folders <- folders_raw %>% add_row(folders_data)
+(unique(folders["theme_folder"]))
+```
+
+```{r}
+theme <- "act" # Copy from "theme_folder" (e.g. "eco")
+```
+
+## Set Subtheme
+```{r}
+folders %>%
+  filter(theme_folder == theme) %>% 
+  dplyr::select(subtheme_folder, subtheme_name) %>% 
+  print(n = Inf)
+```
+
+```{r}
+subtheme <- "ship" # this script will adress many pressurs bot working from shipping activity dir
+```
+
+## Set paths
+```{r}
+(dest_path <- paste("./data", location, theme, subtheme, version, "", sep="/")) # path to final product
+(work_path <- paste(dest_path, "proc/", sep=""))
+(proc_path <- paste(dest_path, "proc_log/", sep=""))
+(archive_path <- paste(dest_path, "_archive/", sep=""))
+(script_path <- "./process/r/")
+```
+
+## Create directories
+```{r}
+dir.create(dest_path, recursive = TRUE)
+dir.create(work_path, recursive = TRUE)
+dir.create(proc_path, recursive = TRUE)
+dir.create(archive_path, recursive = TRUE)
+dir.create(script_path, recursive = TRUE)
+```
+
+## Save R Script
+```{r}
+name1 <- "" # "REPLACE_" if script need additional name... don't use unless needed to avoid duplication.
+(script_path_windows <- paste(getwd(), "/process/r", sep=""))
+(script_name <- paste(theme, "_", subtheme,"_", location, "_", name1, seq, "_", version, ".Rmd", sep=""))
+```
+ # copy path and name and use File/Save As in R studio to save rmd file
+ 
+#==========================================================================================================================#
+# INDATA
+#==========================================================================================================================#
+# Set DATA_RAW sources
+IMPORTANT all data harvested from data_raw needs to have a metasym.txt file in its root directory (not file specific)
+## DIR1: 
+```{r}
+source1_dir <- source_dir <-  "./data_raw/reg/act/ship/hub/gk2209241037/"  # REPLACE - internal path
+source1 <- source_id <- "gk2209241037" # 
+(read_tsv(paste(source_dir, source_id, "_metasym.txt", sep=""))) # check the metasym file
+``` 
+
+```{r}
+dir(source_dir, recursive=T, pattern= ".tiff$")
+```
+
+```{r}
+# Files
+ship_stack_names <- list.files(source_dir, pattern = ".tiff$", recursive=T)
+ship_stack <- stack(paste(source_dir, list.files(source_dir, pattern = ".tiff$", recursive=T), sep=''))
+
+
+# addressing problems with stack... needs flipping and projection string
+ship_stack <- flip(ship_stack, direction='y')
+proj4string(ship_stack) <- CRS("+init=epsg:4326")
+
+(names(ship_stack))
+
+#writeRaster(ship_stack[[5]], paste(work_path, "test.tif", sep=""), overwrite=T, datatype = 'FLT4S', COMPRESS=LZW)
+```
+
+### declare number of "data_raw" directorys above
+```{r}
+data_raw_metasym_num <- 1 # set total number of data_raw dir used (e.g. <- 1), to help in export section
+```
+
+
+# DATA sources
+IMPORTANT Products in data are based on information in data_raw. Check that *_sourcesym.txt exists for each file to track acccumulated IDs. 
+
+## DATA1: Grid 1km - loading all flavours (watermask 1, 0, NA) at once since identical sourcesym apply
+```{r}
+data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
+dir(data_dir) # check what data is in this directory
+
+data1_file <- "grid_1km_v01.1.tif" 
+data1_file2 <- "grid_1km_0_v01.1.tif" 
+data1_file3 <- "grid_1km_na_v01.1.tif" 
+
+(grid_1km_path <- path <- paste(data_dir, data1_file, sep=""))
+(grid_1km <- raster(path)) # read and check your data
+(grid_1km_0_path <- path <- paste(data_dir, data1_file2, sep=""))
+(grid_1km_0 <- path <- raster(path)) # read and check your data
+(grid_1km_na_path <- path <- paste(data_dir, data1_file3, sep=""))
+(grid_1km_na <- path <- raster(path)) # read and check your data
+
+data1_sourcesym <- read_tsv(paste(data_dir, data1_file, "_sourcesym.txt", sep=""))
+# check that source IDs exists and make sense
+
+plot(grid_1km)
+```
+
+## DATA2: Grid 250m - loading all flavours (watermask 1, 0, NA) at once since same sourcesym apply
+```{r}
+data2_dir <- data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
+
+data2_file <- "grid_250m_v01.1.tif" # your data file
+data2_file2 <- "grid_250m_0_v01.1.tif" # your data file
+data2_file3 <- "grid_250m_na_v01.1.tif" # your data file
+
+(grid_250m_path <- path <- paste(data_dir, data2_file, sep=""))
+(grid_250m <- raster(path)) # read and check your data
+(grid_250m_0_path <- path <- paste(data_dir, data2_file2, sep=""))
+(grid_250m_0 <- path <- raster(path)) # read and check your data
+(grid_250m_na_path <- path <- paste(data_dir, data2_file3, sep=""))
+(grid_250m_na <- path <- raster(path)) # read and check your data
+
+(data2_sourcesym <- read_tsv(paste(data_dir, data2_file, "_sourcesym.txt", sep="")))
+# check so source IDs exists and make sense
+# check that source IDs exists and make sense
+#plot(grid_250m)
+```
+
+# data3: bounding box for the grid (created by SGU in GIS so no data_raw sources involved)
+data3_dir <- "./data/reg/grid/scope/v01/" 
+dir(data2_dir)
+data3_file <- "wiosym_data_bounding_box_v01.shp" 
+data3_sourcesym <- read_tsv(paste(data2_dir, data2_file, "_sourcesym.txt", sep=""))
+data3_sourcesym # check so source IDs exists and make sense
+data3_path <- paste(data3_dir, data3_file, sep="")
+data3_path # note: this data is not read in as an object since the process in this script happens in GDAL outside R
+
+extent_box <- st_read(data3_path)
+
+
+
+
+## declare number of "data" files
+```{r}
+data_sourcesym_num <-  2 # set total number of data files (e.g. <- 2), to help in export section
+```
+
+#==========================================================================================================================#
+# PROCESSING
+#==========================================================================================================================#
+
+
+
+## create mask for harbor areas, and interpolate stack
+```{r}
+stack <- ship_stack
+names(stack)
+r <- stack[[5]] # total shipping
+summary(r) 
+
+# reclassify to port mask - use total hours to identify potential anchor areas (e.g. most ships at 0 velocity). approximate hours for these areas are >1500 / 2 years. observed using GIS...
+
+
+m <-c(-10,1500,NA, 1500,100000000000000,1)
+m
+rc <- reclassify(r, m)
+plot(rc)
+rc
+rc_poly = rasterToPolygons(rc, na.rm=TRUE, dissolve=T)
+rc_poly_sf <- st_as_sf(rc_poly)
+rc_poly_sf = st_cast(rc_poly_sf,"POLYGON") # explode into singlepart features
+
+path1 <- paste(work_path, "portmask_uned.shp", sep="")
+path2 <- paste(work_path, "portmask.shp", sep="")
+
+
+st_write(rc_poly_sf, path1, driver="ESRI Shapefile", delete_layer=T)
+
+# MANUAL EDIT NEEDED - edit of shapefile was conducted in GIS to remove shipping areas from mask. then reinport the polygon, resaved as portmask.shp
+
+mask <- rc_poly_edit_sf <- st_read(path2)
+plot(mask)
+
+
+# mask and interpolate stack
+
+stack_interp <- stack_crop <- mask(stack, mask, inverse=T)
+
+
+for(i in 1:length(names(stack_crop)))
+{
+  
+r <- stack_crop[[i]]
+
+# focal filter to extrapolate and fill whole grid
+r1 <- focal(r, w=matrix(1,3,3), fun=mean, na.rm=T, pad=T, NAonly=T) 
+r2 <- focal(r1, w=matrix(1,3,3), fun=mean,na.rm=T, pad=T, NAonly=T) 
+r3 <- focal(r2, w=matrix(1,5,5), fun=mean,na.rm=T, pad=T, NAonly=T) 
+r4 <- focal(r3, w=matrix(1,7,7), fun=mean,na.rm=T, pad=T, NAonly=T) 
+r5 <- focal(r4, w=matrix(1,9,9), fun=mean,na.rm=T, pad=T, NAonly=T) 
+
+r5[is.na(r5[])] <- 0 
+
+stack_interp[[i]] <- r5
+
+}
+
+names(stack_interp) <- names(stack_crop)
+(stack_interp)
+
+```
+
+
+# NOISE POLLUTION  - AIS into noise disturbane
+Resources
+https://www.frontiersin.org/articles/10.3389/fmars.2019.00606/full#supplementary-material
+https://www.emsa.europa.eu/protecting-the-marine-environment/underwater-noise.html  (Sounds_report.pdf, Figure 16 - Different vessel types and overlapping of hearing range of different groups of species.)
+
+http://resource.npl.co.uk/acoustics/techguides/seaabsorption/
+
+Container ships
+absorbtion at 31Hz, 20 C, 100m depth is approx 5 db/km, peak-level ~180db (container ship) resulting impact zone to 90db db ~ 18 km
+
+Tankers
+absorbtion at 80Hz, 20 C, 100m depth is approx 20 db/km, peak-level ~180db (coastal tanker) resulting impact zone  to 90db db ~ 5 km
+
+Fishing/other
+
+absorbtion at 500Hz, 20 C, 100m depth is approx 145 db/km, peak 120db? (fishing boat/jetski) - resulting impact zone ~ 1km
+
+sailing boat
+absorbtion at 2500Hz, 20 C, 100m depth is approx 1500 db/km, peak 110db? (small leasure/motorboat) resulting impact zone ~100m
+
+
+https://www.antennas.ca/calc_db_watts.htm
+180 10^12 kw
+170 10^11
+160 10^10 kw
+150 10^9 kw
+140 10^8 kw
+130 10^7 kw
+120 10^6 kw
+110 10^5 kw
+100 10^4 kw
+90 10^3 kw
+
+Additional input: dB of different shiptypes, approximate from Dr.  Hammar, shipping expert in sweden
+f_high170dB mainly commersal traffic (assuming oil vessels are the same..)
+f_med  160 dB
+f_low  150 dB
+
+
+## model noise propagation and calculate watt hours for all ship types in AIS data
+```{r}
+stack <- stack_interp
+
+# importing weights - only cargo and tanker needs focal statistics/weights since spreading is limited on other vesseltypes
+dir(work_path)
+
+
+# Created weight matrix in excel based on above assumptions and importing below. 
+# weight low frequenzy data to dB loss in water
+
+w_cargo <- as.matrix(read_excel(paste(work_path, "weightmatrix_db.xlsx", sep=""), 2, col_names=F))
+
+w_tanker <- as.matrix(read_excel(paste(work_path, "weightmatrix_db.xlsx", sep=""), 3, col_names=F))
+
+names(stack)
+
+
+# calculate cargo Watt x hour
+
+r <- stack[[1]] # cargo
+r_cargo <- focal(r, w=w_cargo, fun=sum, na.rm=T, pad=T, NAonly=F) 
+
+r_dif <- r_cargo -r
+plot(r_dif)
+
+r_cargo_wh <- r_cargo * 100000000000000 * 0.4223 # w hours at 170db, normalised for average watt in 2.5km cell
+
+# calculate "tanker" Watt x hour
+
+r <- stack[[4]]  # tanker
+r_tanker <- focal(r, w=w_tanker, fun=sum, na.rm=T, pad=T, NAonly=F) 
+r_dif <- r_tanker -r
+plot(r_dif)
+
+r_tanker_wh <- r_tanker * 100000000000000 * 0.0784 # w hours at 170db normalized for average watt in 2.5km cell
+
+# calculate passanger Watt x hour
+
+r <- stack[[3]] # passenger
+r_pass_wh <- r * 100000000000 * 0.04# w hours at 140db normalized for average watt in 2.5km cell
+
+
+# calculate fishing Watt x hour
+r <- stack[[2]] # fishing
+r_fish_wh <- r * 100000000000 * 0.04# w hours at 140db normalized for average watt in 2.5km cell
+
+# calculate other/leasure crafts (its an unknown mix but assuming they are fairly small since no specific AIS category) Watt x hour
+
+r <- stack[[5]]-stack[[1]]-stack[[2]]-stack[[3]]-stack[[4]]  # additional boats
+r_other_wh <- r * 10000000000 * 0.04 # w hours at 130db normalized for average watt in 2.5km cell
+
+
+# summary of toal noise pollution in watt hours
+r_sum_wh <- r_cargo_wh + r_tanker_wh + r_pass_wh + r_fish_wh + r_other_wh
+r_sum_wh
+plot(r_sum_wh)
+
+```
+
+
+
+## resample noise to 1km grid 
+```{r}
+
+# Resample to approximately 1km resolution
+r <- r_sum_wh
+
+s <- raster(extent(r), resolution=res(r)/3, crs=crs(r))
+
+r_res <- resample(r, s, method='bilinear')
+r_res
+plot(r_res)
+
+raster_path <- paste(work_path, "noise_rs_wh_geo.tif", sep="")
+
+writeRaster(r_res, raster_path, overwrite=T, COMPRESS=LZW)
+
+
+
+
+inraster <- raster(raster_path)
+inraster
+
+# write empty grid for gdalutil work
+writeRaster(grid_1km_na, paste(work_path, "grid_1km_gdalutil.tif", sep= ""),  overwrite=T, COMPRESS=LZW)
+
+# write to file
+dstfile <- paste(work_path, "grid_1km_gdalutil.tif", sep= "")
+
+crs(grid_1km)
+# 250m grid transformation from high resolution water mask
+
+sr <- crs(inraster)
+tr <- crs(grid_1km)
+#  "+proj=cea +lat_ts=-12 +lon_0=12 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"    
+
+r_1km <- gdalUtils::gdalwarp(srcfile = raster_path,
+                                dstfile = dstfile,
+                                s_srs = sr,
+                                t_srs = tr,
+                                tr = c(1000, 1000),
+                                tap = TRUE,
+                                output_Raster = FALSE,
+                                overwrite = TRUE,
+                                r = "average",
+                                multi = TRUE,
+)
+
+
+r <- r_1km <- raster(dstfile)
+
+
+# Final check that all is good...
+r <- merge(r, grid_1km_0)
+r <- crop(r, grid_1km)
+r <- mask(r, grid_1km)
+
+plot(r)
+
+r_path <- paste(work_path, "noise_wh_grid1km.tif", sep="")
+
+writeRaster(r, r_path, overwrite=TRUE, datatype = 'FLT4S', COMPRESS=LZW)
+
+```
+
+## summary impact and normalise to 140db and 24h*365 impact
+
+```{r}
+
+r_sum_wh_1km <- raster(r_path)
+
+r_sum_norm <- r_sum_wh_1km /(2*365*24*100000000000*2.7*2.7) # normalized to number of days in data set ' 24h * watt at 140db (max impact in sensitivity matrix), normalized to hours for approx 1km cell from 2.7 km cell
+r_sum_norm
+r_sum_norm[r_sum_norm>1] <- 1 # all values higher then the hour/year/watt normalized max will be set as "maximum impact"
+
+r <-r_sum_norm
+plot(r)
+
+
+
+r_path <- paste(work_path, "noise_wh_norm01_grid1km.tif", sep="")
+
+writeRaster(r, r_path, overwrite=TRUE, datatype = 'FLT4S', COMPRESS=LZW)
+
+noise_norm01_1km <- raster(r_path)
+
+```
+
+# SHIPSTRIKES
+```{r}
+
+stack <- stack_interp
+
+names(stack)
+
+f_high <- 1 # tanker, container. highest sensitivity relates to big ships at full speed -  assuming commercial traffic have bigger impact due to size and speed
+f_med <- 0.2 # fishing boats / passenger ship, lower speed, smaller. approximation needs review
+f_low  <- 0.1 # other / small crafts factor approximation needs review
+
+r_other <- stack[[5]]-stack[[1]]-stack[[2]]-stack[[3]]-stack[[4]] 
+
+ship_strikes_h <-  ((stack[[1]] + stack[[4]])*f_high + (stack[[2]] + stack[[3]])*f_med + (r_other)*f_low)
+
+r <- ship_strikes_h
+plot(r)
+```
+
+## resample noise to 1km grid 
+```{r}
+
+# Resample to approximately 1km resolution
+r <- ship_strikes_h
+
+s <- raster(extent(r), resolution=res(r)/3, crs=crs(r))
+
+r_res <- resample(r, s, method='bilinear')
+r_res
+plot(r_res)
+
+raster_path <- paste(work_path, "shipstrike_rs_h_geo.tif", sep="")
+
+writeRaster(r_res, raster_path, overwrite=T, COMPRESS=LZW)
+
+
+
+
+inraster <- raster(raster_path)
+inraster
+
+# write empty grid for gdalutil work
+writeRaster(grid_1km_na, paste(work_path, "grid_1km_gdalutil.tif", sep= ""),  overwrite=T, COMPRESS=LZW)
+
+# write to file
+dstfile <- paste(work_path, "grid_1km_gdalutil.tif", sep= "")
+
+crs(grid_1km)
+# 250m grid transformation from high resolution water mask
+
+sr <- crs(inraster)
+tr <- crs(grid_1km)
+#  "+proj=cea +lat_ts=-12 +lon_0=12 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"    
+
+r_1km <- gdalUtils::gdalwarp(srcfile = raster_path,
+                                dstfile = dstfile,
+                                s_srs = sr,
+                                t_srs = tr,
+                                tr = c(1000, 1000),
+                                tap = TRUE,
+                                output_Raster = FALSE,
+                                overwrite = TRUE,
+                                r = "average",
+                                multi = TRUE,
+)
+
+
+r <- r_1km <- raster(dstfile)
+
+
+# Final check that all is good...
+r <- merge(r, grid_1km_0)
+r <- crop(r, grid_1km)
+r <- mask(r, grid_1km)
+
+plot(r)
+
+r_path <- paste(work_path, "shipstrike_h_grid1km.tif", sep="")
+
+writeRaster(r, r_path, overwrite=TRUE, datatype = 'FLT4S', COMPRESS=LZW)
+
+```
+
+## normalise
+```{r}
+r_path <- paste(work_path, "shipstrike_h_grid1km.tif", sep="")
+
+r <- raster(r_path) 
+r
+ratio <- 2.7*2.7
+
+l <- 100 # estimated max life expectancy (years) for whales
+
+r_norm <- r*l/(ratio*2*365*24) # normalized using ship hours/year, 1km grid and estimated life expectancy (slow growing and long living species get higher risk of getting hit!) 
+r_norm
+plot(r_norm)
+
+r_norm[r_norm>1] <- 1
+r_norm[r_norm<0] <- 0
+r_norm
+plot(r_norm)
+
+r <- r_norm
+
+
+
+r_path <- paste(work_path, "shipstrike_norm01_grid1km.tif", sep="")
+
+writeRaster(r, r_path, overwrite=TRUE, datatype = 'FLT4S', COMPRESS=LZW)
+
+shipstrike_norm01_1km <- raster(r_path)
+```
+
+# SHIP POLLUTION 
+Regulation of ships at anchor: Safety and environmental implications
+https://www.sciencedirect.com/science/article/pii/S0308597X22000999
+
+```{r}
+stack <- ship_stack
+
+names(stack)
+
+r <- stack[[5]] # going only with "global layer here due to missing information on ship pollution related to category - assuming equal impact/h
+w <- focalWeight(r, 0.04, "Gauss") # simulating spread of spill related pollutants assuming about 2 days dispersal time at 0.5 knot current speed
+w
+r_focal_20km <- focal(r, w, fun=sum, na.rm=T, pad=T, NAonly=F) 
+plot(r_focal_20km)
+
+
+w <- focalWeight(r, 0.01, "Gauss") # estimating spread of local pollutant effects
+r_focal_5km <- focal(r, w, fun=sum, na.rm=T, pad=T, NAonly=F) 
+plot(r_focal_5km)
+
+
+
+
+r_pollution <- (r_focal_20km +r_focal_5km)/2
+
+plot(r_pollution)
+
+```
+
+## resample pollution to 1km grid 
+```{r}
+
+# Resample to approximately 1km resolution
+r <- r_pollution
+
+s <- raster(extent(r), resolution=res(r)/3, crs=crs(r))
+
+r_res <- resample(r, s, method='bilinear')
+r_res
+plot(r_res)
+
+raster_path <- paste(work_path, "ship_pollution_rs_h_geo.tif", sep="")
+
+writeRaster(r_res, raster_path, overwrite=T, COMPRESS=LZW)
+
+
+
+
+inraster <- raster(raster_path)
+inraster
+
+# write empty grid for gdalutil work
+writeRaster(grid_1km_na, paste(work_path, "grid_1km_gdalutil.tif", sep= ""),  overwrite=T, COMPRESS=LZW)
+
+# write to file
+dstfile <- paste(work_path, "grid_1km_gdalutil.tif", sep= "")
+
+crs(grid_1km)
+
+
+sr <- crs(inraster)
+tr <- crs(grid_1km)
+#  "+proj=cea +lat_ts=-12 +lon_0=12 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"    
+
+r_1km <- gdalUtils::gdalwarp(srcfile = raster_path,
+                                dstfile = dstfile,
+                                s_srs = sr,
+                                t_srs = tr,
+                                tr = c(1000, 1000),
+                                tap = TRUE,
+                                output_Raster = FALSE,
+                                overwrite = TRUE,
+                                r = "average",
+                                multi = TRUE,
+)
+
+
+r <- r_1km <- raster(dstfile)
+
+
+# Final check that all is good...
+r <- merge(r, grid_1km_0)
+r <- crop(r, grid_1km)
+r <- mask(r, grid_1km)
+
+plot(r)
+
+r_path <- paste(work_path, "ship_pollution_h_grid1km.tif", sep="")
+
+writeRaster(r, r_path, overwrite=TRUE, datatype = 'FLT4S', COMPRESS=LZW)
+
+```
+
+## calculate pressure from ship hours
+```{r}
+r_path
+r<-raster(r_path)
+
+pollution_h_1km <- r
+
+r_norm <- r/(24*52*2/2)   # assuming maximum spill/pollution event in sensitivity matrix occurs once every week, and stays for two weeks 
+r_norm
+r_norm[r_norm>1] <- 1
+
+pollution_norm01_1km <- r_norm  # pollution impact ready for export!
+plot(r_norm)
+
+r_path <- paste(work_path, "ship_pollution_norm01_grid1km.tif", sep="")
+
+writeRaster(pollution_norm01_1km, r_path, overwrite=TRUE, datatype = 'FLT4S', COMPRESS=LZW)
+
+```
+
+
+# RECREATIONAL BOATING 
+```{r}
+stack <- ship_stack
+
+names(stack)
+
+r <- stack[[3]] 
+
+w <- focalWeight(r, 0.014, "Gauss") # estimating spread of disturbance from tourism activities (~half impact in direct pixel, half to the surrounding areas)
+w
+r_focal_5km <- focal(r, w, fun=sum, na.rm=T, pad=T, NAonly=F) 
+plot(r_focal_5km)
+
+
+r <- boating_h <- r_focal_5km   # ready for export
+plot(r)
+```
+
+## Resample recreational boating to 1km grid 
+```{r}
+
+# Resample to approximately 1km resolution
+r <- boating_h
+
+s <- raster(extent(r), resolution=res(r)/3, crs=crs(r))
+
+r_res <- resample(r, s, method='bilinear')
+r_res
+plot(r_res)
+
+raster_path <- paste(work_path, "boating_rs_h_geo.tif", sep="")
+
+writeRaster(r_res, raster_path, overwrite=T, COMPRESS=LZW)
+
+
+
+
+inraster <- raster(raster_path)
+inraster
+
+# write empty grid for gdalutil work
+writeRaster(grid_1km_na, paste(work_path, "grid_1km_gdalutil.tif", sep= ""),  overwrite=T, COMPRESS=LZW)
+
+# write to file
+dstfile <- paste(work_path, "grid_1km_gdalutil.tif", sep= "")
+
+crs(grid_1km)
+
+
+sr <- crs(inraster)
+tr <- crs(grid_1km)
+#  "+proj=cea +lat_ts=-12 +lon_0=12 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"    
+
+r_1km <- gdalUtils::gdalwarp(srcfile = raster_path,
+                                dstfile = dstfile,
+                                s_srs = sr,
+                                t_srs = tr,
+                                tr = c(1000, 1000),
+                                tap = TRUE,
+                                output_Raster = FALSE,
+                                overwrite = TRUE,
+                                r = "average",
+                                multi = TRUE,
+)
+
+
+r <- r_1km <- raster(dstfile)
+
+
+# Final check that all is good...
+r <- merge(r, grid_1km_0)
+r <- crop(r, grid_1km)
+r <- mask(r, grid_1km)
+
+plot(r)
+
+r_path <- paste(work_path, "boating_h_grid1km.tif", sep="")
+
+writeRaster(r, r_path, overwrite=TRUE, datatype = 'FLT4S', COMPRESS=LZW)
+
+```
+
+## calculate pressure from ship hours
+```{r}
+r_path
+r <- boating_h_1km <- raster(r_path)
+
+r_norm <- r/(8*52*2/2)   # assuming max disturbance from tourism activities in sensitivity matrix occurs when impacted 8h / week, and last for 2 weeks
+r_norm
+r_norm[r_norm>1] <- 1
+
+boating_norm01_1km <- r_norm  # pollution impact ready for export!
+plot(r_norm)
+
+r_path <- paste(work_path, "boating_norm01_grid1km.tif", sep="")
+
+writeRaster(boating_norm01_1km, r_path, overwrite=TRUE, datatype = 'FLT4S', COMPRESS=LZW)
+
+```
+
+
+
+#==========================================================================================================================#
+# EXPORT
+#==========================================================================================================================#
+# Write products to root directory when checked and ready to use elsewhere, accompanied by yourfilename.ext_sourcesym.txt 
+# for each file to track source IDs as they accumulate between processes / data
+
+
+# SOURCESYM
+### Create sourcesym file with all source IDs used (data and data_raw) 
+# data raw sources (dir)
+```{r}
+print(paste("data_raw metasym files used = ", data_raw_metasym_num, sep=""))
+(data_raw_sources <- tibble(id = c(source1))) # REPLACE / add all data_raw sources
+```
+
+## data sources (files)
+```{r}
+print(paste("data_sourcym files = ", data_sourcesym_num, sep=""))
+data_sources <- data1_sourcesym %>% # add any "sourcesym" files applicable to this product (check indata section), keep adding sourcesym files as needed
+  add_row(data2_sourcesym)%>%  
+  #add_row(data3_sourcesym)%>% 
+  #add_row(data4_sourcesym)%>% 
+  #add_row(data5_sourcesym)%>% 
+  #add_row(data6_sourcesym)%>% 
+  unique() %>% 
+  print()
+```
+## Sources combined
+```{r}
+(all_sources <- data_raw_sources %>% add_row(data_sources))
+```
+### if a product only use a subset of the total sources, copy the section above and create individual files below (e.g. product1_sources <- ...)
+
+
+# PRODUCT 1: 
+## read objects
+```{r}
+product_orig <- noise_norm01_1km # input and check your object to be written to file
+product_orig2 <- shipstrike_norm01_1km # input and check your object to be written to file
+product_orig3 <- pollution_norm01_1km # input and check your object to be written to file
+product_orig4 <- boating_norm01_1km # input and check your object to be written to file
+
+plot(product_orig)
+plot(product_orig2)
+plot(product_orig3)
+plot(product_orig4)
+
+```
+## set names
+```{r}
+scale <- "1km" # "1km" / "250m"
+unit <- "wh_year_norm01"  # add unit for product with original values (e.g. m, km, perc, presence, proportion
+unit2 <- "h_year_norm01"  # add unit for product with original values (e.g. m, km, perc, presence, proportion
+unit3 <- "h_year_norm01"  # add unit for product with original values (e.g. m, km, perc, presence, proportion
+unit4 <- "h_year_norm01"  # add unit for product with original values (e.g. m, km, perc, presence, proportion
+
+component_names <- read_tsv("./shiny_data_upload/component_names.txt") 
+component_names_selected <- component_names %>%
+  dplyr::filter(theme_folder == theme) %>% 
+  dplyr::select(group, file_name, description) %>% 
+  print(n = Inf)
+```
+
+```{r}
+descriptive_name <- "underwater_noise"  # name of product, for pressure/ecosystem components select from name list above
+descriptive_name2 <- "ship_strike"  # name of product, for pressure/ecosystem components select from name list above
+descriptive_name3 <- "ship_pollution"  # name of product, for pressure/ecosystem components select from name list above
+descriptive_name4 <- "boating"  # name of product, for pressure/ecosystem components select from name list above
+
+```
+## paths
+```{r}
+(product_orig_path <- paste(dest_path, descriptive_name, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig2_path <- paste(dest_path, descriptive_name2, "_", unit2, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig3_path <- paste(dest_path, descriptive_name3, "_", unit3, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig4_path <- paste(dest_path, descriptive_name4, "_", unit4, "_", scale, "_", version, d_version, ".tif", sep="" ))
+
+
+
+
+```
+## Write to file
+```{r}
+# check datatype to be appropriate for values (flt or int, 'INT4S' option to..)
+writeRaster(product_orig, product_orig_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+writeRaster(product_orig2, product_orig2_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+writeRaster(product_orig3, product_orig3_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+writeRaster(product_orig4, product_orig4_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+
+
+# write sourcesym file, change "all_sources" to "selected_sources" if subset only for specific file
+write_tsv(all_sources, paste(product_orig_path, "_sourcesym.txt", sep=""))  
+write_tsv(all_sources, paste(product_orig2_path, "_sourcesym.txt", sep="")) 
+write_tsv(all_sources, paste(product_orig3_path, "_sourcesym.txt", sep="")) 
+write_tsv(all_sources, paste(product_orig4_path, "_sourcesym.txt", sep="")) 
+```
+
+
+# SAVE SCRIPT
+## 1. save your current R script (File/Save)
+## 2. Save a carbon copy of the R script to proc_log (identical script to what is used to create the products exported
+## Do not change the *.Rmd carbon copy in proc_log/ unless you change this version of the products (new versions are developed under process/r)
+
+```{r}
+# 2. run code below and go to File/Save As and paste link and name:
+dest_path_script <- paste(getwd(), proc_path)
+print(dest_path_script <- gsub(" .", "", dest_path_script)) # path
+print(script_name_copy <- paste(gsub(".Rmd", "", script_name), d_version, ".Rmd", sep="")) # script name
+```
+
+#==========================================================================================================================#
+# FINAL CHECK
+#==========================================================================================================================#
+# Developer check
+## Do your own final check on the products and double check sourcesym file exists and are complete for all files in root 
+## -> Sign at top of script in about section (# Approved by:)
+
+# External check 
+## To ensure repeatability and quality, make sure one colleage can run the script
+## When script is proven repeatable/understandable and products/metadata look ok 
+## -> Sign at top of script in about section (# Approved by:), and make any comments if needed
+## There is also a work_log document in onedrive / gitHUB, check current arrangement with Swedish dev team

@@ -11,9 +11,10 @@ and set "Evaluate chunks in directory" to "Project", though for latest version o
 # ABOUT
 # ========================================================================================================= #
 ## Brief description: 
+
 ### Sripts/processes that needs to be updated prior?:
 ###
-### Script by: Initial, org, Rver:
+### Script by: Initial, org, Rver: 
 ### Updated: Initial, org, Rver, comments
 ### Developer check: Initial, org, yymmdd, comments
 ### External check: Initial, org, yymmdd, comments

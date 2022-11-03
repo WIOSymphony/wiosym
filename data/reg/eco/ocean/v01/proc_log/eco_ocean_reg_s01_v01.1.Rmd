@@ -1,0 +1,534 @@
+# ========================================================================================================= #
+# IMPORTANT - To get started:
+Because this script is an R Markdown script, the default directory is the location of this .Rmd file.
+You must open this script from within the .Rproj file associated with your wiosym database for it to work.
+If you haven't used R notebooks before (.Rmd), each of the code "chunks" can be executed by clicking the green play
+button at the top right of the chunk.
+
+To run the script from the project directory, in R Studio, you need to go to: Tools > Global Options > R Markdown
+and set "Evaluate chunks in directory" to "Project", though for latest version of R/Rstudio it may not be needed...
+# ========================================================================================================= #
+# ABOUT
+# ========================================================================================================= #
+## Brief description: 
+Update of pelagic habitats (meso and abyssal). In this version the total depth of the  ocean is considered to increase the habitat value
+### Sripts/processes that needs to be updated prior?:
+###
+### Script by: Initial, org, Rver: GK, SGU, 4.1.1
+### Updated: Initial, org, Rver, comments
+### Developer check: Initial, org, yymmdd, comments
+### External check: Initial, org, yymmdd, comments
+# ========================================================================================================= #
+# INSTRUCTIONS
+# ========================================================================================================= #    
+## Style
+  # Write code that is easy to follow and repeat.
+  # Suggested R style is tidyverse. Style guide here https://style.tidyverse.org/index.html
+
+## Metadata
+  # All indata from "data_raw" must have a unique ID with *_metasym.txt file to go along, check before you add data.
+  # All indata from and outputs to "data" must have a *_sourcesym.txt file with all (accumulated) sourceIDs used to create the layer.
+  # The metasym files and tracking of those in the sourcesym files ensures correct sources for products and ISO metadata. This template helps you get it right..
+  
+## Naming and folders
+  # Predefined standard names for main/sub folders and final products in two text files that can be added to in need.
+  # ..\shiny_data_upload\modify_txt_files_v01.2.xlsx and ..\process\templates\modify_txt_files_data_v01.0.xlsx
+  # Main version (e.g. v01 for 2021) follows dev cycles for all WIOSYm. For version control within v01 use V01.1, V01.2 etc..
+  # More code/instructions to standardize folders and names under "set destinations" section
+  # Each product dir have a "proc" folder. It's the temp space where all workfiles are stored. No final products here.  
+  # All final products are stored under the root folder (e.g. ..\data\reg\eco\bh_coral\v01) together with 
+  # a nameofmyfile_sourcesym.txt file with all source IDs used. No other files here. move products to _archive\ dir if defunct 
+# ========================================================================================================= # 
+# PREPARATIONS
+# ========================================================================================================= #
+
+### Install packages
+```{r, include = FALSE}
+# list all packages that this script is dependent on, remove any redundant ones
+x <- c("sf", "raster", "rgdal", "tidyverse")
+#install.packages(x, dependencies=TRUE)
+```
+
+### Load packages
+```{r, include = FALSE}
+library(sf) 
+library(raster)
+library(rgdal)
+library(tidyverse)
+```
+
+## Set version
+```{r}
+version = "v01" # relates to major iteration of WIOSym (v01 for grid 2021, v02 for grid 2022)
+d_version = ".1"  # detailed version (you can add another level e.g. 0.0  -> v01.0.0)
+seq = "s01" # sequential order - change accordingly if process is run in several scripts
+```
+
+## Set geographic scope
+```{r}
+read_tsv("./shiny_data_upload/locations.txt")  # prints available locations to choose from and their abbreviations
+```
+
+```{r}
+location = "reg" # choose applicable 3 letter abbreviation from "location_val" -  reg for whole WIO area
+```
+
+## Set main theme
+```{r}
+folders_raw <- read_tsv("./shiny_data_upload/folders.txt")
+folders_data <- read_tsv("./shiny_data_upload/folders_data.txt") # additional folders for data not applicable for data_raw 
+folders <- folders_raw %>% add_row(folders_data)
+(unique(folders["theme_folder"]))
+```
+
+```{r}
+theme <- "eco" # Copy from "theme_folder" (e.g. "eco")
+```
+
+## Set Subtheme
+```{r}
+folders %>%
+  filter(theme_folder == theme) %>% 
+  dplyr::select(subtheme_folder, subtheme_name) %>% 
+  print(n = Inf)
+```
+
+```{r}
+subtheme <- "ocean" # copy from "subtheme_folder"
+```
+
+## Set paths
+```{r}
+(dest_path <- paste("./data", location, theme, subtheme, version, "", sep="/")) # path to final product
+(work_path <- paste(dest_path, "proc/", sep=""))
+(proc_path <- paste(dest_path, "proc_log/", sep=""))
+(archive_path <- paste(dest_path, "_archive/", sep=""))
+(script_path <- "./process/r/")
+```
+
+## Create directories
+```{r}
+dir.create(dest_path, recursive = TRUE)
+dir.create(work_path, recursive = TRUE)
+dir.create(proc_path, recursive = TRUE)
+dir.create(archive_path, recursive = TRUE)
+dir.create(script_path, recursive = TRUE)
+```
+
+## Save R Script
+```{r}
+name1 <- "" # "REPLACE_" if script need additional name... don't use unless needed to avoid duplication.
+(script_path_windows <- paste(getwd(), "/process/r", sep=""))
+(script_name <- paste(theme, "_", subtheme,"_", location, "_", name1, seq, "_", version, ".Rmd", sep=""))
+```
+ # copy path and name and use File/Save As in R studio to save rmd file
+ 
+#==========================================================================================================================#
+# INDATA
+#==========================================================================================================================#
+# Set DATA_RAW sources
+IMPORTANT all data harvested from data_raw needs to have a metasym.txt file in its root directory (not file specific)
+## DIR1: 
+```{r}
+#source1_dir <- source_dir <-  "./data_raw/.../uniqueid/"  # REPLACE - internal path
+#source1 <- source_id <- "uniqueid" # REPLACE
+#(read_tsv(paste(source_dir, source_id, "_metasym.txt", sep=""))) # check the metasym file
+``` 
+
+```{r}
+#dir(source_dir, recursive=F)
+```
+
+```{r}
+# Files
+#source1_path <- path <- paste(source_dir, "REPLACE.ext", sep="")
+#object_name <- st_read(path) # REPLACE object_name
+# add files from dir as needed
+```
+
+### declare number of "data_raw" directorys above
+```{r}
+data_raw_metasym_num <-  0 # set total number of data_raw dir used (e.g. <- 1), to help in export section
+```
+
+
+# DATA sources
+IMPORTANT Products in data are based on information in data_raw. Check that *_sourcesym.txt exists for each file to track acccumulated IDs. 
+The sourcesym files can be identical within some directory in which case you can load only one, but its not always the case which is why there is one file for each file. 
+
+## DATA1: Grid 1km - loading all flavours (watermask 1, 0, NA) at once since identical sourcesym apply
+```{r}
+data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
+dir(data_dir) # check what data is in this directory
+
+data1_file <- "grid_1km_v01.1.tif" 
+data1_file2 <- "grid_1km_0_v01.1.tif" 
+data1_file3 <- "grid_1km_na_v01.1.tif" 
+
+(grid_1km_path <- path <- paste(data_dir, data1_file, sep=""))
+(grid_1km <- raster(path)) # read and check your data
+(grid_1km_0_path <- path <- paste(data_dir, data1_file2, sep=""))
+(grid_1km_0 <- path <- raster(path)) # read and check your data
+(grid_1km_na_path <- path <- paste(data_dir, data1_file3, sep=""))
+(grid_1km_na <- path <- raster(path)) # read and check your data
+data1_sourcesym <- read_tsv(paste(data_dir, data1_file, "_sourcesym.txt", sep=""))
+# check that source IDs exists and make sense
+
+#plot(grid_1km)
+```
+
+## DATA2: Grid 250m - loading all flavours (watermask 1, 0, NA) at once since same sourcesym apply
+```{r}
+data2_dir <- data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
+
+data2_file <- "grid_250m_v01.1.tif" # your data file
+data2_file2 <- "grid_250m_0_v01.1.tif" # your data file
+data2_file3 <- "grid_250m_na_v01.1.tif" # your data file
+
+(grid_250m_path <- path <- paste(data_dir, data2_file, sep=""))
+(grid_250m <- raster(path)) # read and check your data
+(grid_250m_0_path <- path <- paste(data_dir, data2_file2, sep=""))
+(grid_250m_0 <- path <- raster(path)) # read and check your data
+(grid_250m_na_path <- path <- paste(data_dir, data2_file3, sep=""))
+(grid_250m_na <- path <- raster(path)) # read and check your data
+(data2_sourcesym <- read_tsv(paste(data_dir, data2_file, "_sourcesym.txt", sep="")))
+# check so source IDs exists and make sense
+# check that source IDs exists and make sense
+#plot(grid_250m)
+```
+
+
+## DATA 3: bounding box shapefile
+```{r}
+data3_dir <- data_dir <-  "./data/reg/grid/scope/v01/"  # input your data directory
+data3_file <- "wiosym_grid_bounding_box_v01.shp" # your data file
+data3_sourcesym <- read_tsv(paste(data_dir, data3_file, "_sourcesym.txt", sep=""))
+#data3_sourcesym # check so source IDs exists and make sense - ok for these
+data3_path <- data_path <- paste(data_dir, data3_file, sep="")
+grid_poly <- st_read(data_path) # read in your data object if appropriate and perhaps change name to more informative...
+#grid_poly
+#plot(grid_poly)
+```
+
+
+## DATA4: depth
+```{r}
+data4_dir <- data_dir <-  "./data/reg/env/topo/v01/"  # input your data directory
+dir(data_dir) # check what data is in this directory
+data_file <- "bathymetry_zone_250m_v01.2.tif" # your data file
+data4_sourcesym <- read_tsv(paste(data_dir, data_file, "_sourcesym.txt", sep=""))
+data4_path <- data_path <- paste(data_dir, data_file, sep="")
+
+depth_1km <- raster(data_path) # read in your data object if appropriate and perhaps change name to more informative...
+#plot(depth_1km)
+
+# loading additional files of indiviual depth zones created in the bathymetry processing 
+
+data_file1 <- "bathymetry_zone_0-40m_250m_v01.2.tif" 
+data_file2 <- "bathymetry_zone_40-200m_250m_v01.2.tif"
+data_file3 <- "bathymetry_zone_200-1000m_250m_v01.2.tif"
+data_file4 <- "bathymetry_zone_1000m-inf_250m_v01.2.tif"
+data_file5 <- "bathymetry_mean_m_250m_v01.2.tif"
+
+data_path1 <- paste(data_dir, data_file1, sep="")
+data_path2 <- paste(data_dir, data_file2, sep="")
+data_path3 <- paste(data_dir, data_file3, sep="")
+data_path4 <- paste(data_dir, data_file4, sep="")
+data_path5 <- paste(data_dir, data_file5, sep="")
+
+zone1_r <- raster(data_path1) # shallow 0-40m
+zone2_r <- raster(data_path2) # shelf 40-200m
+zone3_r <- raster(data_path3) # slope 200-1000m
+zone4_r <- raster(data_path4) # abyssal 1000m - inf
+depth_250m <- raster(data_path5) # mean depth
+```
+
+
+## Data 5: euphotic depth layer
+```{r}
+data5_dir <- data_dir <-  "./data/reg/env/ocean/v01/"  # input your data directory
+dir(data_dir) # check what data is in this directory
+data_file <- "euphotic_depth.tif" # your data file
+data5_sourcesym <- read_tsv(paste(data_dir, data_file, "_sourcesym.txt", sep=""))
+data5_path <- data_path <- paste(data_dir, data_file, sep="")
+
+photic_1km <- raster(data_path) # read in your data object if appropriate and perhaps change name to more informative...
+plot(photic_1km)
+```
+
+
+
+
+## declare number of "data" files
+```{r}
+data_sourcesym_num <-  5 # set total number of data files (e.g. <- 2), to help in export section
+```
+
+#==========================================================================================================================#
+# PROCESSING
+#==========================================================================================================================#
+```{r}
+photic_1km
+
+# Resample to 250m resolution 
+r <- photic_1km
+
+s <- raster(extent(r), resolution=250, crs=crs(r))
+
+r_res <- resample(r, s, method='bilinear')
+r_res
+
+r <- r_res
+
+r <- merge(r, grid_250m_0)
+r <- crop(r, grid_250m)
+r <- mask(r, grid_250m)
+
+
+photic_250m <- r
+
+raster_path <- paste(work_path, "photic_depth_250m_resampled.tif", sep="")
+
+writeRaster(r, raster_path, overwrite=T, COMPRESS=LZW)
+
+photic_250m <- raster(raster_path)
+```
+
+
+# MESOPELAGIC
+```{r}
+
+# calculate photic depth, and end of mesopelagic zone if no depth limits
+
+start_meso <- photic_250m * 6  # need to check with GU on proper units into meter here. using factor 6 to get approximate literature value of photic depth in open ocean (200m)
+start_meso[start_meso < 40 ] <- 40 # setting minimum depth of mesophpotic zone to be 40m, shallower is not realistic and must be because of data processing...
+start_meso
+
+start_meso <- -1 * start_meso # converting to negative depth
+end_meso <- start_meso - 800 # typical depth of mesopelagic is 1% - no light starting from 200m to depth of 1000m, e.g. 800m thickness
+
+# function to determine end depth of mesopelagic zone and calculate thickness of layer in shallower areas
+
+compare_function <- function(end_meso, depth_250m, start_meso) { 
+  ifelse(end_meso >= depth_250m, end_meso,
+         ifelse(depth_250m > start_meso, start_meso, depth_250m))
+  }
+                                   
+# calculate depth where mesophotic layer meets seafloor or end of layer
+meso <- overlay(stack(end_meso, depth_250m, start_meso), fun = compare_function) 
+
+(meso)
+plot(meso)
+
+meso_m <- meso - start_meso  # calculate thickness of mesopelagic layer considering bathymetry limitations
+
+meso_rel <- meso + 40
+
+#r <- meso_m
+r <- meso_rel
+
+(r)
+plot(r)
+raster_path <- paste(work_path, "mesopelagic_thickness_40m_250m.tif", sep="")
+writeRaster(r, raster_path, overwrite=T, COMPRESS=LZW)
+
+
+meso_1km <- raster::aggregate(meso_rel, fact=4, fun=mean, na.rm=T)
+(meso_1km)
+plot(meso_1km)
+
+r <- meso_1km
+raster_path <- paste(work_path, "mesopelagic_thickness_40m_1km.tif", sep="")
+writeRaster(r, raster_path, overwrite=T, COMPRESS=LZW)
+
+
+# normalise to literature max depth of abyssal zone (6000m)
+
+meso_1km <- raster(raster_path)
+
+meso_1km_norm <- meso_1km / -6000
+(meso_1km_norm)
+
+
+r <- meso_1km_norm * 100
+#raster_path <- paste(work_path, "mesopelagic_norm_1km.tif", sep="")
+raster_path <- paste(work_path, "mesopelagic_norm0100_1km.tif", sep="")
+writeRaster(r, raster_path, overwrite=T, COMPRESS=LZW)
+
+mesopelagic_1km_norm0100 <- raster(raster_path)
+
+```
+
+
+
+
+# ABYSSAL
+```{r}
+
+start_abyssal <- start_meso - 800 # converting to negative depth
+
+end_abyssal <- start_meso 
+end_abyssal[end_abyssal < 0] <- -6000  # literature approximate end of abyssal zone
+(end_abyssal)
+
+# function to determine end depth of mesopelagic zone and calculate thickness of layer in shallower areas
+
+compare_function <- function(end_abyssal, depth_250m, start_abyssal) { 
+  ifelse(end_abyssal >= depth_250m, end_abyssal,
+         ifelse(depth_250m > start_abyssal, start_abyssal, depth_250m))
+  }
+                                   
+
+abyssal <- overlay(stack(end_abyssal, depth_250m, start_abyssal), fun = compare_function) 
+
+(abyssal)
+plot(abyssal)
+
+abyssal_m <- abyssal - start_abyssal  # calculate thickness of mesopelagic layer considering bathymetry limitations
+
+r <- abyssal_m
+(r)
+plot(r)
+raster_path <- paste(work_path, "abyssal_thickness_m_250m.tif", sep="")
+writeRaster(r, raster_path, overwrite=T, COMPRESS=LZW)
+
+
+abyssal_1km <- raster::aggregate(abyssal_m, fact=4, fun=mean, na.rm=T)
+(abyssal_1km)
+plot(abyssal_1km)
+
+r <- abyssal_1km
+raster_path <- paste(work_path, "abyssal_thickness_m_1km.tif", sep="")
+writeRaster(r, raster_path, overwrite=T, COMPRESS=LZW)
+
+
+# normalise to literature max depth of abyssal zone (6000m)
+
+abyssal_1km <- raster(raster_path)
+
+abyssal_1km_norm <- abyssal_1km / -6000
+(abyssal_1km_norm)
+
+
+r <- abyssal_1km_norm * 100
+raster_path <- paste(work_path, "abyssal_norm0100_1km.tif", sep="")
+writeRaster(r, raster_path, overwrite=T, COMPRESS=LZW)
+
+abyssal_1km_norm0100 <- raster(raster_path)
+
+```
+
+
+
+
+#==========================================================================================================================#
+# EXPORT
+#==========================================================================================================================#
+# Write products to root directory when checked and ready to use elsewhere, accompanied by yourfilename.ext_sourcesym.txt 
+# for each file to track source IDs as they accumulate between processes / data
+
+
+# SOURCESYM
+### Create sourcesym file with all source IDs used (data and data_raw) 
+# data raw sources (dir)
+```{r}
+print(paste("data_raw metasym files used = ", data_raw_metasym_num, sep=""))
+(data_raw_sources <- tibble(id = c())) # REPLACE / add all data_raw sources
+```
+
+## data sources (files)
+```{r}
+print(paste("data_sourcym files = ", data_sourcesym_num, sep=""))
+data_sources <- data1_sourcesym %>% # add any "sourcesym" files applicable to this product (check indata section), keep adding sourcesym files as needed
+  add_row(data2_sourcesym)%>%  
+  add_row(data3_sourcesym)%>% 
+  add_row(data4_sourcesym)%>% 
+  add_row(data5_sourcesym)%>% 
+  #add_row(data6_sourcesym)%>% 
+  unique() %>% 
+  print()
+```
+## Sources combined
+```{r}
+(all_sources <- data_sources)
+```
+### if a product only use a subset of the total sources, copy the section above and create individual files below (e.g. product1_sources <- ...)
+
+
+# PRODUCT 1: 
+## read objects
+```{r}
+product_orig <- mesopelagic_1km_norm0100
+product_orig2 <- abyssal_1km_norm0100
+
+
+plot(product_orig)
+plot(product_orig2)
+```
+## set names
+```{r}
+scale <- "1km" # "1km" / "250m"
+unit <- "proportion"  # add unit for product with original values (e.g. m, km, perc, presence, proportion
+component_names <- read_tsv("./shiny_data_upload/component_names.txt") 
+component_names_selected <- component_names %>%
+  dplyr::filter(theme_folder == theme) %>% 
+  dplyr::select(group, file_name, description) %>% 
+  print(n = Inf)
+```
+
+```{r}
+descriptive_name <- "mesopelagic"  # name of product, for pressure/ecosystem components select from name list above
+descriptive_name2 <- "abyssopelagic"
+```
+## paths
+```{r}
+(product_orig_path <- paste(dest_path, descriptive_name, "_", unit, "_norm0100_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig2_path <- paste(dest_path, descriptive_name2, "_", unit, "_norm0100_", scale, "_", version, d_version, ".tif", sep="" ))
+
+
+#(product_norm01_path <- paste(product_orig_path, "_uncertainty.tif", sep="" ))
+#(product_uncertainty_path <- paste(product_orig_path, "_norm01.tif", sep="" ))
+```
+## Write to file
+```{r}
+# check datatype to be appropriate for values (flt or int, 'INT4S' option to..)
+writeRaster(product_orig, product_orig_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+writeRaster(product_orig2, product_orig2_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+
+
+#writeRaster(product_norm01, product_norm01_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+#writeRaster(product_uncertainty, product_uncertainty_path, COMPRESS=LZW, datatype = 'INT1U', overwrite=TRUE)
+# write sourcesym file, change "all_sources" to "selected_sources" if subset only for specific file
+write_tsv(all_sources, paste(product_orig_path, "_sourcesym.txt", sep=""))  
+write_tsv(all_sources, paste(product_orig2_path, "_sourcesym.txt", sep=""))  
+
+#write_tsv(all_sources, paste(product_norm01_path, "_sourcesym.txt", sep=""))
+#write_tsv(all_sources, paste(product_uncertainty_path, "_sourcesym.txt", sep=""))
+```
+
+
+# SAVE SCRIPT
+## 1. save your current R script (File/Save)
+## 2. Save a carbon copy of the R script to proc_log (identical script to what is used to create the products exported
+## Do not change the *.Rmd carbon copy in proc_log/ unless you change this version of the products (new versions are developed under process/r)
+
+```{r}
+# 2. run code below and go to File/Save As and paste link and name:
+dest_path_script <- paste(getwd(), proc_path)
+print(dest_path_script <- gsub(" .", "", dest_path_script)) # path
+print(script_name_copy <- paste(gsub(".Rmd", "", script_name), d_version, ".Rmd", sep="")) # script name
+```
+
+#==========================================================================================================================#
+# FINAL CHECK
+#==========================================================================================================================#
+## Developer check
+ Do your own final check on the products and double check sourcesym file exists and are complete for all files in root 
+ -> Sign at top of script in about section (# Approved by:)
+
+## External check 
+ To ensure repeatability and quality, make sure one colleage can run the script
+ When script is proven repeatable/understandable and products/metadata look ok 
+ -> Sign at top of script in about section (# Approved by:), and make any comments if needed
+ There is also a work_log document in onedrive / gitHUB, check current arrangement with Swedish dev team
+

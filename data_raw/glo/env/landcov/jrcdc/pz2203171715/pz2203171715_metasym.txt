@@ -1,0 +1,26 @@
+"id"	"pz2203171715"
+"file_path"	"data_raw\glo\env\landcov\jrcdc\pz2203171715"
+"local_path"	"\\sgu.se\SGU\prod\proj\marin\swoc\work\wiosym"
+"download_date"	"2022-03-17"
+"user"	"pz"
+"provider_list"	"jrcdc"
+"provider_manual"	""
+"source"	"https://esdac.jrc.ec.europa.eu/content/global-rainfall-erosivity"
+"citation"	"Borrelli P., Robinson D.A., Fleischer L.R., Lugato E., Ballabio C., Alewell C., Meusburger K., Modugno, S., Schutt, B. Ferro, V. Bagarello, V. Van Oost, K., Montanarella, L., Panagos P. 2017. An assessment of the global impact of 21st century land use change on soil erosion.  Nature Communications, 8 (1): art. no. 2013"
+"copyright"	"Partially open - product can be downloaded (resolution not finer than 250 m), raw data can be viewed, but not downloaded"
+"copyright_details"	""
+"location"	"glo"
+"theme"	"Environmental (e.g. bathymetry)"
+"theme_tag"	"env"
+"subtheme"	"LAND COVER"
+"subtheme_tag"	"landcov"
+"tags"	";env;land cover;hydrology;"
+"comments"	"Title: Rainfall Erosivity in the World
+Description: This map provides a complete rainfall erosivity dataset for the whole World based on 3625 precipitation stations and around 60,000 years of rainfall records at high temporal resolution (1 to 60 minutes). Gaussian Process Regression(GPR) model was used to interpolate the rainfall erosivity values of single stations and to generate the R-factor map.
+Spatial coverage: World
+Pixel size: 30 arc-seconds (~1 km at the Equator).
+Measurement Unit: MJ mm ha-1 h-1 yr-1
+Projection: ETRS89 Lambert Azimuthal Equal Area
+Temporal coverage: 30-40 years - Predominant in the last decade: 2000 - 2010
+
+"
