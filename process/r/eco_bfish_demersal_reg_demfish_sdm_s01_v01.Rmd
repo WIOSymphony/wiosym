@@ -38,7 +38,7 @@ location = "reg"   #check
 theme1 <- "eco"   #check
 subtheme1 <- "bfish_demersal"   #check
 name1 <- "demfish_sdm"   #check
-name2 <- "Pleuronectiformes" #check
+name2 <- "" #check
 (dest1_path <- paste("./data", location, theme1, subtheme1, name1, version, sep="/"))
 (work1_path <- paste(dest1_path, "proc", sep="/"))
 (proc1_path <- paste(dest1_path, "proc_log", sep="/"))
@@ -102,7 +102,7 @@ library(RColorBrewer)
 ```{r}
 # IF ONLY ONE TAXON GROUP IS DESIRED
 spec <- occurrence(taxonid = 10331,
-                   scientificname = "Psettodes erumei",
+                   #scientificname = "Psettodes erumei",
                    geometry = "POLYGON ((86.66016 23.88584, 89.12109 -47.27923, -22.14844 -48.34165, -22.50000 21.77991, 86.66016 23.88584))",
                    startdate = as.Date("1970-01-01"))
 
@@ -202,6 +202,23 @@ sink()
 # mapview(test, col.regions = brewer.pal(11, "Spectral"))
 ```
 
+# Combine sdms for different species to get a measure of species richness
+```{r}
+#base <- grid_1km - 1
+eco1 <- raster("./data/reg/eco/bfish_demersal/demfish_sdm/v01/bfish_demersal_demfish_sdm_Austroglossus_pectoralis_v01.0.tif")
+eco2 <- raster("./data/reg/eco/bfish_demersal/demfish_sdm/v01/bfish_demersal_demfish_sdm_Galeichthys_feliceps_v01.0.tif")
+eco3 <- raster("./data/reg/eco/bfish_demersal/demfish_sdm/v01/bfish_demersal_demfish_sdm_Leiognathus_equulus_v01.0.tif")
+eco4 <- raster("./data/reg/eco/bfish_demersal/demfish_sdm/v01/bfish_demersal_demfish_sdm_Lophius_vomerinus_v01.0.tif")
+eco5 <- raster("./data/reg/eco/bfish_demersal/demfish_sdm/v01/bfish_demersal_demfish_sdm_Merluccius_capensis_v01.0.tif")
+eco6 <- raster("./data/reg/eco/bfish_demersal/demfish_sdm/v01/bfish_demersal_demfish_sdm_Merluccius_paradoxus_v01.0.tif")
+eco7 <- raster("./data/reg/eco/bfish_demersal/demfish_sdm/v01/bfish_demersal_demfish_sdm_Pleuronectiformes_v01.0.tif")
+
+eco <- eco1+eco2+eco3+eco4+eco5+eco6+eco7
+product1 <- eco
+
+mapview(eco, col.regions = brewer.pal(11, "Spectral"))
+```
+
 *****************************************************************
 *****************************************************************
 
@@ -210,8 +227,8 @@ sink()
 ## Specify output directory and product file name
 
 ```{r}
-(dest1_path_file1 <- paste0(dest1_path, "/", subtheme1, "_", name1, "_", name2, "_", version, d_version, ".tif"))
-#(dest1_path_file1 <-paste0(dest1_path, "/", subtheme1, "_", name1, "_", version, d_version, ".tif"))
+#(dest1_path_file1 <- paste0(dest1_path, "/", subtheme1, "_", name1, "_", name2, "_", version, d_version, ".tif"))
+(dest1_path_file1 <-paste0(dest1_path, "/", subtheme1, "_", name1, "_", version, d_version, ".tif"))
 ```
 
 ## Export metadata
@@ -230,7 +247,6 @@ sourcesym
 sourcesym_path <- paste0(dest1_path_file1, "_sourcesym.txt")
 write.table(sourcesym, sourcesym_path, row.names = F, sep = "\t")
 ```
-
 
 ## Export product
 ```{r}

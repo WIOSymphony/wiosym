@@ -36,7 +36,7 @@ version = "v01"
 d_version = ".0"
 location = "reg"   #check
 theme1 <- "eco"   #check
-subtheme1 <- "cfsih_shark"   #check
+subtheme1 <- "cfish_shark"   #check
 name1 <- "shark_sdm"   #check
 name2 <- "allspecies" #check
 (dest1_path <- paste("./data", location, theme1, subtheme1, name1, version, sep="/"))
