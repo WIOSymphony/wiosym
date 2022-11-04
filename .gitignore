@@ -22,6 +22,7 @@
 !*.r
 !*.rmd
 !*.py
+!*.ipynb
 !*metasym.txt
 !*sourcesym.txt
 !.gitignore
