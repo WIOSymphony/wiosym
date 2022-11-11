@@ -1,0 +1,21 @@
+"id"	"byq2105311806"
+"file_path"	"data_raw\reg\eco\ph_phyto\unknown\byq2105311806"
+"local_path"	"C:\Users\Bastien\Dropbox\WorkGU\21-05 WIOSYM"
+"download_date"	"2021-05-31"
+"user"	"byq"
+"provider_list"	"none"
+"provider_manual"	""
+"source"	"https://resources.marine.copernicus.eu/?option=com_csw&view=details&product_id=OCEANCOLOUR_GLO_CHL_L4_REP_OBSERVATIONS_009_082"
+"citation"	"Global Monitoring and Forecasting Center (2018) Global Ocean Chlorophyll, PP and PFT (Copernicus-GlobColour) from Satellite Observations: Monthly and Daily Interpolated (Reprocessed from 1997), E.U. Copernicus Marine Service Information [Data set]. Available at: https://resources.marine.copernicus.eu/?option=com_csw&view=details&product_id=OCEANCOLOUR_GLO_CHL_L4_REP_OBSERVATIONS_009_082 (Accessed: 31th May 2021)."
+"copyright"	"Open - product and raw data can be downloaded"
+"copyright_details"	"https://www.copernicus.eu/en/access-data/copyright-and-licences
+
+http://www.globcolour.info GlobColour has been originally funded by ESA with data from ESA, NASA, NOAA and GeoEye. This version has received funding from the European Community s Seventh Framework Programme ([FP7/2007-2013]) under grant agreement n. 282723 [OSS2015 project]."
+"location"	"reg"
+"theme"	"Ecosystem components (e.g. habitat and species)"
+"theme_tag"	"eco"
+"subtheme"	"Phytoplankton"
+"subtheme_tag"	"ph_phyto"
+"tags"	";eco;phytoplankton;oceanography;ocean zones;surface waters;pelagic habitat;phytoplankton;biologically important area;"
+"comments"	"Monthly data from 2015 to 2019 compiled into climatological mean.
+Primary productivity."

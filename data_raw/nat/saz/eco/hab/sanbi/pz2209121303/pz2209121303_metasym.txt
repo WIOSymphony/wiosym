@@ -3,8 +3,8 @@
 "local_path"	"\\sgu.se\SGU\prod\proj\marin\swoc\work\wiosym"
 "download_date"	"2022-09-12"
 "user"	"pz"
-"provider_list"	"none"
-"provider_manual"	"sanbi"
+"provider_list"	"sanbi"
+"provider_manual"	""
 "source"	"http://bgis.sanbi.org/SpatialDataset/Detail/2682"
 "citation"	"Sink, K.J., Van der Bank, M.G., Majiedt, P.A., Harris, L., Atkinson, L., Kirkman, S. & Karenyi, N. 
 (eds). 2019. South African National Biodiversity Assessment 2018 Technical Report Volume 4: 

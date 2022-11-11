@@ -3,7 +3,7 @@
 "local_path"	"D:\Storage\Repositories\wiosym"
 "download_date"	"2021-10-26"
 "user"	"byq"
-"provider_list"	"EU Copernicus Marine Services (cmems)"
+"provider_list"	"cmems"
 "provider_manual"	""
 "source"	"https://my.cmems-du.eu/motu-web/Motu --service-id GLOBAL_REANALYSIS_BIO_001_029-TDS --product-id global-reanalysis-bio-001-029-monthly --longitude-min 5.5 --longitude-max 80.5 --latitude-min -42.5 --latitude-max 18.56 --depth-min 0 --depth-max 50 --date-min \"2015-01-01 00:00:00\" --date-max \"2019-12-01 00:00:00\" --variable no3"
 "citation"	"Copernicus Marine Service (CMEMS)"

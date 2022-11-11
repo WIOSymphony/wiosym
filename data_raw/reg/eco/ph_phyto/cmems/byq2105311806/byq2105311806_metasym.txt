@@ -3,7 +3,7 @@
 "local_path"	"C:\Users\Bastien\Dropbox\WorkGU\21-05 WIOSYM"
 "download_date"	"2021-05-31"
 "user"	"byq"
-"provider_list"	"EU Copernicus Marine Services (cmems)"
+"provider_list"	"cmems"
 "provider_manual"	""
 "source"	"https://resources.marine.copernicus.eu/?option=com_csw&view=details&product_id=OCEANCOLOUR_GLO_CHL_L4_REP_OBSERVATIONS_009_082"
 "citation"	"Global Monitoring and Forecasting Center (2018) Global Ocean Chlorophyll, PP and PFT (Copernicus-GlobColour) from Satellite Observations: Monthly and Daily Interpolated (Reprocessed from 1997), E.U. Copernicus Marine Service Information [Data set]. Available at: https://resources.marine.copernicus.eu/?option=com_csw&view=details&product_id=OCEANCOLOUR_GLO_CHL_L4_REP_OBSERVATIONS_009_082 (Accessed: 31th May 2021)."

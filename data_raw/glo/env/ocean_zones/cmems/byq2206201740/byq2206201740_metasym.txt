@@ -3,7 +3,7 @@
 "local_path"	"D:\Storage\Repositories\wiosym"
 "download_date"	"2022-06-20"
 "user"	"byq"
-"provider_list"	"EU Copernicus Marine Services (cmems)"
+"provider_list"	"cmems"
 "provider_manual"	""
 "source"	"https://resources.marine.copernicus.eu/product-detail/GLOBAL_MULTIYEAR_PHY_001_030/INFORMATION"
 "citation"	"Copernicus Marine Service (CMEMS)"
