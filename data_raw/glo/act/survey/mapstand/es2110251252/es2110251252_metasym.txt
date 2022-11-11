@@ -3,7 +3,7 @@
 "local_path"	"L:\OneDrive - Sveriges lantbruksuniversitet\wiosym_slu_internal"
 "download_date"	"2021-10-25"
 "user"	"es"
-"provider_list"	"none"
+"provider_list"	"mapstand"
 "provider_manual"	"mapstand"
 "source"	"https://www.mapstand.com/"
 "citation"	"MapStand (2022), https://www.mapstand.com/"

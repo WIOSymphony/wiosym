@@ -3,7 +3,7 @@
 "local_path"	"L:\OneDrive - Sveriges lantbruksuniversitet\wiosym_slu_internal"
 "download_date"	"2022-06-13"
 "user"	"es"
-"provider_list"	"none"
+"provider_list"	"lit"
 "provider_manual"	"adog"
 "source"	"Albana.Dogani.2300@student.uu.se"
 "citation"	""

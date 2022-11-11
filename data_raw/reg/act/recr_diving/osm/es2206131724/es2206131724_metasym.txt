@@ -3,7 +3,7 @@
 "local_path"	"L:\OneDrive - Sveriges lantbruksuniversitet\wiosym_slu_internal"
 "download_date"	"2022-06-13"
 "user"	"es"
-"provider_list"	"none"
+"provider_list"	"osm"
 "provider_manual"	"osm"
 "source"	"https://www.openstreetmap.org/about"
 "citation"	"Open Street Maps (2022), https://www.openstreetmap.org."
