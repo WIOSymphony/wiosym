@@ -3,9 +3,12 @@ No provider selected (none)	none
 Africa Regional Data Cube (ardc)	ardc
 African Development Bank (afdb)	afdb
 Allen Coral Atlas (allen)	allen
+AquaMaps (aquamaps)	aquamaps
 Association of African Maritime Administrations (aama)	aama
+Be Geospatial (begeospatial)	begeospatial
 Belgian universities (biooracle)	biooracle
 Blue Habitats (bluehab)	bluehab
+CableMap (gcm)	gcm
 Centre for Environment, Fisheries and Aquaculture Science (cefas)	cefas
 Coastal and Marine Programme of the NEPAD Environment Initiative (cosmar)	cosmar
 Coastal Oceans Research and Development in the Indian Ocean (cordio)	cordio
@@ -21,6 +24,7 @@ East African Community (eac)	eac
 East African Wildlife Society (eawls)	eawls
 ESRI (esri)	esri
 EU Copernicus (copernicus)	copernicus
+EU Copernicus Marine Services (cmems)	cmems
 EU Forest Resources and Carbon Emissions (iforce)	iforce
 EU Joint Research Centre Data Catalogue (jrcdc)	jrcdc
 Food and Agricultural Organisation of the United Nations (fao)	fao
@@ -31,10 +35,12 @@ Global Biodiversity Information Facility (gbif)	gbif
 Global Environment Facility Trust Fund (gef)	gef
 Global Environmental Flows Network (eflownet)	eflownet
 Global Fishing Watch (gfw)	gfw
+Global Mangrove Watch (gmw)	gmw
 Global Ocean Data Analysis Project (glodap)	glodap
 Global Programme of Action for the Protection of the Marine Environment from Land-based Sources and Activities (unep_gpa)	unep_gpa
 Grid Arendal (grida)	grida
 Group on Earth Observations (geo)	geo
+HUB Ocean (hub)	hub
 Indian Ocean Tuna Commission (iotc)	iotc
 Institute of Marine Sciences in Zanzibar (ims)	ims
 Inter-Governmental Oceanographic Commission of UNESCO (ioc_unesco)	ioc_unesco
@@ -44,9 +50,11 @@ International Submarine Cable Protection Committe (iscpc)	iscpc
 International Union for the Conservation of Nature (iucn)	iucn
 Kenya Forest Service (kfs)	kfs
 Kenya Marine and Fisheries Research Institute (kmfri)	kmfri
+Koordinates (koord)	koord
 Literature (lit)	lit
 Locally Managed Marine Area (lmma)	lmma
 Mangrove Action Project (map)	map
+MapStand (mapstand)	mapstand
 Marine Protection Atlas (mpatlas)	mpatlas
 Marine Regions organization (mro)	mro
 Marine Spatial Atlas for the Western Indian Ocean (maspawio)	maspawio
@@ -63,11 +71,13 @@ Natural Earth (naturalearth)	naturalearth
 Nelson Mandela University (nmu)	nmu
 New Partnership for Africa’s Development (nepad)	nepad
 NMU Institute for Coastal and Marine Research (cmr)	cmr
+Norsk Polarinstitutt (npi)	npi
 Northern Mozambique Channel initiative (nmci)	nmci
 Ocean Biogeographic Information System (obis)	obis
 OceanSITES (ocsi)	ocsi
 Open Street Map (osm)	osm
 Orbcomm Satellite AIS (orbcom)	orbcom
+Pangaea (pangaea)	pangaea
 ReefBase (reba)	reba
 Regional Coastal Zone Management Programme of the Indian Ocean Commission (ioc_recomap)	ioc_recomap
 Regional Fisheries Management Organization (rfmo)	rfmo
@@ -76,6 +86,7 @@ Seychelles Conservation & Climate Adaptation Trust (seyccat)	seyccat
 Shared Water Course Institution (swci)	swci
 Somalia Water and Land Information Management (fao_swalim)	fao_swalim
 Somalia water and land information management (swalim)	swalim
+South African National Biodiversity Institute (sanbi)	sanbi
 South Western Indian Ocean Fisheries Project (swiofp)	swiofp
 Southern African Development Community (sadc)	sadc
 Sustainable Wetlands Adaptation and Mitigation Program (swamp)	swamp
@@ -87,6 +98,8 @@ The Ocean Cleanup project (ocp)	ocp
 The United Nations Support Office in Somalia (unsos)	unsos
 U.S. Geological Survey (usgs)	usgs
 U.S. National Oceanic and Atmospheric Administration (noaa)	noaa
+UN Biodiversity Lab (unbl)	unbl
+UN World Food Programme  (wfp)	wfp
 UNEP World Conservation Monitoring Centre (wcmc)	wcmc
 UNESCO Flanders Fund-in-Trust (unesco_fust)	unesco_fust
 United Nations Agency for Human Settlements (unhabitat)	unhabitat
@@ -98,6 +111,7 @@ United Nations Industrial Development Organisation (unido)	unido
 United Nations Office for Project Services (unops)	unops
 United States Agency for International Development (usaid)	usaid
 United States Forest Service (usfs)	usfs
+University of Colorado (dbseabed)	dbseabed
 Water and Nature Initiative of the IUCN (iucn-wani)	iucn-wani
 Western Indian Ocean Mangrove Network (wiomn)	wiomn
 Western Indian Ocean Marine Ecoregion Programme (wiomer)	wiomer
@@ -112,7 +126,3 @@ World Database on Protected Areas (wdpa)	wdpa
 World Environment Center (wec)	wec
 World Resources Institute (wri)	wri
 World Wide Fund for Nature (wwf)	wwf
-UN Biodiversity Lab (unbl)	unbl
-Norsk Polarinstitutt (npi)	npi
-HUB Ocean (hub)	hub
-
