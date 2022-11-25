@@ -1,0 +1,153 @@
+# =========================================================================================================
+# Script by Edmond Sacre, SLU
+# =========================================================================================================
+
+# PREPARATIONS
+```{r, include = FALSE}
+# Install / load packages
+#x <- c("sf", "raster", "tidyr", "dplyr")
+#install.packages(x, dependencies=TRUE)
+```
+
+## Install packages
+```{r, include = FALSE}
+library(sp)
+library(sf) 
+library(raster)
+library(fasterize)
+library(tidyr)
+library(dplyr)
+library(rgdal)
+library(tidyverse)
+library(leaflet)
+```
+
+## View folders/themes
+```{r}
+folders_raw <- read.table("./shiny_data_upload/folders.txt", sep = "\t", header = TRUE)
+folders_data <- read.table("./process/templates/folders_data.txt", sep = "\t", header = TRUE)
+#folders <- folders_raw %>% add_row(folders_data)
+```
+
+## Define versions/directories
+```{r}
+version = "v01"
+d_version = ".0"
+location = "reg"
+theme1 <- "act"
+subtheme1 <- "recr_diving"
+name1 <- "diving"
+(dest1_path <- paste("./data", location, theme1, subtheme1, name1, version, sep="/"))
+(work1_path <- paste(dest1_path, "proc", sep="/"))
+(proc1_path <- paste(dest1_path, "proc_log", sep="/"))
+script_path <- "./process/r"
+(script_path_windows <- paste(getwd(), "/process/r", sep=""))
+(script_name <- paste(theme1, "_", subtheme1,"_", location, "_", name1,"_s01_",version, ".R", sep=""))
+```
+
+## Create directories
+```{r}
+dir.create(dest1_path, recursive = TRUE)
+dir.create(work1_path, recursive = TRUE)
+dir.create(proc1_path, recursive = TRUE)
+```
+
+## Read in WIOSym standard grid
+```{r}
+grid_1km <- raster("./data/reg/grid/grid/v01/grid_1km_v01.1.tif")
+grid_1km_wgs <- projectRaster(grid_1km, crs = CRS("+proj=longlat +datum=WGS84 +no_defs"))
+```
+
+## Define sources
+```{r}
+num_sources <- 1  # write the number of sources you will use in this script (to be used later for exporting metadata)
+  
+source1_dir <-  "./data_raw/reg/act/recr_diving/osm/es2206131724/"
+source1_id <- "es2206131724"
+source1_metasym <- read.table(paste0(source1_dir, source1_id, "_metasym.txt"), sep = "\t")
+source1_metasym # check that metasym file is populated, and fix if not - before finalising the processing
+
+source_list <- c(source1_id) # for multiple sources, should look like - c(source1_id, source2_id, source3_id) etc.
+```
+
+*****************************************************************
+*****************************************************************
+# PROCESSING
+
+## NOTE: Some pre-processing steps were performed in ArcGIS for efficiency - Pipelines were converted to raster
+## and Platform points were converted to raster, with cell values representing the number of platforms in each 1km cell
+
+# Install processing specific packages
+```{r, include = FALSE}
+library(spatstat)
+library(spatialEco)
+library(mapview)
+library(stars)
+library(fasterize)
+library(rgdal)
+library(rgeos)
+library(climateStability)
+```
+
+```{r}
+data_file <- "./data_raw/reg/act/recr_diving/osm/es2206131724/osm_dive_centres/osm_dive_centres.shp"
+dive <- st_read(data_file)
+```
+
+```{r}
+box <- c(xmin = 0, xmax = 88, ymin = -50,  ymax = 22)
+dive_sp <- sf::as_Spatial(dive)
+dive_sp <- raster::crop(dive_sp, extent(box))
+dive_sp <- spTransform(dive_sp, crs(grid_1km))
+mapview(dive_sp)
+```
+
+```{r}
+dive_sp$value <- 1
+dive_kernel <- sp.kde(x = dive_sp,
+                        y = dive_sp$value,
+                        newdata = as.vector(extent(grid_1km)),
+                        nr=2000,
+                        nc=2000,
+                        bw = 10000,
+                        mask = FALSE,
+                        standardize = T)
+dive_kernel <- resample(dive_kernel, grid_1km)
+dive_kernel[is.na(grid_1km)==T] <- NA
+product1 <- dive_kernel
+plot(dive_kernel)
+```
+
+*****************************************************************
+*****************************************************************
+
+# EXPORT
+
+## Specify output directory and product file name
+
+```{r}
+(dest1_path_file1 <-paste0(dest1_path, "/", subtheme1, "_", name1, "_", version, d_version, ".tif"))
+```
+
+## Export metadata
+```{r}
+sourcesym <- data.frame(matrix(data = NA, nrow = num_sources, ncol = 1))
+colnames(sourcesym) <- "id"
+
+for(i in 1:num_sources){
+  sourcesym[i,1] <- source_list[i]
+}
+
+sourcesym
+```
+
+```{r}
+sourcesym_path <- paste0(dest1_path_file1, "_sourcesym.txt")
+write.table(sourcesym, sourcesym_path, row.names = F, sep = "\t")
+```
+
+## Export product
+```{r}
+writeRaster(product1, dest1_path_file1, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+```
+

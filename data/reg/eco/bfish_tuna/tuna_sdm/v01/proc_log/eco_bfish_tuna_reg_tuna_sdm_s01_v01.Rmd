@@ -1,0 +1,272 @@
+# =========================================================================================================
+# Script by Edmond Sacre, SLU
+# This script creates distribution models based on occurrence records
+# This script also resamples the rasters to the same resolution and extent as the standard WIOSym grid
+# =========================================================================================================
+
+# PREPARATIONS
+```{r, include = FALSE}
+# Install / load packages
+#x <- c("sf", "raster", "tidyr", "dplyr")
+#install.packages(x, dependencies=TRUE)
+```
+
+## Install packages
+```{r, include = FALSE}
+library(sf) 
+library(raster)
+library(fasterize)
+library(tidyr)
+library(dplyr)
+library(rgdal)
+library(tidyverse)
+library(leaflet)
+```
+
+## View folders/themes
+```{r}
+folders_raw <- read.table("./shiny_data_upload/folders.txt", sep = "\t", header = TRUE)
+folders_data <- read.table("./process/templates/folders_data.txt", sep = "\t", header = TRUE)
+#folders <- folders_raw %>% add_row(folders_data)
+```
+
+## Define versions/directories
+```{r}
+version = "v01"
+d_version = ".0"
+location = "reg"   #check
+theme1 <- "eco"   #check
+subtheme1 <- "bfish_tuna"   #check
+name1 <- "tuna_sdm"   #check
+name2 <- "Thunnus_obesus" #check
+(dest1_path <- paste("./data", location, theme1, subtheme1, name1, version, sep="/"))
+(work1_path <- paste(dest1_path, "proc", sep="/"))
+(proc1_path <- paste(dest1_path, "proc_log", sep="/"))
+script_path <- "./process/r"
+(script_path_windows <- paste(getwd(), "/process/r", sep=""))
+(script_name <- paste(theme1, "_", subtheme1,"_", location, "_", name1,"_s01_",version, ".R", sep=""))
+```
+
+## Create directories
+```{r}
+dir.create(dest1_path, recursive = TRUE)
+dir.create(work1_path, recursive = TRUE)
+dir.create(proc1_path, recursive = TRUE)
+```
+
+## Read in WIOSym standard grid
+```{r}
+grid_1km <- raster("./data/reg/grid/grid/v01/grid_1km_v01.1.tif")
+```
+
+## Define sources
+```{r}
+num_sources <- 2  # write the number of sources you will use in this script (to be used later for exporting metadata)
+  
+source1_dir <-  "./data_raw/glo/eco/spec/obis/es2202041521/"    #check
+source1_id <- "es2202041521"    #check
+source1_metasym <- read.table(paste0(source1_dir, source1_id, "_metasym.txt"), sep = "\t")
+#source1_metasym # check that metasym file is populated, and fix if not - before finalising the processing
+
+source2_dir <-  "./data_raw/reg/env/ocean/copernicus/es2204071326/"   #check
+source2_id <- "es2105070953"    #check
+source2_metasym <- read.table(paste0(source1_dir, source1_id, "_metasym.txt"), sep = "\t")
+#source2_metasym # check that metasym file is populated, and fix if not - before finalising the processing
+
+
+
+source_list <- c(source1_id, source2_id) # for multiple sources, should look like - c(source1_id, source2_id, source3_id) etc.
+```
+
+*****************************************************************
+*****************************************************************
+# PROCESSING
+
+# Install processing specific packages
+```{r, include = FALSE}
+library(robis)
+library(spatstat)
+library(spatialEco)
+library(raster)
+library(sf)
+library(sp)
+library(sdm)
+library(mapview)
+library(RColorBrewer)
+```
+
+# Specify taxon for which to pull sightings data from OBIS
+# Taxon IDs can be found at https://www.marinespecies.org/index.php
+```{r}
+# IF ONLY ONE TAXON GROUP IS DESIRED
+spec <- occurrence(#taxonid = 125539, 
+                   scientificname = "Xiphias gladius",
+                   geometry = "POLYGON ((86.66016 23.88584, 89.12109 -47.27923, -22.14844 -48.34165, -22.50000 21.77991, 86.66016 23.88584))",
+                   startdate = as.Date("1970-01-01"))
+
+#spec <- filter(spec, date_year > 2010) #filter by year if desired
+#spec <- filter(spec, category == "CR" | category == "EN" | category == "VU") #filter by red list status
+
+map_leaflet(spec)
+```
+"Thunnus alalunga"   "Thunnus albacares"  "Thunnus maccoyii"   "Thunnus obesus"     "Thunnus orientalis"
+[7] "Thunnus thynnus"    "Thunnus tonggol" 
+```{r}
+# Select specific species
+levels(as.factor(spec$scientificName))
+# spec <- filter(spec, scientificName == "Caretta caretta")
+# map_leaflet(spec)
+```
+
+```{r}
+# IF MULTIPLE TAXON GROUPS ARE DESIRED
+# spec.list <- c("106741",
+#                "106669",
+#                "123082",
+#                "11718",
+#                "123080"
+#                )
+# 
+# g <- "POLYGON ((86.66016 23.88584, 89.12109 -47.27923, -22.14844 -48.34165, -22.50000 21.77991, 86.66016 23.88584))"
+# spec <- occurrence(taxonid = spec.list[1], geometry = g)
+# spec <- spec[,c("scientificName", "decimalLatitude", "decimalLongitude", "category", "country", "date_year")]
+# 
+# for(i in 2:length(spec.list)){
+#   spec.temp <- occurrence(taxonid = spec.list[i], geometry = g)
+#   spec.temp <- spec.temp[,c("scientificName", "decimalLatitude", "decimalLongitude", "category", "country", "date_year")]
+#   spec <- rbind(spec, spec.temp)
+# }
+```
+
+# Convert OBIS sightings to spatial points object
+```{r}
+xy <- spec[, c("decimalLongitude", "decimalLatitude")]
+spec_sp <- SpatialPointsDataFrame(coords = xy, data = spec, proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
+
+# Downsample so that only 1 sighting per grid cell is counted (removes some sampling bias)
+# temp <- grid_1km
+# spec_sp$Occurrence <- 1
+# spec_raster <- raster::rasterize(spec_sp, temp, field = "Occurrence", fun = mean)
+# spec_sp <- rasterToPoints(spec_raster, spatial = TRUE)
+species <- spec_sp
+```
+
+# Import predictor layers
+```{r}
+lst <- list.files("./data/reg/util/sdm_predictors/", full.names = T)
+preds <- stack(lst)
+species$Occurrence <- 1
+species <- species[,"Occurrence"]
+e <- raster::extract(preds, species, method = "simple") # Extract predictor values to points
+species <- cbind(species, e)
+species <- sp.na.omit(species, margin = 1) # Remove points with no predictor data
+plot(preds)
+```
+
+# If desired, decrease the resolution of the predictions to speed up processing time (e.g. for testing)
+```{r}
+preds <- aggregate(preds, fact = 10)
+```
+
+# Run ensemble distribution modelling
+```{r}
+d <- sdmData(formula=Occurrence~.,train=species, predictors=preds, bg=list(n=1000))
+d
+m1 <- sdm(Occurrence~.,data=d,methods=c('brt','svm')) 
+m1
+write.sdm(d, filename = paste0(work1_path,"/", name1, "_sdmdata"), overwrite = T)
+write.sdm(m1, filename = paste0(work1_path,"/", name1, "_sdmmodel"), overwrite = T)
+```
+
+```{r}
+# Individual models
+p1 <- predict(m1,newdata=preds,filename='./process/r/_archive/p1.tif', overwrite = T, nc = 6) 
+plot(p1)
+```
+
+```{r}
+# Ensemble model
+e1 <- ensemble(m1,newdata=preds,filename='e1.tif',setting=list(method='weighted',stat='TSS'), overwrite=T, nc=6)
+#mapview(e1, col.regions = brewer.pal(11, "Spectral"))
+```
+
+```{r}
+# Other analytics of interest
+#rcurve(m1, id =4)
+getVarImp(m1, id = 1)
+```
+
+```{r}
+#prod <- p1[[1]]#select specific model for product
+
+prod <- e1
+product1 <- projectRaster(prod, crs = crs(grid_1km))
+product1 <- resample(product1, grid_1km)
+product1[is.na(grid_1km)==TRUE] <- NA
+
+mapview(product1, col.regions = brewer.pal(11, "Spectral"))
+```
+
+# Combine sdms for different species to get a measure of species richness
+```{r}
+base <- grid_1km - 1
+eco1 <- raster("./data/reg/eco/bfish_tuna/tuna_sdm/v01/bfish_tuna_tuna_sdm_Katsuwonus_pelamis_v01.0.tif")
+eco2 <- raster("./data/reg/eco/bfish_tuna/tuna_sdm/v01/bfish_tuna_tuna_sdm_Thunnus_alalunga_v01.0.tif")
+eco3 <- raster("./data/reg/eco/bfish_tuna/tuna_sdm/v01/bfish_tuna_tuna_sdm_Thunnus_albacares_v01.0.tif")
+eco4 <- raster("./data/reg/eco/bfish_tuna/tuna_sdm/v01/bfish_tuna_tuna_sdm_Thunnus_obesus_v01.0.tif")
+
+
+#eco1[eco1<0.7] <- 0
+#eco2[eco2<0.7] <- 0
+#eco3[eco3<0.7] <- 0
+
+eco <- eco1+eco2 # Excluded Thunnus albacares and obesus because the distribution is similar to alalunga
+product1 <- eco
+
+mapview(eco, col.regions = brewer.pal(11, "Spectral"))
+```
+
+```{r}
+# Transformations and adjustments
+# tran <- product1
+# tran[tran < 0.2] <- 0
+# product1 <- tran
+# mapview(tran, col.regions = brewer.pal(11, "Spectral"))
+```
+
+*****************************************************************
+*****************************************************************
+
+# EXPORT
+
+## Specify output directory and product file name
+
+```{r}
+#(dest1_path_file1 <- paste0(dest1_path, "/", subtheme1, "_", name1, "_", name2, "_", version, d_version, ".tif"))
+(dest1_path_file1 <-paste0(dest1_path, "/", subtheme1, "_", name1, "_", version, d_version, ".tif"))
+```
+
+## Export metadata
+```{r}
+sourcesym <- data.frame(matrix(data = NA, nrow = num_sources, ncol = 1))
+colnames(sourcesym) <- "id"
+
+for(i in 1:num_sources){
+  sourcesym[i,1] <- source_list[i]
+}
+
+sourcesym
+```
+
+```{r}
+sourcesym_path <- paste0(dest1_path_file1, "_sourcesym.txt")
+write.table(sourcesym, sourcesym_path, row.names = F, sep = "\t")
+```
+
+
+## Export product
+
+```{r}
+writeRaster(product1, dest1_path_file1, COMPRESS=LZW, overwrite=TRUE)
+```
+

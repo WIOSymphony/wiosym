@@ -1,0 +1,174 @@
+# =========================================================================================================
+# Script by Edmond Sacre, SLU
+# This script creates rasters from the from the shapefiles available on the IUCN red list of threatened species
+# (https://www.iucnredlist.org/resources/spatial-data-download)
+# This script also resamples the rasters to the same resolution and extent as the standard WIOSym grid
+# =========================================================================================================
+
+# PREPARATIONS
+```{r, include = FALSE}
+# Install / load packages
+#x <- c("sf", "raster", "tidyr", "dplyr")
+#install.packages(x, dependencies=TRUE)
+```
+
+## Install packages
+```{r, include = FALSE}
+library(sf) 
+library(raster)
+library(fasterize)
+library(tidyr)
+library(dplyr)
+library(rgdal)
+library(tidyverse)
+library(leaflet)
+```
+
+## View folders/themes
+```{r}
+folders_raw <- read.table("./shiny_data_upload/folders.txt", sep = "\t", header = TRUE)
+folders_data <- read.table("./process/templates/folders_data.txt", sep = "\t", header = TRUE)
+#folders <- folders_raw %>% add_row(folders_data)
+```
+
+## Define versions/directories
+```{r}
+version = "v01"
+d_version = ".0"
+location = "reg"   #check
+theme1 <- "act"   #check
+subtheme1 <- "fishing"   #check
+name1 <- "ghost_fishing"   #check
+name2 <- "" #check
+(dest1_path <- paste("./data", location, theme1, subtheme1, name1, version, sep="/"))
+(work1_path <- paste(dest1_path, "proc", sep="/"))
+(proc1_path <- paste(dest1_path, "proc_log", sep="/"))
+script_path <- "./process/r"
+(script_path_windows <- paste(getwd(), "/process/r", sep=""))
+(script_name <- paste(theme1, "_", subtheme1,"_", location, "_", name1,"_s01_",version, ".R", sep=""))
+```
+
+## Create directories
+```{r}
+dir.create(dest1_path, recursive = TRUE)
+dir.create(work1_path, recursive = TRUE)
+dir.create(proc1_path, recursive = TRUE)
+```
+
+## Read in WIOSym standard grid
+```{r}
+grid_1km <- raster("./data/reg/grid/grid/v01/grid_1km_v01.1.tif")
+```
+
+## Define sources
+```{r}
+num_sources <- 1  # write the number of sources you will use in this script (to be used later for exporting metadata)
+  
+source1_dir <-  "./data_raw/glo/act/fishing_com/gfw/es2105270900/"    #check
+source1_id <- "es2105270900"    #check
+source1_metasym <- read.table(paste0(source1_dir, source1_id, "_metasym.txt"), sep = "\t")
+#source1_metasym # check that metasym file is populated, and fix if not - before finalising the processing
+
+source_list <- c(source1_id) # for multiple sources, should look like - c(source1_id, source2_id, source3_id) etc.
+```
+
+*****************************************************************
+*****************************************************************
+# PROCESSING
+
+```{r}
+library(sp)
+library(rgdal)
+library(leaflet)
+library(spatialEco)
+#library(RKUM)
+library(mapview)
+```
+
+```{r}
+gg_drift_longlines <- raster(paste0(work1_path, "/fishing_com_fishing_effort_drifting_longlines_v01.0_unstandardized.tif")) * 0.20
+gg_pole_and_line <- raster(paste0(work1_path, "/fishing_com_fishing_effort_pole_and_line_v01.0_unstandardized.tif")) * 0.20
+gg_set_longlines <- raster(paste0(work1_path, "/fishing_com_fishing_effort_set_longlines_v01.0_unstandardized.tif")) * 0.20
+gg_pots_and_traps <- raster(paste0(work1_path, "/fishing_com_fishing_effort_pots_and_traps_v01.0_unstandardized.tif")) * 0.19
+gg_purse_seines <- raster(paste0(work1_path, "/fishing_com_fishing_effort_purse_seines_v01.0_unstandardized.tif")) * 0.066 
+gg_tuna_purse_seines <- raster(paste0(work1_path, "/fishing_com_fishing_effort_tuna_purse_seines_v01.0_unstandardized.tif")) * 0.066
+gg_trawling <- raster(paste0(work1_path, "/fishing_com_fishing_effort_trawlers_v01.0_unstandardized.tif")) * 0.12 
+gg_dredging <- raster(paste0(work1_path, "/fishing_com_fishing_effort_dredge_fishing_v01.0_unstandardized.tif")) * 0.18 
+gg_set_gillnets <- raster(paste0(work1_path, "/fishing_com_fishing_effort_set_gillnets_v01.0_unstandardized.tif")) * 0.084
+
+
+gg_drift_longlines[is.na(gg_drift_longlines)] <- 0
+gg_pole_and_line[is.na(gg_pole_and_line)] <- 0
+gg_set_longlines[is.na(gg_set_longlines)] <- 0
+gg_pots_and_traps[is.na(gg_pots_and_traps)] <- 0
+gg_purse_seines[is.na(gg_purse_seines)] <- 0
+gg_tuna_purse_seines[is.na(gg_tuna_purse_seines)] <- 0
+gg_trawling[is.na(gg_trawling)] <- 0
+gg_dredging[is.na(gg_dredging)] <- 0
+gg_set_gillnets[is.na(gg_set_gillnets)] <- 0
+
+ghost <- gg_drift_longlines+gg_pole_and_line+gg_set_longlines+gg_pots_and_traps+
+          gg_purse_seines+gg_tuna_purse_seines+gg_trawling+gg_dredging+gg_set_gillnets
+ghost[ghost < 0.1] <- NA
+spec_sp <- rasterToPoints(ghost, spatial = TRUE)
+spec_sp$value <- spec_sp$layer
+
+spec_kernel <- sp.kde(x = spec_sp,
+                      y = spec_sp$value,
+                      newdata = as.vector(extent(grid_1km)),
+                      nr=500,
+                      nc=500,
+                      bw = 500000, 
+                      standardize = TRUE,
+                      mask = FALSE)
+spec_kernel <- resample(spec_kernel, grid_1km)
+spec_kernel[is.na(grid_1km)==T] <- NA
+```
+
+```{r}
+product1 <- spec_kernel
+```
+
+# Calculate the max values that should be used in the standarized raster
+# Here I take the average of all gear loss rates above
+# Therefore we set the maximum value in the raster to 15
+```{r}
+mean(c(0.20, 0.20, 0.20, 0.19, 0.066, 0.066, 0.12, 0.18, 0.084))
+```
+
+
+*****************************************************************
+*****************************************************************
+
+# EXPORT
+
+## Specify output directory and product file name
+
+```{r}
+(dest1_path_file1 <-paste0(dest1_path, "/", subtheme1, "_", name1, "_", version, d_version, ".tif"))
+```
+
+## Export metadata
+```{r}
+sourcesym <- data.frame(matrix(data = NA, nrow = num_sources, ncol = 1))
+colnames(sourcesym) <- "id"
+
+for(i in 1:num_sources){
+  sourcesym[i,1] <- source_list[i]
+}
+
+sourcesym
+```
+
+```{r}
+sourcesym_path <- paste0(dest1_path_file1, "_sourcesym.txt")
+write.table(sourcesym, sourcesym_path, row.names = F, sep = "\t")
+```
+
+
+## Export product
+
+```{r}
+writeRaster(product1, dest1_path_file1, COMPRESS=LZW, overwrite=TRUE)
+```
+

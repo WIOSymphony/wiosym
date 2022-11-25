@@ -1,0 +1,200 @@
+# =========================================================================================================
+# Script by Edmond Sacre, SLU
+# =========================================================================================================
+
+# PREPARATIONS
+```{r, include = FALSE}
+# Install / load packages
+#x <- c("sf", "raster", "tidyr", "dplyr")
+#install.packages(x, dependencies=TRUE)
+```
+
+## Install packages
+```{r, include = FALSE}
+library(sp)
+library(sf) 
+library(raster)
+library(fasterize)
+library(tidyr)
+library(dplyr)
+library(rgdal)
+library(tidyverse)
+library(leaflet)
+```
+
+## View folders/themes
+```{r}
+folders_raw <- read.table("./shiny_data_upload/folders.txt", sep = "\t", header = TRUE)
+folders_data <- read.table("./process/templates/folders_data.txt", sep = "\t", header = TRUE)
+#folders <- folders_raw %>% add_row(folders_data)
+```
+
+## Define versions/directories
+```{r}
+version = "v01"
+d_version = ".0"
+location = "reg"
+theme1 <- "act"
+subtheme1 <- "nrg_oilgas"
+name1 <- "oilgas_leakage"
+(dest1_path <- paste("./data", location, theme1, subtheme1, name1, version, sep="/"))
+(work1_path <- paste(dest1_path, "proc", sep="/"))
+(proc1_path <- paste(dest1_path, "proc_log", sep="/"))
+script_path <- "./process/r"
+(script_path_windows <- paste(getwd(), "/process/r", sep=""))
+(script_name <- paste(theme1, "_", subtheme1,"_", location, "_", name1,"_s01_",version, ".R", sep=""))
+```
+
+## Create directories
+```{r}
+dir.create(dest1_path, recursive = TRUE)
+dir.create(work1_path, recursive = TRUE)
+dir.create(proc1_path, recursive = TRUE)
+```
+
+## Read in WIOSym standard grid
+```{r}
+grid_1km <- raster("./data/reg/grid/grid/v01/grid_1km_v01.1.tif")
+grid_1km_wgs <- projectRaster(grid_1km, crs = CRS("+proj=longlat +datum=WGS84 +no_defs"))
+```
+
+## Define sources
+```{r}
+num_sources <- 1  # write the number of sources you will use in this script (to be used later for exporting metadata)
+  
+source1_dir <-  "./data_raw/glo/act/nrg_oilgas/mapstand/es2110251315/"
+source1_id <- "es2110251315"
+source1_metasym <- read.table(paste0(source1_dir, source1_id, "_metasym.txt"), sep = "\t")
+source1_metasym # check that metasym file is populated, and fix if not - before finalising the processing
+
+source_list <- c(source1_id) # for multiple sources, should look like - c(source1_id, source2_id, source3_id) etc.
+```
+
+*****************************************************************
+*****************************************************************
+# PROCESSING
+
+## NOTE: Some pre-processing steps were performed in ArcGIS for efficiency - Pipelines were converted to raster
+## and Platform points were converted to raster, with cell values representing the number of platforms in each 1km cell
+
+# Install processing specific packages
+```{r, include = FALSE}
+library(spatstat)
+library(spatialEco)
+library(mapview)
+library(stars)
+library(fasterize)
+library(rgdal)
+library(rgeos)
+library(climateStability)
+```
+
+# Import data
+```{r}
+data_file <- "./data/reg/act/nrg_oilgas/oilgas_leakage/v01/proc/pipe_ras.tif"
+pipe <- raster(data_file)
+data_file <- "./data/reg/act/nrg_oilgas/oilgas_leakage/v01/proc/plat_ras.tif"
+plat <- raster(data_file)
+```
+
+# Pipelines
+```{r}
+#pipe <- projectRaster(pipe, crs = CRS("+proj=longlat +datum=WGS84 +no_defs"))
+#box <- c(xmin = 0, xmax = 88, ymin = -50,  ymax = 22)
+pipe_sp <- rasterToPoints(pipe, spatial = T)
+#pipe_sp <- raster::crop(pipe_sp, extent(box))
+#mapview(pipe_sp)
+```
+
+```{r}
+pipe_sp$value <- 1
+pipe_kernel <- sp.kde(x = pipe_sp,
+                        y = pipe_sp$value,
+                        newdata = as.vector(extent(grid_1km)),
+                        nr=2000,
+                        nc=2000,
+                        bw = 50000,
+                        mask = FALSE,
+                        standardize = T)
+pipe_kernel <- resample(pipe_kernel, grid_1km)
+pipe_kernel[is.na(grid_1km)==T] <- NA
+```
+
+# Set maximum value in map to 0.046 based on https://pubmed.ncbi.nlm.nih.gov/25057607/
+# who estimate average accidental hydrocardbon discharges as 0.074 tonnes per pipeline per mile
+# WIOSym grid is 1km, 1 mile = 1.61 km
+# 0.074 * (1/1.61) = 0.046
+```{r}
+pipe_kernel <- pipe_kernel * 0.046
+#mapview(pipe_kernel)
+```
+
+# Rigs/Platforms
+```{r}
+box <- c(xmin = -1000000, xmax = 8000000, ymin = -5000000,  ymax = 2300000)
+plat_sp <- rasterToPoints(plat, spatial = T)
+plat_sp <- raster::crop(plat_sp, extent(box))
+#mapview(plat_sp)
+```
+
+```{r}
+plat_sp$value <- 1
+plat_kernel <- sp.kde(x = plat_sp,
+                        y = plat_sp$value,
+                        newdata = as.vector(extent(grid_1km)),
+                        nr=2000,
+                        nc=2000,
+                        bw = 50000,
+                        mask = FALSE,
+                        standardize = T)
+plat_kernel <- resample(plat_kernel, grid_1km)
+plat_kernel[is.na(grid_1km)==T] <- NA
+```
+
+# Set maximum value in map to 0.045 based on https://pubmed.ncbi.nlm.nih.gov/25057607/
+# who estimate average accidental hydrocardbon discharges as 0.045 tonnes per platform
+```{r}
+plat_kernel <- plat_kernel * 0.045
+#mapview(plat_kernel)
+```
+
+# Create combine oil & gas leakage layer
+```{r}
+product1 <- pipe_kernel+plat_kernel
+plot(product1)
+```
+
+*****************************************************************
+*****************************************************************
+
+
+# EXPORT
+
+## Specify output directory and product file name
+
+```{r}
+(dest1_path_file1 <-paste0(dest1_path, "/", subtheme1, "_", name1, "_", version, d_version, ".tif"))
+```
+
+## Export metadata
+```{r}
+sourcesym <- data.frame(matrix(data = NA, nrow = num_sources, ncol = 1))
+colnames(sourcesym) <- "id"
+
+for(i in 1:num_sources){
+  sourcesym[i,1] <- source_list[i]
+}
+
+sourcesym
+```
+
+```{r}
+sourcesym_path <- paste0(dest1_path_file1, "_sourcesym.txt")
+write.table(sourcesym, sourcesym_path, row.names = F, sep = "\t")
+```
+
+## Export product
+```{r}
+writeRaster(product1, dest1_path_file1, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+```
+

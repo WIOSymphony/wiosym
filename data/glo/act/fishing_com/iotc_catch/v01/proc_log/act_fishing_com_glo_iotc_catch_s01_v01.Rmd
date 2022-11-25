@@ -1,0 +1,159 @@
+# =========================================================================================================
+# Script by Edmond Sacre, SLU
+# This script creates rasters from the from Global Fishing Watch fishing effort data
+# (https://globalfishingwatch.org/)
+# This script also resamples the rasters to the same resolution and extent as the standard WIOSym grid
+# =========================================================================================================
+
+# PREPARATIONS
+```{r, include = FALSE}
+# Install / load packages
+#x <- c("sf", "raster", "tidyr", "dplyr")
+#install.packages(x, dependencies=TRUE)
+```
+
+## Install packages
+```{r, include = FALSE}
+library(sf) 
+library(raster)
+library(fasterize)
+library(tidyr)
+library(dplyr)
+library(rgdal)
+library(tidyverse)
+library(leaflet)
+library(mapview)
+library(RColorBrewer)
+```
+
+## View folders/themes
+```{r}
+folders_raw <- read.table("./shiny_data_upload/folders.txt", sep = "\t", header = TRUE)
+folders_data <- read.table("./process/templates/folders_data.txt", sep = "\t", header = TRUE)
+#folders <- folders_raw %>% add_row(folders_data)
+```
+
+## Define versions/directories
+```{r}
+version = "v01"
+d_version = ".0"
+location = "glo"   #check
+theme1 <- "act"   #check
+subtheme1 <- "fishing_com"   #check
+name1 <- "iotc_catch"   #check
+name2 <- "" # check
+(dest1_path <- paste("./data", location, theme1, subtheme1, name1, version, sep="/"))
+(work1_path <- paste(dest1_path, "proc", sep="/"))
+(proc1_path <- paste(dest1_path, "proc_log", sep="/"))
+script_path <- "./process/r"
+(script_path_windows <- paste(getwd(), "/process/r", sep=""))
+(script_name <- paste(theme1, "_", subtheme1,"_", location, "_", name1,"_s01_",version, ".R", sep=""))
+```
+
+## Create directories
+```{r}
+dir.create(dest1_path, recursive = TRUE)
+dir.create(work1_path, recursive = TRUE)
+dir.create(proc1_path, recursive = TRUE)
+```
+
+## Read in WIOSym standard grid
+```{r}
+grid_1km <- raster("./data/reg/grid/grid/v01/grid_1km_v01.1.tif")
+```
+
+## Define sources
+```{r}
+num_sources <- 2  # write the number of sources you will use in this script (to be used later for exporting metadata)
+  
+source1_dir <-  "./data_raw/reg/act/ship/iotc/es2206171253/"    #check
+source1_id <- "es2206171253"    #check
+source1_metasym <- read.table(paste0(source1_dir, source1_id, "_metasym.txt"), sep = "\t")
+#source1_metasym # check that metasym file is populated, and fix if not - before finalising the processing
+
+source2_dir <-  "./data_raw/glo/act/fishing_com/gfw/es2105270900/"    #check
+source2_id <- "es2105270900"    #check
+source2_metasym <- read.table(paste0(source2_dir, source2_id, "_metasym.txt"), sep = "\t")
+#source2_metasym # check that metasym file is populated, and fix if not - before finalising the processing
+
+source_list <- c(source1_id) # for multiple sources, should look like - c(source1_id, source2_id, source3_id) etc.
+```
+
+*****************************************************************
+*****************************************************************
+# PROCESSING
+```{r}
+library(dplyr)
+library(raster)
+library(mapview)
+library(RColorBrewer)
+```
+
+Tmt = metric tonnes
+```{r}
+#data_file <- "./data_raw/reg/act/ship/iotc/es2206171253/DATA/IOTC_TCAC_GRID_1x1.csv"
+data_file <- "./data_raw/reg/act/ship/iotc/es2206171253/DATA/GRIDS.csv"
+iotc <- read.csv(data_file)
+data_file <- "./data_raw/reg/act/ship/iotc/es2206171253/DATA/YFT/YFT_CATCHES.csv"
+bet <- read.csv(data_file)
+```
+
+```{r}
+#iotc$Grid <- iotc$CODE
+iotc <- dplyr::select(iotc, Grid, Long, Lat)
+bet <- left_join(bet, iotc, by = "Grid")
+```
+
+```{r}
+bet_sum <- bet |> group_by(Year, Fleet, Grid) |> summarize(sum_catch = sum(Tmt))
+bet_sum <- bet_sum |> filter(Fleet == 'FS', Year == 2018)
+bet_sum <- left_join(bet_sum, iotc, by = "Grid") %>% ungroup()
+bet_sum <- dplyr::select(bet_sum, Long, Lat, sum_catch)
+colnames(bet_sum) <- c("x", "y", "z")
+bet_sum$y <- round(bet_sum$y/2.5)*2.5
+bet_sum$x <- round(bet_sum$x/2.5)*2.5
+fishing_ras <- rasterFromXYZ(bet_sum, res=c(5,5), crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
+mapview(-fishing_ras, col.regions = brewer.pal(11, "Spectral"))
+```
+
+```{r}
+plot(fishing_ras)
+```
+
+
+
+*****************************************************************
+*****************************************************************
+
+# EXPORT
+
+## Specify output directory and product file name
+
+```{r}
+(dest1_path_file1 <-paste0(dest1_path, "/", subtheme1, "_", name1, "_", name2, "_", version, d_version, ".tif"))
+```
+
+## Export metadata
+```{r}
+sourcesym <- data.frame(matrix(data = NA, nrow = num_sources, ncol = 1))
+colnames(sourcesym) <- "id"
+
+for(i in 1:num_sources){
+  sourcesym[i,1] <- source_list[i]
+}
+
+sourcesym
+```
+
+```{r}
+sourcesym_path <- paste0(dest1_path_file1, "_sourcesym.txt")
+write.table(sourcesym, sourcesym_path, row.names = F, sep = "\t")
+```
+
+
+## Export product
+
+```{r}
+writeRaster(product1, dest1_path_file1, COMPRESS=LZW, overwrite=TRUE)
+```
+

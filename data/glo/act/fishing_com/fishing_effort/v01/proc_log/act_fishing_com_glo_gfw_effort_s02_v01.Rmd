@@ -1,0 +1,312 @@
+# =========================================================================================================
+# Script by Edmond Sacre, SLU
+# This script creates rasters from the from Global Fishing Watch fishing effort data
+# (https://globalfishingwatch.org/)
+# This script also resamples the rasters to the same resolution and extent as the standard WIOSym grid
+# =========================================================================================================
+
+# PREPARATIONS
+```{r, include = FALSE}
+# Install / load packages
+#x <- c("sf", "raster", "tidyr", "dplyr")
+#install.packages(x, dependencies=TRUE)
+```
+
+## Install packages
+```{r, include = FALSE}
+library(sf) 
+library(raster)
+library(fasterize)
+library(tidyr)
+library(dplyr)
+library(rgdal)
+library(tidyverse)
+library(leaflet)
+library(mapview)
+library(RColorBrewer)
+```
+
+## View folders/themes
+```{r}
+folders_raw <- read.table("./shiny_data_upload/folders.txt", sep = "\t", header = TRUE)
+folders_data <- read.table("./process/templates/folders_data.txt", sep = "\t", header = TRUE)
+#folders <- folders_raw %>% add_row(folders_data)
+```
+
+## Define versions/directories
+```{r}
+version = "v01"
+d_version = ".0"
+location = "glo"   #check
+theme1 <- "act"   #check
+subtheme1 <- "fishing_com"   #check
+name1 <- "fishing_effort"   #check
+name2 <- "tuna_purse_seines" # check
+(dest1_path <- paste("./data", location, theme1, subtheme1, name1, version, sep="/"))
+(work1_path <- paste(dest1_path, "proc", sep="/"))
+(proc1_path <- paste(dest1_path, "proc_log", sep="/"))
+script_path <- "./process/r"
+(script_path_windows <- paste(getwd(), "/process/r", sep=""))
+(script_name <- paste(theme1, "_", subtheme1,"_", location, "_", name1,"_s01_",version, ".R", sep=""))
+```
+
+## Create directories
+```{r}
+dir.create(dest1_path, recursive = TRUE)
+dir.create(work1_path, recursive = TRUE)
+dir.create(proc1_path, recursive = TRUE)
+```
+
+## Read in WIOSym standard grid
+```{r}
+grid_1km <- raster("./data/reg/grid/grid/v01/grid_1km_v01.1.tif")
+```
+
+## Define sources
+```{r}
+num_sources <- 1  # write the number of sources you will use in this script (to be used later for exporting metadata)
+  
+source1_dir <-  "./data_raw/glo/act/fishing_com/gfw/es2105270900/"    #check
+source1_id <- "es2105270900"    #check
+source1_metasym <- read.table(paste0(source1_dir, source1_id, "_metasym.txt"), sep = "\t")
+#source1_metasym # check that metasym file is populated, and fix if not - before finalising the processing
+
+source_list <- c(source1_id) # for multiple sources, should look like - c(source1_id, source2_id, source3_id) etc.
+```
+
+*****************************************************************
+*****************************************************************
+# PROCESSING
+
+# Install processing specific packages
+```{r, include = FALSE}
+library(robis)
+library(spatstat)
+library(spatialEco)
+library(fasterize)
+library(climateStability)
+```
+
+## Import all years and combine
+### Reproject grid raster if necessary (encountered some problems using standard projection)
+```{r}
+#grid_1km <- projectRaster(grid_1km, crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs", method = "ngb")
+```
+
+### First choose a gear type
+
+ [1] "dredge_fishing"     "drifting_longlines" "fishing"            "fixed_gear"         "other_purse_seines" "other_seines"      
+ [7] "pole_and_line"      "pots_and_traps"     "purse_seines"       "seiners"            "set_gillnets"       "set_longlines"     
+[13] "squid_jigger"       "trawlers"           "trollers"           "tuna_purse_seines"
+
+### Summarise the daily fishing effort data by year and gear type
+### This gives the total fishing hours in each grid cell per year
+
+```{r}
+gear_name <- name2
+```
+
+```{r, include = FALSE}
+options(dplyr.summarise.inform = FALSE)
+
+for(j in 2012:2020) {
+  
+  gfw_year <- j
+  
+  file_name = paste0("./data_raw/glo/act/fishing_com/gfw/es2105270900/fleet-daily-csvs-100-v2-", gfw_year)
+  data_list <- list.files(file_name, full.names = TRUE)
+  
+  fishing_sum0 <- data.frame(matrix(data = NA, nrow = 0, ncol = 3))
+  colnames(fishing_sum0) <- c("x", "y", "z")
+  
+  nit <- length(data_list)
+  
+  for (i in 1:nit){
+    
+    data_file <- data_list[i]
+    fishing <- read.csv(data_file)
+    
+    fishing <- filter(fishing, geartype == gear_name)
+    
+    fishing$cell_ll_lon_fact <- as.factor(fishing$cell_ll_lon)
+    fishing$cell_ll_lat_fact <- as.factor(fishing$cell_ll_lat)
+    
+    fishing_sum <- fishing %>% group_by(cell_ll_lon_fact, cell_ll_lat_fact) %>% summarise(sum_fishing_hours = sum(fishing_hours))
+    
+    fishing_sum$x <- as.numeric(levels(fishing_sum$cell_ll_lon_fact))[fishing_sum$cell_ll_lon_fact]
+    fishing_sum$y <- as.numeric(levels(fishing_sum$cell_ll_lat_fact))[fishing_sum$cell_ll_lat_fact]
+    fishing_sum$z <- fishing_sum$sum_fishing_hours
+    
+    fishing_sum <- fishing_sum %>% ungroup() %>% select(x, y, z)
+    
+    fishing_sum <- filter(fishing_sum, x > 0 & x < 85)
+    fishing_sum <- filter(fishing_sum, y > -48 & y < 24)
+    
+    fishing_sum0 <- rbind(fishing_sum0, fishing_sum)
+    
+    cat("\n", "Year ", j, "done - ", "Iteration", i, "complete")
+    
+  }
+  
+  fishing_sum0$x <- as.factor(fishing_sum0$x)
+  fishing_sum0$y <- as.factor(fishing_sum0$y)
+  
+  fishing_sum <- fishing_sum0 %>% group_by(x, y) %>% summarise(sum_fishing_hours = sum(z))
+  
+  write.csv(fishing_sum, paste0(work1_path, "/", gear_name, "_", gfw_year, ".csv"), row.names = FALSE)
+  
+
+}
+```
+
+### Create summarised yearly effort and gear type file
+```{r}
+options(dplyr.summarise.inform = FALSE)
+gear_name <- name2
+gfw_year <- 2012:2020
+
+spec <- data.frame(matrix(data = NA, nrow = 0, ncol = 3))
+colnames(spec) <- c("x", "y", "sum_fishing_hours")
+
+for(i in gfw_year){
+
+  spec_temp <- read.csv(paste0(work1_path, "/", gear_name, "_", i, ".csv"), header = TRUE)
+  
+  spec$x <- as.factor(spec$x)
+  spec$y <- as.factor(spec$y)
+  spec_temp$x <- as.factor(spec_temp$x)
+  spec_temp$y <- as.factor(spec_temp$y)
+  
+  spec <- rbind(spec, spec_temp)
+  
+  spec <- spec %>% group_by(x, y) %>% summarise(sum_fishing_hours = sum(sum_fishing_hours))
+  
+}
+
+p <- paste0(work1_path, "/", gear_name, "_", first(gfw_year), "_", last(gfw_year), ".csv")
+write.csv(spec, p, row.names = FALSE)
+
+rm(spec)
+rm(spec_temp)
+
+```
+
+### Create base raster
+
+```{r}
+gear_name <- name2
+
+p <- paste0(work1_path, "/", gear_name, "_2012_2020.csv")
+spec <- read.csv(p, header = TRUE)
+fishing_ras <- rasterFromXYZ(spec, res=c(0.01,0.01), crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
+fishing_ras <- projectRaster(fishing_ras, crs = crs(grid_1km))
+fishing_ras <- resample(fishing_ras, grid_1km, method = "ngb")
+
+### Remove extreme values of fishing effort near the ports (seems to be an error)
+maxValue(fishing_ras)
+quantile(fishing_ras, probs = c(0,.98,.99,.995,.999))
+#fishing_ras[fishing_ras > 3.335559] <- 3.335559
+fishing_ras[fishing_ras < 0.8] <- NA
+
+spec_sp <- rasterToPoints(fishing_ras, spatial = TRUE)
+spec_sp$value <- spec_sp$layer
+
+mapview(fishing_ras, col.regions = brewer.pal(11, "Spectral"))
+plot(fishing_ras)
+```
+
+### Export unstandardized map
+```{r}
+fishing_unstand <- fishing_ras/9 # Divide by 9 becuase data is from 2012 - 2020, to get average fishing hours per year
+(temp_path <-paste0(dest1_path, "/", subtheme1, "_", name1, "_", name2, "_", version, d_version, "_unstandardized", ".tif"))
+writeRaster(fishing_unstand, temp_path, COMPRESS=LZW, overwrite=TRUE)
+```
+
+### Create kernel density raster (for smoothed map)
+```{r}
+# Clear unnecessary space in memory
+rm(spec)
+rm(fishing_ras)
+gc()
+
+# Create kernel density map
+spec_sp$value <- spec_sp$sum_fishing_hours
+
+time1 <- Sys.time()
+
+  spec_kernel <- sp.kde(x = spec_sp,
+                          y = spec_sp$value,
+                          newdata = as.vector(extent(grid_1km)),
+                          nr=500,
+                          nc=500,
+                          bw = 200000,
+                          standardize = TRUE,
+                          mask = FALSE)
+
+time2 <- Sys.time()
+step1.time <- difftime(time2, time1, units = "hours")
+cat("Total time STEP 1: ")
+step1.time
+
+# Resample kernel to wiosym grid
+spec_kernel <- projectRaster(spec_kernel, crs = crs(grid_1km))
+spec_kernel <- resample(spec_kernel, grid_1km)
+spec_kernel[is.na(grid_1km)==TRUE] <- NA
+grid_1km_temp <- grid_1km
+grid_1km_temp[grid_1km_temp == 1] <- 0
+spec_kernel <- merge(spec_kernel, grid_1km_temp)
+
+# Send to product
+product1 <- spec_kernel
+
+# View map
+mapview(-spec_kernel, col.regions = brewer.pal(11, "Spectral"))
+```
+
+# Transformations
+```{r}
+temp <- spec_kernel*100
+#temp[temp > 0.05] <- 0.05
+temp[is.na(temp)==F] <- log(1+temp[is.na(temp)==F], base = 10)
+temp <- climateStability::rescale0to1(temp)
+mapview(-temp, col.regions = brewer.pal(11, "Spectral"))
+#plot(temp)
+```
+
+
+
+*****************************************************************
+*****************************************************************
+
+# EXPORT
+
+## Specify output directory and product file name
+
+```{r}
+(dest1_path_file1 <-paste0(dest1_path, "/", subtheme1, "_", name1, "_", name2, "_", version, d_version, ".tif"))
+```
+
+## Export metadata
+```{r}
+sourcesym <- data.frame(matrix(data = NA, nrow = num_sources, ncol = 1))
+colnames(sourcesym) <- "id"
+
+for(i in 1:num_sources){
+  sourcesym[i,1] <- source_list[i]
+}
+
+sourcesym
+```
+
+```{r}
+sourcesym_path <- paste0(dest1_path_file1, "_sourcesym.txt")
+write.table(sourcesym, sourcesym_path, row.names = F, sep = "\t")
+```
+
+
+## Export product
+
+```{r}
+writeRaster(product1, dest1_path_file1, COMPRESS=LZW, overwrite=TRUE)
+```
+
