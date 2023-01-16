@@ -6,7 +6,7 @@
 "provider_list"	"tnc"
 "provider_manual"	""
 "source"	"kathryn.longley-wood@TNC.ORG"
-"citation"	""
+"citation"	"The Nature Concervancy, Mapping Ocean Wealth project. MOW_CR_Fisheries [dataset]. [accessed 2021 Sep 28]. Available from: contact kathryn.longley-wood@tnc.org; helena.sims@tnc.org"
 "copyright"	"Restricted with special terms - product may be able to be downloaded under certain conditions (e.g. reduced resolution)"
 "copyright_details"	"See pdf attached with data."
 "location"	"glo"

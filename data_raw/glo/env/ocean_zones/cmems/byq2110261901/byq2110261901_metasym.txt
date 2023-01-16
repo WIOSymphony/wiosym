@@ -6,7 +6,7 @@
 "provider_list"	"cmems"
 "provider_manual"	""
 "source"	"https://my.cmems-du.eu/motu-web/Motu --service-id GLOBAL_REANALYSIS_PHY_001_030-TDS --product-id global-reanalysis-phy-001-030-monthly --longitude-min 5.5 --longitude-max 80.5 --latitude-min -42.5 --latitude-max 18.56 --depth-min 0 --depth-max 10 --date-min \"2015-01-01 00:00:00\" --date-max \"2019-12-01 00:00:00\" --variable thetao --out-name CMEMS_thetao.nc"
-"citation"	"Copernicus Marine Service (CMEMS)"
+"citation"	"European Union-Copernicus Marine Service. (2018). Global Ocean Physics Reanalysis [dataset]. 2018 [accessed 2021 Oct 26] Mercator Ocean International. Available from: https://doi.org/10.48670/MOI-00021"
 "copyright"	"Open - product and raw data can be downloaded"
 "copyright_details"	"Copernicus Marine Service
 Provides free, open, regular and systematic reference information on the blue (physical), white (sea ice), and green (biogeochemical) ocean state, variability and dynamics across the global ocean and European regional seas."

@@ -6,7 +6,7 @@
 "provider_list"	"lit"
 "provider_manual"	"https://theoceancleanup.com/sources/"
 "source"	"https://figshare.com/articles/dataset/Supplementary_data_for_More_than_1000_rivers_account_for_80_of_global_riverine_plsatic_emissions_into_the_ocean_/14515590"
-"citation"	"Meijer, Lourens; van Emmerik, Tim; Ent, Ruud van der; Schmidt, Christian; lebreton, laurent (2021): Supplementary data for 'More than 1000 rivers account for 80% of global riverine plsatic emissions into the ocean'. figshare. Dataset. https://doi.org/10.6084/m9.figshare.14515590.v1"
+"citation"	"Meijer LJ, van Emmerik T, van der Ent R, Schmidt C, Lebreton L. More than 1000 rivers account for 80% of global riverine plastic emissions into the ocean, Meijer2021_midpoint_emissions [dataset]. 2021 [accessed 2021 Jun 1]. Science Advances. 2021 Apr 30;7(18):eaaz5803. Available from: https://doi.org/10.6084/m9.figshare.14515590.v1"
 "copyright"	"Unknown"
 "copyright_details"	"This work is licensed under a Creative Commons Attribution – Non Commercial – NoDerivs 3.0 Unported License. This means you can blog, link, like, share and tweet as much as you like but can’t change or use the work commercially."
 "location"	"glo"

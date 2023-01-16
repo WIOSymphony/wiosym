@@ -6,7 +6,7 @@
 "provider_list"	"telgeo"
 "provider_manual"	"tege"
 "source"	"https://github.com/telegeography/www.submarinecablemap.com"
-"citation"	"TeleGeography’s Submarine Cable Map, [shp],"
+"citation"	"TeleGeography. Submarine Cable Map, cable-geo [dataset]. 2021 [accessed 2021 Oct 21]. Available from: https://github.com/telegeography/www.submarinecablemap.com"
 "copyright"	"Open - product and raw data can be downloaded"
 "copyright_details"	"Creative Commons License: Attribution-NonCommercial-ShareAlike 3.0 Unported (CC BY-NC-SA 3.0)."
 "location"	"glo"

@@ -6,7 +6,7 @@
 "provider_list"	"nasa"
 "provider_manual"	""
 "source"	"https://doi.org/10.5067/MODIS/MOD09GA.006, http://drr.ikcest.org/static/upload/c2/c233934a-bbdb-11e8-b94f-00163e0618d6.pdf"
-"citation"	""
+"citation"	"Vermote E, Wolfe R. MOD09GA MODIS/Terra Surface Reflectance Daily L2G Global 1kmand 500m SIN Grid V006 [dataset]. 2018 [accessed 2022 Dec 19]. Available from: https://doi.org/10.5067/MODIS/MOD09GA.006"
 "copyright"	"Open - product and raw data can be downloaded"
 "copyright_details"	""
 "location"	"reg"

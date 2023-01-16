@@ -5,8 +5,8 @@
 "user"	"gk"
 "provider_list"	"wcmc"
 "provider_manual"	""
-"source"	"https://wcmc.io/WCMC_013_014"
-"citation"	"UNEP-WCMC, Short FT (2021). Global distribution of seagrasses (version  7.1). Seventh update to the data layer used in Green and Short (2003).  Cambridge (UK): UN Environment Programme World Conservation  Monitoring Centre. Data DOI: https://doi.org/10.34892/x6r3-d211"
+"source"	"https://data.unep-wcmc.org/datasets/7"
+"citation"	"UNEP-WCMC, Short FT. Global distribution of seagrasses (version 7.1) [dataset]. 2021 [accessed 2021 Oct 23]. Seventh update to the data layer used in Green and Short (2003). Cambridge (UK): UN Environment Programme World Conservation Monitoring Centre. Available from: https://doi.org/10.34892/x6r3-d211"
 "copyright"	"Open - product and raw data can be downloaded"
 "copyright_details"	"Distributed under UNEP-WCMC's General Data License (excluding WDPA). For more information, please contact marine@unep-wcmc.org. 
 http://www.unep-wcmc.org/policies/general-data-license-excluding-wdpa"

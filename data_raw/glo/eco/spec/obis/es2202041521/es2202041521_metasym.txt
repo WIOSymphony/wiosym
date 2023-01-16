@@ -6,7 +6,7 @@
 "provider_list"	"obis"
 "provider_manual"	""
 "source"	"https://obis.org/manual/accessr/"
-"citation"	"OBIS (2022) Ocean Biodiversity Information System. Intergovernmental Oceanographic Commission of UNESCO. www.obis.org."
+"citation"	"OBIS Ocean Biodiversity Information System [dataset]. 2022 [accessed 2022 Feb 4]. Intergovernmental Oceanographic Commission of UNESCO. Available from: www.obis.org"
 "copyright"	"Open - product and raw data can be downloaded"
 "copyright_details"	"See https://obis.org/manual/policy/ for the data policy."
 "location"	"glo"

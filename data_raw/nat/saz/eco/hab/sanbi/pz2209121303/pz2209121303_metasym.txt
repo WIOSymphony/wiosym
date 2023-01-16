@@ -6,10 +6,7 @@
 "provider_list"	"sanbi"
 "provider_manual"	""
 "source"	"http://bgis.sanbi.org/SpatialDataset/Detail/2682"
-"citation"	"Sink, K.J., Van der Bank, M.G., Majiedt, P.A., Harris, L., Atkinson, L., Kirkman, S. & Karenyi, N. 
-(eds). 2019. South African National Biodiversity Assessment 2018 Technical Report Volume 4: 
-Marine Realm. South African National Biodiversity Institute, Pretoria. South Africa. 
-http://hdl.handle.net/20.500.12143/6372"
+"citation"	"Sink K J, Van der Bank M G, Majiedt P A, Harris L, Atkinson L, Kirkman S, Karenyi N. South African National Biodiversity Assessment 2018 Technical Report Volume 4: Marine Realm, Kelp forest [dataset]. 2019 [accessed 2022 Sep 12]. South African National Biodiversity Institute, Pretoria. South Africa. Available from: http://hdl.handle.net/20.500.12143/6372"
 "copyright"	"Open - product and raw data can be downloaded"
 "copyright_details"	""
 "location"	"saz"

@@ -6,7 +6,7 @@
 "provider_list"	"gmw"
 "provider_manual"	""
 "source"	"https://data.unep-wcmc.org/datasets/45"
-"citation"	"Bunting P., Rosenqvist A., Lucas R., Rebelo L-M., Hilarides L., Thomas N., Hardy A., Itoh T., Shimada M. and Finlayson C.M. (2018). The Global Mangrove Watch – a New 2010 Global Baseline of Mangrove Extent. Remote Sensing 10(10): 1669. doi: 10.3390/rs1010669.  Other cited references: Thomas N, Lucas R, Bunting P, Hardy A, Rosenqvist A, Simard M. (2017). Distribution and drivers of global mangrove forest change, 1996-2010. PLOS ONE 12: e0179302. doi: 10.1371/journal.pone.0179302"
+"citation"	"Bunting P, Rosenqvist A, Lucas R, Rebelo L-M, Hilarides L, Thomas N, Hardy A, Itoh T, Shimada M, Finlayson C M. The Global Mangrove Watch – a New 2010 Global Baseline of Mangrove Extent. [dataset]. 2018 [accessed 2021 May 28]. Remote Sensing 10(10): 1669. Available from: doi 10.3390/rs1010669"
 "copyright"	"Open - product and raw data can be downloaded"
 "copyright_details"	"Attribution 4.0 International (CC BY 4.0)"
 "location"	"glo"

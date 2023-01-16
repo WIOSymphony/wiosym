@@ -6,7 +6,7 @@
 "provider_list"	"wcmc"
 "provider_manual"	""
 "source"	"https://data.unep-wcmc.org/datasets/39"
-"citation"	"Hutchison J, Manica A, Swetnam R, Balmford A, Spalding M (2014) Predicting global  patterns in mangrove forest biomass. Conservation Letters 7(3): 233–240. doi:  http://dx.doi.org/10.1111/conl.12060; Data URL: http://data.unep-wcmc.org/datasets/39"
+"citation"	"Hutchison J, Manica A, Swetnam R, Balmford A, Spalding M. Predicting global patterns in mangrove forest biomass [dataset]. 2014 [accessed 2021 May 28]. Conservation Letters 7(3): 233–240. Available from: https://data.unep-wcmc.org/datasets/39; http://dx.doi.org/10.1111/conl.12060"
 "copyright"	"Partially open - product can be downloaded (resolution not finer than 250 m), raw data can be viewed, but not downloaded"
 "copyright_details"	"http://www.unep-wcmc.org/policies/general-data-license-excluding-wdpa
 "

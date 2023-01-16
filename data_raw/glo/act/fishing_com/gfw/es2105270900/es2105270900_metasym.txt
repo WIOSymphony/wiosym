@@ -6,7 +6,7 @@
 "provider_list"	"gfw"
 "provider_manual"	""
 "source"	"https://globalfishingwatch.org/data-download/datasets/public-fishing-effort"
-"citation"	"D.A. Kroodsma, J. Mayorga, T. Hochberg, N.A. Miller, K. Boerder, F. Ferretti, A. Wilson, B. Bergman, T.D. White, B.A. Block, P. Woods, B. Sullivan, C. Costello, and B. Worm. \"Tracking the global footprint of fisheries.\" Science 361.6378 (2018)."
+"citation"	"Kroodsma D A, Mayorga J, Hochberg T, Miller N A, Boerder K, Ferretti F, Wilson A, Bergman B, White T D, Block B A, Woods P, Sullivan B, Costello C, Worm B. Tracking the global footprint of fisheries, Daily Fishing Effort and Vessel Presence at 100th Degree Resolution by Flag State and Gear Type, version 2.0, 2012-2020 [datset]. 2020 [accessed 2021 May 27]. Science 361.6378 (2018). Available from: https://globalfishingwatch.org/data-download/datasets/public-fishing-effort"
 "copyright"	"Open - product and raw data can be downloaded"
 "copyright_details"	"Unless otherwise stated, Global Fishing Watch data is licensed under a Creative Commons Attribution-ShareAlike 4.0 International license and code under an Apache 2.0 license."
 "location"	"glo"

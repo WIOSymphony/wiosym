@@ -6,7 +6,7 @@
 "provider_list"	"wcmc"
 "provider_manual"	""
 "source"	"https://data.unep-wcmc.org/datasets/1"
-"citation"	""
+"citation"	"UNEP-WCMC, WorldFish, World Resources Institute, & The Nature Conservancy. Global Distribution of Coral Reefs (4.1) [dataset]. 2021 [accessed 2021 May 27]. United Nations Environment Programme World Conservation Monitoring Centre (UNEP-WCMC). Available from: https://doi.org/10.34892/T2WK-5T34"
 "copyright"	"Partially open - product can be downloaded (resolution not finer than 250 m), raw data can be viewed, but not downloaded"
 "copyright_details"	"See license file"
 "location"	"glo"

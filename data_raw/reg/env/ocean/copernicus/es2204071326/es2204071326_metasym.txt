@@ -6,7 +6,7 @@
 "provider_list"	"copernicus"
 "provider_manual"	""
 "source"	"https://www.copernicus.eu/en/copernicus-services/marine"
-"citation"	"https://doi.org/10.48670/moi-00016"
+"citation"	"European Union-Copernicus Marine Service. Global Ocean 1/12° Physics Analysis and Forecast updated Daily [dataset]. 2022 [accessed 2022 Apr 7]. Mercator Ocean International. available from: https://doi.org/10.48670/MOI-00016"
 "copyright"	"Partially open - product can be downloaded (resolution not finer than 250 m), raw data can be viewed, but not downloaded"
 "copyright_details"	"https://www.copernicus.eu/en/access-data/copyright-and-licences"
 "location"	"reg"

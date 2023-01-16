@@ -6,7 +6,7 @@
 "provider_list"	"allen"
 "provider_manual"	""
 "source"	"https://coral-atlas-user-downloads-prod.storage.googleapis.com/0551c5e3-1936-448f-97c0-b770799fc833/Area_3-20211006175505.zip"
-"citation"	"Allen Coral Atlas<U+200B> (2020). Imagery, maps and monitoring of the world's tropical coral reefs.  doi.org/10.5281/zenodo.3833242 "
+"citation"	"Allen Coral Atlas Partnership and Vulcan, Inc. Imagery, maps and monitoring of the world's tropical coral reefs [dataset]. 2021 [accessed 2021 Oct 07]. Available from: https://www.allencoralatlas.org/"
 "copyright"	"Open - product and raw data can be downloaded"
 "copyright_details"	"Data licensing <U+25CF> Allen Coral Atlas maps, bathymetry and map statistics<U+200B> are <U+200B>© 2020 Allen Coral Atlas Partnership and Vulcan, Inc. and <U+200B>are <U+200B>licensed CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)  <U+25CF> The Satellite Coral Reef Mosaic<U+200B> is © 2020 Planet Labs and licensed CC BY-SA-NC 4.0 (https://creativecommons.org/licenses/by-nc-sa/4.0/) <U+25CF> NOAA Coral Reef Watch<U+200B> has specific recommendations for Coral Reef Watch Data and Product Citation, described in more detail in our <U+200B>Science & Methods section. <U+25CF> Some other data on the Atlas website is copyright by the data providers (e.g., Open Street Map) and requires proper attribution if reused."
 "location"	"reg"

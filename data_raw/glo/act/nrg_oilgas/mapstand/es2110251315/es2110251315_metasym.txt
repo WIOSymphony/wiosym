@@ -6,7 +6,7 @@
 "provider_list"	"mapstand"
 "provider_manual"	""
 "source"	"https://www.mapstand.com/"
-"citation"	"MapStand (2022), https://www.mapstand.com/"
+"citation"	"MapStand Limited. MapStand Global Energy Database 2022 [dataset]. 2022 [accessed 2021 Oct 25]. Available from: https://mapstand.com, contact support@mapstand.com"
 "copyright"	"Restricted with special terms - product may be able to be downloaded under certain conditions (e.g. reduced resolution)"
 "copyright_details"	"This data has very strict copyright terms. Please read pdf attached with data for specifics."
 "location"	"glo"

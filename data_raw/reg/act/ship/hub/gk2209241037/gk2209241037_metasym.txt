@@ -6,7 +6,7 @@
 "provider_list"	"hub"
 "provider_manual"	""
 "source"	"Kristian.Authen@oceandata.earth"
-"citation"	"NOT FINAL UPDATE NEEDED - HUB Ocean, Ocean Data Platform (www.hubocean.earth)"
+"citation"	"HUB Ocean - Ocean Data Platform, Global Fishing Watch, IHS Markit, Spire AIS. HUB Ocean Vessel Density Maps [dataset]. 2022 [accessed 2022 Sep 24]. Available from: www.hubocean.earth, contact Kristian Authen <Kristian.Authen@oceandata.earth>"
 "copyright"	"Partially open - product can be downloaded (resolution not finer than 250 m), raw data can be viewed, but not downloaded"
 "copyright_details"	"https://oceandata.earth/terms
 ! this metadata and citation need futher update - email have been sent to HUB Ocean team to get correct citation"

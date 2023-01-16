@@ -6,7 +6,7 @@
 "provider_list"	"bluehab"
 "provider_manual"	""
 "source"	"https://www.bluehabitats.org/?page_id=58"
-"citation"	""
+"citation"	"Harrisa P T, Macmillan-Lawler M, Rupp J, Baker E K. Global Seafloor Geomorphic Features Map [dataset]. 2014 [accessed 2021 Oct 12]. Available from: https://www.bluehabitats.org/?page_id=58"
 "copyright"	"Open - product and raw data can be downloaded"
 "copyright_details"	""
 "location"	"glo"

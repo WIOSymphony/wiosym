@@ -6,7 +6,7 @@
 "provider_list"	"lit"
 "provider_manual"	""
 "source"	"Christopher Elvidge <celvidge@mines.edu> "
-"citation"	"Elvidge, Christopher D., Mikhail Zhizhin, Kimberly Baugh, and Feng-Chi Hsu. “Automatic boat identification system for VIIRS low light imaging data.” Remote sensing 7, no. 3 (2015): 3020-3036."
+"citation"	"Elvidge C D, Zhizhin M, Baugh K, Hsu F-C. Automatic boat identification system for VIIRS low light imaging data, 2017-2020 Viirs boat detection [dataset]. 2021 [accessed 2022 Sep 12]. Remote sensing 7, no. 3 (2015): 3020-3036. Available from: contact Christopher Elvidge <celvidge@mines.edu>"
 "copyright"	"Open - product and raw data can be downloaded"
 "copyright_details"	""
 "location"	"reg"
@@ -15,4 +15,5 @@
 "subtheme"	"FISHING"
 "subtheme_tag"	"fishing"
 "tags"	";act;fishing;shipping;fishing;extraction of species;seabed disturbance;light change;"
-"comments"	"2017-2020 Viirs boat detection supplied on request by Christopher Elvidge"
+"comments"	"2017-2020 Viirs boat detection supplied on request by Christopher Elvidge, original publication citation 
+Elvidge, Christopher D., Mikhail Zhizhin, Kimberly Baugh, and Feng-Chi Hsu. “Automatic boat identification system for VIIRS low light imaging data.” Remote sensing 7, no. 3 (2015): 3020-3036."

@@ -6,7 +6,8 @@
 "provider_list"	"cmems"
 "provider_manual"	""
 "source"	"https://resources.marine.copernicus.eu/product-detail/GLOBAL_MULTIYEAR_PHY_001_030/INFORMATION"
-"citation"	"Copernicus Marine Service (CMEMS)"
+"citation"	"European Union-Copernicus Marine Service. Global Ocean Physics Reanalysis [dataset]. 2018 [accessed 2022 Jun 20]. Mercator Ocean International. Available from: https://doi.org/10.48670/MOI-00021
+"
 "copyright"	"Open - product and raw data can be downloaded"
 "copyright_details"	"Copernicus Marine Service Provides free, open, regular and systematic reference information on the blue (physical), white (sea ice), and green (biogeochemical) ocean state, variability and dynamics across the global ocean and European regional seas."
 "location"	"glo"

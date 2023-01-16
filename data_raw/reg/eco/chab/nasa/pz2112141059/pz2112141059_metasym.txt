@@ -6,7 +6,7 @@
 "provider_list"	"nasa"
 "provider_manual"	""
 "source"	"https://doi.org/10.5067/MODIS/MYD13A1.006"
-"citation"	""
+"citation"	"Didan K. MODIS/Aqua Vegetation Indices 16-Day L3 Global 500m SIN Grid V061 [dataset]. 2021 [accessed 2021 Dec 14]. NASA EOSDIS Land Processes DAAC. Available from: https://doi.org/10.5067/MODIS/MYD13A1.061"
 "copyright"	"Open - product and raw data can be downloaded"
 "copyright_details"	""
 "location"	"reg"

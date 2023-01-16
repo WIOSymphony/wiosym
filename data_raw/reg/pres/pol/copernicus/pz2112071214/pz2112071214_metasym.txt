@@ -6,7 +6,7 @@
 "provider_list"	"copernicus"
 "provider_manual"	""
 "source"	"https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S5P_OFFL_L3_NO2#description"
-"citation"	""
+"citation"	"European Space Agency. TROPOMI Level 2 Nitrogen Dioxide [dataset]. 2021 [accessed 2021 Dec 7]. Available from:  https://doi.org/10.5270/s5p-9bnp8q8; https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S5P_OFFL_L3_NO2#description"
 "copyright"	"Open - product and raw data can be downloaded"
 "copyright_details"	""
 "location"	"reg"

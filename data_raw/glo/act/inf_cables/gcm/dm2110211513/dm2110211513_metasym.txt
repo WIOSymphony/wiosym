@@ -6,7 +6,7 @@
 "provider_list"	"gcm"
 "provider_manual"	""
 "source"	"https://cablemap.info/_default.aspx"
-"citation"	"Mahlknecht G. Greg's Cable Map v1.58 [shp]. 2016 june 26 [downloaded 2021 Oct 21]. Available from: https://cablemap.info/gregs_cable_map_v1.58.zip"
+"citation"	"Mahlknecht G. Greg's Cable Map v1.58 [dataset]. 2016 [accessed 2021 Oct 21]. Available from: https://cablemap.info/gregs_cable_map_v1.58.zip"
 "copyright"	"Open - product and raw data can be downloaded"
 "copyright_details"	"GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007"
 "location"	"glo"

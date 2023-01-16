@@ -6,7 +6,7 @@
 "provider_list"	"nasa"
 "provider_manual"	"GCOM"
 "source"	"https://developers.google.com/earth-engine/datasets/catalog/JAXA_GCOM-C_L3_OCEAN_CHLA_V1"
-"citation"	"https://suzaku.eorc.jaxa.jp/GCOM_C/data/ATBD/ver1/SGLI_Chla_algorithm_v10.pdf"
+"citation"	"Murakami H. ATBD of GCOM-C chlorophyll-a concentration algorithm (Version 1) [dataset]. 2018 [accessed 2021 Dec 22]. Available from: https://developers.google.com/earth-engine/datasets/catalog/JAXA_GCOM-C_L3_OCEAN_CHLA_V1"
 "copyright"	"Open - product and raw data can be downloaded"
 "copyright_details"	""
 "location"	"reg"

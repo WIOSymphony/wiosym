@@ -6,7 +6,7 @@
 "provider_list"	"noaa"
 "provider_manual"	""
 "source"	"https://eogdata.mines.edu/products/vnl/"
-"citation"	"C. D. Elvidge, M. Zhizhin, T. Ghosh, F-C. Hsu, \"Annual time series of global VIIRS nighttime lights derived from monthly averages: 2012 to 2019\", Remote Sensing (In press)"
+"citation"	"Elvidge C D, Zhizhin M, Ghosh T, Hsu F-C. Annual time series of global VIIRS nighttime lights derived from monthly averages: 2012 to 2019 [dataset]. 2021 [accessed 2021 Jun 11]. Remote Sensing (In press). Available from: https://eogdata.mines.edu/products/vnl/"
 "copyright"	"Open - product and raw data can be downloaded"
 "copyright_details"	""
 "location"	"glo"

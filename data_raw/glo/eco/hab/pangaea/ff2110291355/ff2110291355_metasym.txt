@@ -6,7 +6,7 @@
 "provider_list"	"pangaea"
 "provider_manual"	""
 "source"	"https://doi.pangaea.de/10.1594/PANGAEA.921688"
-"citation"	"Yesson, Chris; Letessier, Tom B; Nimmo-Smith, Alex; Hosegood, Phil; Brierley, Andrew S; Hardouin, Marie; Proud, Roland (2020): List of seamounts in the world oceans - An update. PANGAEA, https://doi.org/10.1594/PANGAEA.921688"
+"citation"	"Yesson C, Letessier T B, Nimmo-Smith A, Hosegood P, Brierley A S, Hardouin M, Proud R. List of seamounts in the world oceans - An update, YessonEtAl2019-SeamountBases-V2 [dataset]. 2020 [accessed 2021 Oct 29]. PANGAEA. Available from: https://doi.org/10.1594/PANGAEA.921688"
 "copyright"	"Open - product and raw data can be downloaded"
 "copyright_details"	""
 "location"	"glo"

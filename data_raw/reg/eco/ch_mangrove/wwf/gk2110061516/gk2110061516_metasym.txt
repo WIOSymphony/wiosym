@@ -5,8 +5,9 @@
 "user"	"gk"
 "provider_list"	"wwf"
 "provider_manual"	""
-"source"	"https://globil-panda.opendata.arcgis.com/"
-"citation"	""
+"source"	"https://gma-panda.opendata.arcgis.com/datasets/madagascar-mangroves-1985-2018/about"
+"citation"	"Shapiro A, Randriamanantena D, Kuechly H, Razafindramasy F. Madagascar Mangroves 1985-2018 [dataset]. 2019 [accessed 2021 Oct 6]. Les mangroves de madagascar: Superficies, condition et évolution 2000-2018 ⁄⁄ The mangroves of madagascar: Cover, status and trends 2000-2018. WWF Germany, Berlin, and WWF
+Madagascar, Antananarivo. (39) pp. Available from: https://gma-panda.opendata.arcgis.com/datasets/madagascar-mangroves-1985-2018/about"
 "copyright"	"Unknown"
 "copyright_details"	""
 "location"	"reg"

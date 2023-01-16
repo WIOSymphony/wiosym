@@ -6,7 +6,7 @@
 "provider_list"	"lit"
 "provider_manual"	""
 "source"	"Ruiju Tong <tongruiju123@163.com>"
-"citation"	"Tong R, Davies AJ, Purser A, Liu X, Liu F. Global distribution of the cold-water coral Lophelia pertusa. InIOP Conference Series: Earth and Environmental Science 2022 Mar 1 (Vol. 1004, No. 1, p. 012010). IOP Publishing."
+"citation"	"Tong R, Davies AJ, Purser A, Liu X, Liu F. Global distribution of the cold-water coral Lophelia pertusa [dataset]. 2022 [accessed 2022 Sep 1]. InIOP Conference Series: Earth and Environmental Science 2022 Mar 1 (Vol. 1004, No. 1, p. 012010). IOP Publishing. Available from: contact tongruiju123@163.com"
 "copyright"	"Partially open - product can be downloaded (resolution not finer than 250 m), raw data can be viewed, but not downloaded"
 "copyright_details"	""
 "location"	"glo"

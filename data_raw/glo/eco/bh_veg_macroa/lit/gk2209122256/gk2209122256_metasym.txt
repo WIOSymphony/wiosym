@@ -6,7 +6,7 @@
 "provider_list"	"lit"
 "provider_manual"	""
 "source"	"https://doi.org/10.6084/m9.figshare.14496018.v4"
-"citation"	"Fragkopoulou, Eliza; Serrão, Ester; De Clerck, Olivier; J. Costello, Mark; Araújo, Miguel B.; Duarte, Carlos M; et al. (2021): Global biodiversity patterns of marine forests of brown macroalgae. figshare. Journal contribution. https://doi.org/10.6084/m9.figshare.14496018.v4 "
+"citation"	"Fragkopoulou E, Serrão E, De Clerck O, Costello M J, Miguel B, Araújo M B, Duarte C M, Krause-Jensen D, Assis J. Global biodiversity patterns of marine forests of brown macroalgae [dataset]. 2021 [accessed 2022 Sep 12]. Available from: https://doi.org/10.6084/m9.figshare.14496018.v4"
 "copyright"	"Open - product and raw data can be downloaded"
 "copyright_details"	""
 "location"	"glo"

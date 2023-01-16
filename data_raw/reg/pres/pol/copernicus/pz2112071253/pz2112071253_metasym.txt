@@ -6,7 +6,7 @@
 "provider_list"	"copernicus"
 "provider_manual"	""
 "source"	"https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S5P_OFFL_L3_SO2#description"
-"citation"	""
+"citation"	"European Space Agency. TROPOMI Level 2 Sulphur Dioxide [dataset]. 2020 [accessed 2021 Dec 7]. Available from: https://doi.org/10.5270/s5p-74eidii; https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S5P_OFFL_L3_SO2#description"
 "copyright"	"Open - product and raw data can be downloaded"
 "copyright_details"	""
 "location"	"reg"

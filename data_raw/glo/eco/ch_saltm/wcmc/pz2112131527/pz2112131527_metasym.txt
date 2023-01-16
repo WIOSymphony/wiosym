@@ -6,7 +6,7 @@
 "provider_list"	"wcmc"
 "provider_manual"	""
 "source"	"https://data.unep-wcmc.org/datasets/43"
-"citation"	"Mcowen C, Weatherdon LV, Bochove J, Sullivan E, Blyth S, Zockler C, Stanwell-Smith D, Kingston N, Martin CS, Spalding M, Fletcher S (2017). A global map of saltmarshes (v6.1). Biodiversity Data Journal 5: e11764. Paper DOI: https://doi.org/10.3897/BDJ.5.e11764; Data DOI: https://doi.org/10.34892/07vk-ws51"
+"citation"	"Mcowen C, Weatherdon L V, Bochove J, Sullivan E, Blyth S, Zockler C, Stanwell-Smith D, Kingston N, Martin CS, Spalding M, Fletcher S. A global map of saltmarshes (v6.1) [dataset]. 2017 [accessed 2021 Dec 13]. Biodiversity Data Journal 5: e11764. DOI: https://doi.org/10.3897/BDJ.5.e11764. Available from: https://doi.org/10.34892/07vk-ws51"
 "copyright"	"Open - product and raw data can be downloaded"
 "copyright_details"	""
 "location"	"glo"

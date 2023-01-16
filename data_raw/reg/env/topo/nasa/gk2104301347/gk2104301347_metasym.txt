@@ -6,7 +6,7 @@
 "provider_list"	"nasa"
 "provider_manual"	""
 "source"	"http://srtm.csi.cgiar.org"
-"citation"	"Jarvis A., H.I. Reuter, A.  Nelson, E. Guevara, 2008, Hole-filled  seamless SRTM data V4, International  Centre for Tropical  Agriculture (CIAT), available  from http://srtm.csi.cgiar.org."
+"citation"	"Jarvis A, Reuter H.I, Nelson A, Guevara E. Hole-filled seamless SRTM data V4, International Centre for Tropical Agriculture (CIAT) [dataset]. 2008 [accessed 2020 Apr 2]. NASA Earth Observations. Available from: http://srtm.csi.cgiar.org"
 "copyright"	"Open - product and raw data can be downloaded"
 "copyright_details"	"We kindly ask  any users to  cite this data  in any published  material produced using this data,  and if possible  link web pages  to the CIAT-CSI  SRTM website (http://srtm.csi.cgiar.org)."
 "location"	"reg"

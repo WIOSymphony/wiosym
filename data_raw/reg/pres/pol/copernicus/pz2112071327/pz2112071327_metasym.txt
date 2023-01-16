@@ -6,7 +6,7 @@
 "provider_list"	"copernicus"
 "provider_manual"	""
 "source"	"https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S5P_OFFL_L3_CO"
-"citation"	""
+"citation"	"European Space Agency. TROPOMI Level 2 Carbon Monoxide Total Column [dataset]. 2021 [accessed 2021 dec 7]. Available from: https://doi.org/10.5270/s5p-bj3nry0; https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S5P_OFFL_L3_CO"
 "copyright"	"Open - product and raw data can be downloaded"
 "copyright_details"	""
 "location"	"reg"

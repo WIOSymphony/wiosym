@@ -6,7 +6,7 @@
 "provider_list"	"dbseabed"
 "provider_manual"	""
 "source"	"chris jenkins <jenkinsc0@gmail.com>"
-"citation"	"Chris Jenkins Affiliate: INSTAAR, Univ. Colorado Boulder; Sch. Biol. Sci., Univ. Adelaide;  Principal: Floor of the Ocean LLC, Benthic Data Research LLC Jenkinsc0@Gmail.Com"
+"citation"	"Jenkins C. Hard/Soft Substrates Compilation of the WIO Region, wio_coda_idw3d [dataset]. 2022 [accessed 2022 Jun 13]. dbSEABED, affiliate INSTAAR, Univ. Colorado Boulder; Sch. Biol. Sci., Univ. Adelaide; Principal: Floor of the Ocean LLC, Benthic Data Research LLC. Available from: contact jenkinsc0@gmail.com"
 "copyright"	"Restricted with special terms - product may be able to be downloaded under certain conditions (e.g. reduced resolution)"
 "copyright_details"	""
 "location"	"reg"
