@@ -12,11 +12,11 @@ and set "Evaluate chunks in directory" to "Project", though for latest version o
 # ========================================================================================================= #
 ## Brief description: 
 Update of pelagic habitats (meso and abyssal). In this version the total depth of the  ocean is considered to increase the habitat value
-### Sripts/processes that needs to be updated prior?:
+### Sripts/processes that needs to be updated prior?: Depth grid:  ./data/reg/env/topo/v01/proc_log/env_topo_reg_s01_v01.2.Rmd; Photic depth: "./data/reg/env/ocean/v01/"
 ###
 ### Script by: Initial, org, Rver: GK, SGU, 4.1.1
 ### Updated: Initial, org, Rver, comments
-### Developer check: Initial, org, yymmdd, comments
+### Developer check: GK, SGU, 230123, updated description and sourcesym file
 ### External check: Initial, org, yymmdd, comments
 # ========================================================================================================= #
 # INSTRUCTIONS
@@ -443,9 +443,10 @@ data_sources <- data1_sourcesym %>% # add any "sourcesym" files applicable to th
   add_row(data2_sourcesym)%>%  
   add_row(data3_sourcesym)%>% 
   add_row(data4_sourcesym)%>% 
-  add_row(data5_sourcesym)%>% 
-  #add_row(data6_sourcesym)%>% 
+  add_row(data5_sourcesym)%>%
+  #add_row(data6_sourcesym)%>%
   unique() %>% 
+  rows_delete(tibble(id = "gk2104301347")) %>%  # this ID represent the shoreline data used to create the grid, when only used indirectly it is removed
   print()
 ```
 ## Sources combined
