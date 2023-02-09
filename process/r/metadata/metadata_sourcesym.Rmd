@@ -1,0 +1,179 @@
+---
+title: "wiosym metadata search"
+output: html_notebook
+---
+
+NOTE: You must open this script from within the .Rproj file associated with your wiosym database for it to work.
+
+If you haven't used R notebooks before (.Rmd), each of the code "chunks" can be executed by clicking the green play 
+button at the top right of the chunk.
+
+# List metadata files
+```{r}
+sourceloc <- "./data/"
+metaloc <- "./data_raw/"
+#meta <- list.files(path = "./data/", pattern = "_sourcesym.txt", recursive = T)
+meta <- list.files(path = sourceloc, pattern = "_sourcesym.txt", recursive = T)
+#meta.short <- list.files(path = "./data/", pattern = "_sourcesym.txt", recursive = TRUE, full.names = F)
+meta
+```
+
+```{r}
+mframe <- data.frame(matrix(nrow = 1, ncol = 8))
+colnames(mframe) <-c("layer","theme","subtheme","source","citation","copyright","comments","tags")
+clms <- c("theme","subtheme","source","citation","copyright","comments","tags")
+mframe.t <- data.frame(matrix(nrow = 1, ncol = 7))
+colnames(mframe.t) <- clms
+
+for (source in meta) {
+  s <- read.table(paste0(sourceloc, source), sep = "\t", header = T)
+  t <- vector(mode="character", length=nrow(s))
+  for (c in clms) {
+    l <- 1
+    for (i in 1:nrow(s)) {
+      m <- list.files(path = metaloc, pattern = paste0(s[i, 1], "_metasym.txt"), recursive = T)
+      if (length(file.exists(m)) > 0) {
+        m <- read.table(paste0(metaloc, m), sep = "\t", header = T)
+        t[i] <- paste0("(",l,") ", m[m$id == c, 2])
+        l <- l+1
+      } else {t[i] <- ""}
+    }
+    t <- paste(t, collapse = " ")
+    mframe.t[1, c] <- t
+  }
+  mframe.t$layer <- source
+  mframe <- rbind(mframe, mframe.t)
+}
+mframe <- mframe[-1, ]
+```
+
+```{r}
+write.csv(mframe, "metadata_sourcesym.csv", row.names = F)
+#write.csv(mframe, "metadata_sourcesym_gu.csv", row.names = F)
+```
+
+*********************
+ARCHIVE
+
+```{r}
+mframe <- data.frame(matrix(nrow = 1, ncol = 9))
+colnames(mframe) <- c("layer", "theme", "subtheme", "source", "citation", "copyright", "comments", "tags", "details")
+mframe.t <- mframe
+
+i <- 30
+for(i in 1:length(meta)){
+#for(i in 1:10){
+  s <- read.table(paste0("./data/", meta[i]), sep = "\t", header = T)
+  m.list <- list.files(path = "./data_raw/", pattern = paste0(s[1,1], "_metasym.txt"), recursive = TRUE)
+  
+  if(file.exists(paste0("./data_raw/",m.list))){
+  m <- read.table(paste0("./data_raw/", m.list), sep = "\t", header = T)
+  
+  t <- m[m$id =="theme",]
+  t <- t[,2]
+  mframe.t$theme[1] <- t
+  
+  t <- m[m$id =="subtheme",]
+  t <- t[,2]
+  mframe.t$subtheme[1] <- t
+  
+  t <- m[m$id =="citation",]
+  t <- t[,2]
+  mframe.t$citation[1] <- t
+  
+  t <- m[m$id =="source",]
+  t <- t[,2]
+  mframe.t$source[1] <- t
+  
+  t <- m[m$id =="copyright",]
+  t <- t[,2]
+  mframe.t$copyright[1] <- t
+  
+  t <- m[m$id =="comments",]
+  t <- t[,2]
+  mframe.t$comments[1] <- t
+  
+  t <- m[m$id =="tags",]
+  t <- t[,2]
+  mframe.t$tags[1] <- t
+  
+  mframe.t$layer[1] <- meta.short[i]
+  
+  mframe <- rbind(mframe,mframe.t)
+  
+  }
+}
+
+mframe <- mframe[-1,]
+```
+
+```{r}
+write.csv(mframe, "metadata_sourcesym.csv", row.names = F)
+```
+
+# For external data
+# List metadata files
+```{r}
+path_s <- "./cia/sgu/sgu_sourcesym/"
+path_m <- "./cia/sgu/sgu_metasym/"
+
+meta <- list.files(path = path_s, pattern = "_sourcesym.txt", recursive = T)
+meta.short <- list.files(path = path_s, pattern = "_sourcesym.txt", recursive = TRUE, full.names = F)
+meta.short
+```
+
+```{r}
+mframe <- data.frame(matrix(nrow = 1, ncol = 9))
+colnames(mframe) <- c("layer", "theme", "subtheme", "source", "citation", "copyright", "comments", "tags", "details")
+mframe.t <- mframe
+
+for(i in 1:length(meta)){
+#for(i in 1:10){
+  s <- read.table(paste0(path_s, meta[i]), sep = "\t", header = T)
+  m.list <- list.files(path = path_m, pattern = paste0(s[1,1], "_metasym.txt"), recursive = TRUE)
+  
+  #if(file.exists(paste0(path_m,m.list))){
+  m <- read.table(paste0(path_m, m.list), sep = "\t", header = T)
+  
+  t <- m[m$id =="theme",]
+  t <- t[,2]
+  mframe.t$theme[1] <- t
+  
+  t <- m[m$id =="subtheme",]
+  t <- t[,2]
+  mframe.t$subtheme[1] <- t
+  
+  t <- m[m$id =="citation",]
+  t <- t[,2]
+  mframe.t$citation[1] <- t
+  
+  t <- m[m$id =="source",]
+  t <- t[,2]
+  mframe.t$source[1] <- t
+  
+  t <- m[m$id =="copyright",]
+  t <- t[,2]
+  mframe.t$copyright[1] <- t
+  
+  t <- m[m$id =="comments",]
+  t <- t[,2]
+  mframe.t$comments[1] <- t
+  
+  t <- m[m$id =="tags",]
+  t <- t[,2]
+  mframe.t$tags[1] <- t
+  
+  mframe.t$layer[1] <- meta.short[i]
+  
+  mframe <- rbind(mframe,mframe.t)
+  
+  }
+#} 
+
+mframe <- mframe[-1,]
+
+```
+
+```{r}
+write.csv(mframe, "metadata_sourcesym_sgu.csv", row.names = F)
+```

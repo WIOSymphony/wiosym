@@ -1,0 +1,146 @@
+---
+title: "wiosym metadata search"
+output: html_notebook
+---
+
+NOTE: You must open this script from within the .Rproj file associated with your wiosym database for it to work.
+
+If you haven't used R notebooks before (.Rmd), each of the code "chunks" can be executed by clicking the green play 
+button at the top right of the chunk.
+
+
+### List metadata files
+
+```{r}
+#meta <- list.files(pattern = "_metasym.txt", recursive = TRUE, full.names = TRUE) # edited -- to check only on /data_raw directory
+meta <- list.files(path = "./data_raw/", pattern = "_metasym.txt", recursive = TRUE, full.names = TRUE)
+meta
+```
+
+```{r}
+meta_df <- data.frame(matrix(data = NA, nrow = length(meta), ncol = 2))
+colnames(meta_df) <- c("file_path", "folder_path")
+
+for(i in 1:length(meta)) {
+  
+  meta_df$file_path[i] <- meta[i]
+  meta_df$folder_path[i] <- dirname(meta[i])
+  
+}
+```
+
+
+### Compile the metadata files into a master data frame
+
+```{r}
+cnames <- c("id", "file_path", "local_path", "download_date", "user", "provider_list", "provider_manual",
+            "source", "citation", "copyright", "copyright_details", "location", "theme", "theme_tag",
+            "subtheme", "subtheme_tag", "tags", "comments" 
+            )
+
+meta_master <- data.frame(matrix(data = NA, nrow = 0, ncol = 18))
+colnames(meta_master) <- cnames
+
+#temp <- read.table(meta[1], sep = "\t")
+#meta_master[1,] <- temp[,2]
+
+for(i in 1:length(meta)){
+  
+  temp <- read.table(meta[i], sep = "\t")
+  df <- data.frame(matrix(data = NA, nrow = 1, ncol = 18))
+  colnames(df) <- cnames
+  df[1,] <- temp[,2]
+  
+  meta_master <- rbind(meta_master, df)
+  
+  
+}
+
+meta_master
+```
+
+
+### Check to see that all of the metadata files have data with them
+
+```{r}
+
+meta_df$id <- meta_master$id
+meta_df$local_path <- meta_master$local_path
+meta_master$full_path <- NA
+
+
+for(i in 1:length(meta)){
+  
+  x <- list.files(meta_df$folder_path[i])
+  
+  #p <- as.character(p)
+  p <- paste0(meta_df$local_path[i], "/", meta_df$folder_path[i])
+  p <- gsub("/", "\\\\", p)
+  p <- gsub(p, pattern="\\\\", replacement="\\", fixed=TRUE)
+  #p <- paste0(meta_df$local_path[i], "\n", p)
+  
+  true <- paste0("ID:", meta_df$id[i], " - data appears to be in the folder")
+  false <- paste0("ID:", meta_df$id[i], " - WARNING: NO DATA IN THE FOLDER, check ", p)
+  
+  meta_master$full_path[i] <- p
+  
+  z <- ifelse(length(x) > 1, true, false)
+  
+  cat(z, '\n')
+  
+}
+
+```
+
+
+### List files in each dataset
+
+```{r}
+for(i in 1:length(meta)) {
+
+cat("\nFiles in", meta_df$id[i], ": \n")
+cat("    ", paste0("", list.files(meta_df$folder_path[i]), sep = " ---"), "\n")
+
+}
+```
+
+****************************************************
+# Tag search
+
+
+### List tags present in the existing metadata in the wiosym database
+```{r}
+
+tag_list <- c("coral")
+
+for (i in 1:length(meta)) {
+  
+  x <- strsplit(meta_master$tags[i], ";")[[1]]
+  tag_list <- c(tag_list,x)
+  
+}
+
+tag_list <- unique(tag_list[tag_list != ""])
+
+sort(tag_list)
+```
+
+### Search for the ID and paths of data containing specific tags
+```{r}
+tags <-  c("coral") #multiple tags can be searched with e.g. c("eco", "fish")
+
+tag_search <- meta_master[grep(paste(tags, collapse = "|"), meta_master$tags), c("id", "user", "full_path", "tags")]
+tag_search
+```
+
+### Print file paths for use in Windows Explorer
+```{r}
+cat(tag_search$full_path, sep = "\n")
+```
+
+****************************************************
+### Export metadata master file
+```{r}
+write.csv(meta_master, "metasym_master.csv", row.names = FALSE)
+```
+
