@@ -1,0 +1,211 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(raster)
+library(dplyr)
+library(tidyr)
+library(rio)
+library(scales)
+library(crayon)
+library(mapview)
+library(RColorBrewer)
+library(rgdal)
+library(gdalUtils)
+
+# Import grid
+grid <- raster("grid/grid_1km_v01.1.tif")
+grid_proj <- projectRaster(grid, crs = CRS("+proj=longlat +datum=WGS84 +no_defs"), method = "ngb")
+
+meta <- rio::import("layer_list.xlsx")
+meta$file_name[is.na(meta$file_name)] <- "placeholder.tif"
+```
+
+# ECOSYSTEMT COMPONENTS - check layer projection, extent, resolution, and export correction
+```{r}
+layers <- rio::import("layer_list.xlsx") |> dplyr::filter(theme == "Ecosystem")
+layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
+layer_files <- layers$file_name
+layer_files <- layer_files[c(1,2)] # run for only select layers
+
+for(i in 1:length(layer_files)){
+  temp <- raster(paste0("source_layers/", layer_files[i]))
+  if(identical(crs(grid), crs(temp)) == F) {temp <- projectRaster(temp, grid)}
+  x1 <- identical(extent(grid), extent(temp))
+  x2 <- identical(crs(grid), crs(temp))
+  x3 <- identical(res(grid), res(temp))
+  cat("\nLayer", i ,"checked - ")
+  if(x1&x2&x3){cat(layer_files[i], "passed checks")} else{cat(red("WARNING:", layer_files[i], "FAILED checks"))}
+  writeRaster(temp, paste0("source_layers_fixed/", layer_files[i]), overwrite = T)
+}
+```
+
+# PRESSURES - check layer projection, extent, resolution, and export correction
+```{r}
+layers <- rio::import("layer_list.xlsx") |> dplyr::filter(theme == "Pressure")
+layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
+layer_files <- layers$file_name
+#layer_files <- layer_files[c(1,2)] # run for only select layers
+
+for(i in 1:length(layer_files)){
+  temp <- raster(paste0("source_layers/", layer_files[i]))
+  if(identical(crs(grid), crs(temp)) == F) {temp <- projectRaster(temp, grid)}
+  x1 <- identical(extent(grid), extent(temp))
+  x2 <- identical(crs(grid), crs(temp))
+  x3 <- identical(res(grid), res(temp))
+  cat("\nLayer", i ,"checked - ")
+  if(x1&x2&x3){cat(layer_files[i], "passed checks")} else{cat(red("WARNING:", layer_files[i], "FAILED checks"))}
+  writeRaster(temp, paste0("source_layers_fixed/", layer_files[i]), overwrite = T)
+}
+```
+
+# Reproject all rasters
+```{r}
+# Import grid
+grid <- raster("grid/grid_1km_v01.1.tif")
+grid_proj <- projectRaster(grid, crs = CRS("+proj=longlat +datum=WGS84 +no_defs"), method = "ngb")
+l <- list.files("source_layers_fixed")
+l <- l[c(1,50)] # run for only select layers
+
+for(i in 1:length(l)){
+  temp <- raster(paste0("source_layers_fixed/", l[i]))
+  temp <- projectRaster(from = temp, to = grid_proj)
+  writeRaster(temp, paste0("source_layers_reproject/", l[i]), overwrite = T)
+  cat("\nIteration", i, "done")
+}
+```
+
+# ECOSYSTEMT COMPONENTS - create images
+```{r}
+place <- raster("grid/grid_1km_v01.1.tif") * 0
+layers <- rio::import("layer_list.xlsx") |> dplyr::filter(theme == "Ecosystem")
+layers <- filter(layers, title == "Deep pelagic" | title == "Midwater pelagic") # run for only select layers
+layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
+layer_files <- layers$file_name
+
+for(i in 1:length(layers$title)){
+  temp <- raster(paste0("source_layers_fixed/", layers$file_name[i]))
+  temp[is.na(temp)] <- 0 #???
+  temp[] <- scales::rescale(temp[], to = c(0, layers$max_value[i]))
+  if(layers$file_name[i] == "placeholder.tif"){temp <- place}
+  temp[is.na(temp)] <- 0
+  temp <- round(temp, digits = 0)
+  temp[is.na(grid)] <- NA
+  png(paste0("output_images/", layers$title[i], ".png"), width = ncol(temp), height = nrow(temp))
+  pal <- colorRampPalette(rev(c('#d53e4f','#f46d43','#fdae61','#fee08b','#ffffbf','#e6f598','#abdda4','#66c2a5','#3288bd')))
+  plot(temp, maxpixels = ncell(temp), main = "", axes = FALSE, ylim=extent(temp)[3:4], 
+       breaks = seq(0,100,1), col = pal(101), legend = F, box = F, colNA = "gray92")
+  dev.off()
+  cat("\nIteration", i, "done")
+}
+
+```
+
+# PRESSURES - create images
+```{r}
+place <- raster("grid/grid_1km_v01.1.tif") * 0
+layers <- rio::import("layer_list.xlsx") |> dplyr::filter(theme == "Pressure")
+layers <- filter(layers, title == "Temperature rise" | title == "Sea level rise") # run for only select layers
+layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
+layer_files <- layers$file_name
+
+for(i in 1:length(layers$title)){
+  temp <- raster(paste0("source_layers_fixed/", layers$file_name[i]))
+  temp[is.na(temp)] <- 0 #???
+  temp[] <- scales::rescale(temp[], to = c(0, layers$max_value[i]))
+  if(layers$file_name[i] == "placeholder.tif"){temp <- place}
+  temp[is.na(temp)] <- 0
+  temp <- round(temp, digits = 0)
+  temp[is.na(grid)] <- NA
+  png(paste0("output_images/", layers$title[i], ".png"), width = ncol(temp), height = nrow(temp))
+  pal <- colorRampPalette(rev(c('#d53e4f','#f46d43','#fdae61','#fee08b','#ffffbf','#e6f598','#abdda4','#66c2a5','#3288bd')))
+  plot(temp, maxpixels = ncell(temp), main = "", axes = FALSE, ylim=extent(temp)[3:4], 
+       breaks = seq(0,100,1), col = pal(101), legend = F, box = F, colNA = "gray92")
+  dev.off()
+  cat("\nIteration", i, "done")
+}
+
+```
+
+# ECOSYSTEM COMPONENTS - produce metadata
+```{r}
+meta <- read.csv("metadata_template.csv", sep = ";")
+layers <- rio::import("layer_list.xlsx") |> dplyr::filter(theme == "Ecosystem")
+meta[1:nrow(layers),] <- NA
+
+meta$Bandnumber <- 1:nrow(layers)
+meta$Title <- layers$title
+meta$Symphony.Category <- "Ecosystem"
+meta$Symphony.Theme <- layers$subtheme
+
+names(meta) <- gsub(x = names(meta), pattern = "\\.", replacement = " ")
+write.csv2(meta, "output_multiband/ecosystems_metadata.csv", row.names = FALSE, quote = FALSE)
+```
+
+# PRESSURES - produce metadata
+```{r}
+meta <- read.csv("metadata_template.csv", sep = ";")
+layers <- rio::import("layer_list.xlsx") |> dplyr::filter(theme == "Pressure")
+meta[1:nrow(layers),] <- NA
+
+meta$Bandnumber <- 1:nrow(layers)
+meta$Title <- layers$title
+meta$Symphony.Category <- "Pressure"
+meta$Symphony.Theme <- layers$subtheme
+
+names(meta) <- gsub(x = names(meta), pattern = "\\.", replacement = " ")
+write.csv2(meta, "output_multiband/pressures_metadata.csv", row.names = FALSE, quote = FALSE)
+```
+
+# ECOSYSTEM COMPONENTS - create multiband tif
+```{r}
+place <- grid_proj * 0
+layers <- rio::import("layer_list.xlsx") |> dplyr::filter(theme == "Ecosystem")
+layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
+layer_files <- layers$file_name
+
+eco <- raster::stack()
+
+for(i in 1:length(layer_files)){
+  temp <- raster(paste0("source_layers_reproject/", layer_files[i]))
+  temp[is.na(temp)] <- 0 # Add zeros before rescaling?
+  temp[] <- scales::rescale(temp[], to = c(0, layers$max_value[i]))
+  if(layer_files[i] == "placeholder.tif"){temp <- place}
+  temp[is.na(grid_proj)] <- NA
+  temp[is.na(temp)] <- 0
+  temp <- round(temp, digits = 0)
+  temp <- as.integer(temp)
+  eco <- raster::stack(eco, temp)
+  cat("\nIteration", i, "complete - Title:", layers$title[i], "- TIFF name:", layers$file_name[i])
+}
+
+writeRaster(eco, "output_multiband/ecosystems.tif", bandorder='BIL', datatype = 'INT2U', COMPRESS=LZW, overwrite=TRUE)
+```
+
+# PRESSURES - create multiband tif
+```{r}
+place <- grid_proj * 0
+layers <- rio::import("layer_list.xlsx") |> dplyr::filter(theme == "Pressure")
+layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
+layer_files <- layers$file_name
+
+eco <- raster::stack()
+
+for(i in 1:length(layer_files)){
+  temp <- raster(paste0("source_layers_reproject/", layer_files[i]))
+  temp[is.na(temp)] <- 0 # Add zeros before rescaling?
+  temp[] <- scales::rescale(temp[], to = c(0, layers$max_value[i]))
+  if(layer_files[i] == "placeholder.tif"){temp <- place}
+  temp[is.na(grid_proj)] <- NA
+  temp[is.na(temp)] <- 0
+  temp <- round(temp, digits = 0)
+  temp <- as.integer(temp)
+  eco <- raster::stack(eco, temp)
+  cat("\nIteration", i, "complete - Title:", layers$title[i], "- TIFF name:", layers$file_name[i])
+}
+
+writeRaster(eco, "output_multiband/pressures.tif", bandorder='BIL', datatype = 'INT2U', COMPRESS=LZW, overwrite=TRUE)
+```
+
