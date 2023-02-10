@@ -11,6 +11,9 @@
 !process/
 /process/*/*/*/*
 
+!metadata/
+/metadata/*/*/*
+
 !shiny_data_upload/
 # gitignore file in shiny_data_upload folder ensures all files are included
 
