@@ -14,6 +14,9 @@
 !metadata/
 /metadata/*/*/*
 
+!products/
+/products/*/*/*
+
 !shiny_data_upload/
 # gitignore file in shiny_data_upload folder ensures all files are included
 
