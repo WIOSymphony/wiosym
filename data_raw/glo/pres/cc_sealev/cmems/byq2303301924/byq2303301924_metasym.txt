@@ -1,0 +1,31 @@
+"id"	"byq2303301924"
+"file_path"	"data_raw\glo\pres\cc_sealev\cmems\byq2303301924"
+"local_path"	"D:\Storage\Repositories\wiosym"
+"download_date"	"2023-03-30"
+"user"	"byq"
+"provider_list"	"cmems"
+"provider_manual"	""
+"source"	"10.24381/cds.6edf04e0"
+"citation"	"Sanne Muis, Maialen Irazoqui Apecechea, José Antonio Álvarez, Martin Verlaan, Kun Yan, Job Dullaart, Jeroen Aerts, Trang Duong, Rosh Ranasinghe, Dewi le Bars, Rein Haarsma, Malcolm Roberts, (2022): Global sea level change indicators from 1950 to 2050 derived from reanalysis and high resolution CMIP6 climate projections. Copernicus Climate Change Service (C3S) Climate Data Store (CDS). DOI: 10.24381/cds.6edf04e0 (Accessed on 30-03-2023)"
+"copyright"	"Open - product and raw data can be downloaded"
+"copyright_details"	"Copernicus Marine Service Provides free, open, regular and systematic reference information on the blue (physical), white (sea ice), and green (biogeochemical) ocean state, variability and dynamics across the global ocean and European regional seas."
+"location"	"glo"
+"theme"	"Pressures (e.g. noise)"
+"theme_tag"	"pres"
+"subtheme"	"Climate change sea level"
+"subtheme_tag"	"cc_sealev"
+"tags"	";pres;climate sea level ;"
+"comments"	"This dataset provides statistical indicators of tides, storm surges and sea level that can be used to characterize global sea level in present-day conditions and also to assess changes under climate change. The indicators calculated include extreme-value indicators (e.g. return periods including confidence bounds for total water levels and surge levels), probability indicators (e.g. percentile for total water levels and surge levels). They provide a basis for studies aiming to evaluate sea level variability, coastal flooding, coastal erosion, and accessibility of ports at a global scale. The extreme value statistics for different return periods can be used to assess the frequency of an event and form the basis of risk assessments. The global coverage allows for world-wide assessments that are particularly useful for the data scarce regions where detailed modelling studies are currently lacking.
+
+The indicators are computed from time series data available in a related dataset in the Climate Data Store named Global sea level change time series from 1950 to 2050 derived from reanalysis and high resolution CMIP6 climate projections (see Related data), where further details of the modelling are provided. The indicators are produced for three different 30-year periods corresponding to historical, present, and future climate conditions (1951-1980, 1985-2014, and 2021-2050). The future period is based on global climate projections using the high-emission scenario SSP5-8.5. The dataset is based on climate forcing from ERA5 global reanalysis and 4 Global Climate Models (GCMs) of the high resolution Coupled Model Intercomparison Project Phase 6 (CMIP6) global climate projection dataset from the High Resolution Model Intercomparison Project (HighResMIP) multi-model ensemble. An estimate of the uncertainties associated with the climate forcing has been obtained through the use of a multi-model ensemble. Each of the indicators provides ensemble statistics computed across the 4 members of the HighResMIP ensemble (e.g. median, mean, standard deviation, range). Absolute and relative changes for the future period (2015-2050) relative to the present-day (1985-2014) are provided to assess climate change impacts on water levels.
+
+This dataset was produced on behalf of the Copernicus Climate Change Service.
+
+Sanne Muis, Maialen Irazoqui Apecechea, José Antonio Álvarez, Martin Verlaan, Kun Yan, Job Dullaart, Jeroen Aerts, Trang Duong, Rosh Ranasinghe, Dewi le Bars, Rein Haarsma, Malcolm Roberts, (2022): Global sea level change indicators from 1950 to 2050 derived from reanalysis and high resolution CMIP6 climate projections. Copernicus Climate Change Service (C3S) Climate Data Store (CDS). 
+
+DOI: 10.24381/cds.6edf04e0 (Accessed on 30/3/2023)
+
+
+Data product used:
+
+50-year return period (for surge) best-fit absolute value of teh surge level from reanalysis."
