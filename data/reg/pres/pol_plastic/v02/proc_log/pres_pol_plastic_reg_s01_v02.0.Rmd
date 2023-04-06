@@ -1,0 +1,722 @@
+# ========================================================================================================= #
+# IMPORTANT - To get started:
+Because this script is an R Markdown script, the default directory is the location of this .Rmd file.
+You must open this script from within the .Rproj file associated with your wiosym database for it to work.
+If you haven't used R notebooks before (.Rmd), each of the code "chunks" can be executed by clicking the green play
+button at the top right of the chunk.
+
+To run the script from the project directory, in R Studio, you need to go to: Tools > Global Options > R Markdown
+and set "Evaluate chunks in directory" to "Project", though for latest version of R/Rstudio it may not be needed...
+# ========================================================================================================= #
+# ABOUT
+# ========================================================================================================= #
+## Brief description: 
+Mapping global model of macroplastic pollution into WIO SYmphony grid, and using shoreline information to adjust model in coastal areas. 
+Normalise pelagic plastics by global maximum, and shoreline plastic to WIO
+
+### Scripts/processes that needs to be updated prior?:
+### pres_pol_plastic_reg_s02_v01.1_dispersal.Rmd
+### Script by: Initial, org, Rver: 
+230309, gk, sgu, r4.2.2
+### Updated: Initial, org, Rver, comments
+### Developer check: Initial, org, yymmdd, comments
+### External check: Initial, org, yymmdd, comments
+
+# ========================================================================================================= # 
+# PREPARATIONS
+# ========================================================================================================= #
+
+### Install packages
+```{r, include = FALSE}
+# list all packages that this script is dependent on, remove any redundant ones
+x <- c("sf", "raster", "rgdal", "tidyverse", "terra")
+install.packages("x", dependencies=TRUE)
+```
+
+### Load packages
+```{r, include = FALSE}
+library(sf) 
+library(raster)
+library(rgdal)
+library(tidyverse)
+library(terra)
+library(gstat)
+```
+
+## Set version / theme / subtheme (copy from original script or path to get right..)
+```{r}
+version = "v02" # relates to major iteration of WIOSym (v01 for grid 2021, v02 for grid 2022)
+d_version = ".0"  # detailed version (you can add another level e.g. 0.0  -> v01.0.0)
+seq = "s01" # sequential order - change accordingly if process is run in several scripts
+location = "reg"
+theme = "pres"
+subtheme = "pol_plastic"
+name1 <- "" # add name what this script does if appropriate ("uncertainty", "norm01")
+```
+
+
+## Set paths
+Locate the relative path (from wiosym folder) to the root directpry of the data folder you are working in, copy and paste to "dest_path", the rest will update itself
+```{r}
+#(dest_path <- "REPLACE") # path to final product
+(dest_path <- "./data/reg/pres/pol_plastic/v02/") # example of path to product directory
+(work_path <- paste(dest_path, "proc/", sep=""))
+(proc_path <- paste(dest_path, "proc_log/", sep=""))
+(archive_path <- paste(dest_path, "_archive/", sep=""))
+(script_path <- "./process/r/")
+```
+
+## Create directories
+```{r}
+dir.create(dest_path, recursive = TRUE)
+dir.create(work_path, recursive = TRUE)
+dir.create(proc_path, recursive = TRUE)
+dir.create(archive_path, recursive = TRUE)
+dir.create(script_path, recursive = TRUE)
+```
+
+
+## Save R Script
+```{r}
+(script_path_windows <- paste(getwd(), "/process/r", sep=""))
+(script_name <- paste(theme, "_", subtheme,"_", location, "_", seq, "_", version, name1, ".Rmd", sep=""))
+```
+ # copy path and name and use File/Save As in R studio to save rmd file
+ 
+#==========================================================================================================================#
+# INDATA
+#==========================================================================================================================#
+
+# Set DATA_RAW sources
+
+# Set DATA_RAW sources
+IMPORTANT all data harvested from data_raw needs to have a metasym.txt file in its root directory (not file specific)
+## DIR1: 
+```{r}
+source1_dir <- source_dir <-  "./data_raw/glo/pres/pol_plastic/oceanparcels/gk2303101537/"
+
+source1 <- source_id <- "gk2303101537" 
+(read_tsv(paste(source_dir, source_id, "_metasym.txt", sep=""))) # check the metasym file
+``` 
+
+```{r}
+dir(paste(source_dir, "GlobalMassBudget-main/00_resulting_maps/", sep=""), recursive=F)
+```
+
+```{r}
+# Files
+source1_path <- path <- paste(source_dir, "GlobalMassBudget-main/00_resulting_maps/", "2020_mass_concentration.csv", sep="")
+mass_conc_2020 <- read_csv(path)
+
+source1_path2 <- path <- paste(source_dir, "GlobalMassBudget-main/00_resulting_maps/", "2020_mass_total.csv", sep="")
+mass_total_2020 <- read_csv(path)
+
+# add files from dir as needed
+```
+
+
+
+# DATA sources
+IMPORTANT Products in data are based on information in data_raw. Check that *_sourcesym.txt exists for each file to track acccumulated IDs. 
+The sourcesym files can be identical within some directory in which case you can load only one, but its not always the case which is why there is one file for each file. 
+
+## DATA0: Grid 5km - loading all flavours (watermask 1, 0, NA) at once since identical sourcesym apply
+```{r}
+data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
+dir(data_dir) # check what data is in this directory
+
+data0_file <- "grid_5km_v01.1.tif" 
+data0_file2 <- "grid_5km_0_v01.1.tif" 
+data0_file3 <- "grid_5km_na_v01.1.tif" 
+
+(grid_5km_path <- path <- paste(data_dir, data1_file, sep=""))
+(grid_5km <- raster(path)) # read and check your data
+(grid_5km_0_path <- path <- paste(data_dir, data1_file2, sep=""))
+(grid_5km_0 <- path <- raster(path)) # read and check your data
+(grid_5km_na_path <- path <- paste(data_dir, data1_file3, sep=""))
+(grid_5km_na <- path <- raster(path)) # read and check your data
+(data1_sourcesym <- read_tsv(paste(data_dir, data1_file, "_sourcesym.txt", sep="")))
+# check that source IDs exists and make sense
+
+plot(grid_5km)
+```
+
+
+
+## DATA1: Grid 1km - loading all flavours (watermask 1, 0, NA) at once since identical sourcesym apply
+```{r}
+data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
+dir(data_dir) # check what data is in this directory
+
+data1_file <- "grid_1km_v01.1.tif" 
+data1_file2 <- "grid_1km_0_v01.1.tif" 
+data1_file3 <- "grid_1km_na_v01.1.tif" 
+
+(grid_1km_path <- path <- paste(data_dir, data1_file, sep=""))
+(grid_1km <- raster(path)) # read and check your data
+(grid_1km_0_path <- path <- paste(data_dir, data1_file2, sep=""))
+(grid_1km_0 <- path <- raster(path)) # read and check your data
+(grid_1km_na_path <- path <- paste(data_dir, data1_file3, sep=""))
+(grid_1km_na <- path <- raster(path)) # read and check your data
+(data1_sourcesym <- read_tsv(paste(data_dir, data1_file, "_sourcesym.txt", sep="")))
+# check that source IDs exists and make sense
+
+#plot(grid_1km)
+```
+
+## DATA2: Grid 250m - loading all flavours (watermask 1, 0, NA) at once since same sourcesym apply
+```{r}
+data2_dir <- data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
+
+data2_file <- "grid_250m_v01.1.tif" # your data file
+data2_file2 <- "grid_250m_0_v01.1.tif" # your data file
+data2_file3 <- "grid_250m_na_v01.1.tif" # your data file
+
+grid_250m_path <- path <- paste(data_dir, data2_file, sep="")
+grid_250m <- raster(path) # read and check your data
+grid_250m_0_path <- path <- paste(data_dir, data2_file2, sep="")
+grid_250m_0 <- path <- raster(path) # read and check your data
+grid_250m_na_path <- path <- paste(data_dir, data2_file3, sep="")
+grid_250m_na <- path <- raster(path) # read and check your data
+(data2_sourcesym <- read_tsv(paste(data_dir, data2_file, "_sourcesym.txt", sep="")))
+# check so source IDs exists and make sense
+# check that source IDs exists and make sense
+# plot(grid_250m)
+```
+
+## DATA4: shoreline
+```{r}
+
+data_dir <-  "./data/reg/eco/ch_shore/v01/"  # input your data directory
+dir(data_dir) # check what data is in this directory
+
+data4_file <- "eco_ch_shore_shoreline_proportion_norm01_1km_v01.0.tif" 
+
+(shore_path <- path <- paste(data_dir, data4_file, sep=""))
+(shore_1km <- raster(path)) # read and check your data
+(data4_sourcesym <- read_tsv(paste(data_dir, data4_file, "_sourcesym.txt", sep="")))
+#
+```
+# DATA 5: bounding box shapefile 
+```{r}
+data_dir <-  "./data/reg/grid/scope/v01/" 
+dir(data_dir) # check what data is in this directory
+```
+
+```{r}
+data_file <- "wiosym_data_bounding_box_v01.shp" # your data file (must be under the root of data_dir, do not use files from proc/)
+(data5_sourcesym <- read_tsv(paste(data_dir, data_file, "_sourcesym.txt", sep=""))) # REPLACE - check/change data number (e.g. data3_sourcesym)
+# check that source IDs exists and make sense
+```
+```{r}
+(grid_poly <- st_read(paste(data_dir, data_file, sep="")))
+```
+
+```{r}
+plot(grid_poly)
+```
+
+
+## DATA6: load files from "plastic version 1"
+
+```{r}
+dir("./data/reg/pres/pol_plastic/v01/")
+
+plastic <- raster(paste("./data/reg/pres/pol_plastic/v01/", "plastic_v2.tif", sep="")) #original v1.0
+
+plastic_v1 <- raster(paste("./data/reg/pres/pol_plastic/v01/", "pol_plastic_shore_norm_dispersal_1km_v01.1.tif", sep=""))  #v1.1
+
+
+plastic_v1_sourcesym <- read_tsv(paste("./data/reg/pres/pol_plastic/v01/", "pol_plastic_shore_norm_dispersal_1km_v01.1.tif_sourcesym.txt", sep=""))
+
+plot(plastic)
+plot(plastic_v1)
+
+```
+
+#==========================================================================================================================#
+# PROCESSING
+#==========================================================================================================================#
+
+# turn csv points into spatial object and crop
+
+```{r}
+plastic_sf_c <- mass_conc_2020 %>% filter (lon>-99999) %>% st_as_sf(coords=c("lon","lat"), crs=4326)
+plastic_sf_c <- mass_conc_2020 %>% filter (lon>-99999) %>% st_as_sf(coords=c("lon","lat"), crs=4326)
+
+plastic_sf_m <- mass_total_2020 %>% filter (lon>-99999) %>% st_as_sf(coords=c("lon","lat"), crs=4326)
+plastic_sf_m <- mass_total_2020 %>% filter (lon>-99999) %>% st_as_sf(coords=c("lon","lat"), crs=4326)
+
+
+plot(plastic_sf)
+
+# coordinate system for WIO SYmphony grid
+sr <- "+proj=cea +lat_ts=-12 +lon_0=12 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs" 
+
+# crop to data collection area and transform coordinates to metric
+
+plastic_sf2_c <- st_crop(plastic_sf_c, grid_poly) %>% st_transform(sr)
+plot(plastic_sf2_c)
+names(nc)
+
+
+plastic_sf2_m <- st_crop(plastic_sf_m, grid_poly) %>% st_transform(sr)
+plot(plastic_sf2_m)
+names(nc)
+
+
+
+
+
+
+```
+
+
+
+# Interpolate into raster by theme
+Resource https://heima.hafro.is/~einarhj/older/spatialr/pre_interpolation.html
+
+EXPLANATION from global plastic publication in press:
+https://github.com/OceanParcels/GlobalMassBudget/blob/main/00_resulting_maps/plot_maps.ipynb
+
+"we're using the uber h3 hexagonal grid system here. The hexagons have unique hexadecimal indices (see column h3_hex_ID).
+In our model we've converted these to integer indices, as shown in the first column on the dataset. The hexagon midpoints (lon/lat) are presented
+in the 2nd/3rd columns.
+In the 5th column (depth_ID), we show at which depth the quantity is given:
+0 = 0-5 meters (ocean surface)
+-1 = 5-50 meters
+-2 = 50-500 meters
+-3 = 500-inf meters
+1 = coastlines (on land)
+
+The remaining columns show the quantity of interest. This can be the mass, the number of particles (num) and the number of fishing related items (num_f)
+separate datafiles are given for the total amount of plastics [grams], and  the plastic concentrations [grams/m3 in the ocean, grams/m on beaches]
+The quantities of interest are given for different particle sizes, ranging from 0.1 mm to 1.6 meters.
+The final column gives the quantity of interest for all particle sizes combined
+
+packages that you need to install are pandas, matplotlib, cartopy, h3, and numpy (see imports)"
+
+
+------------------------
+WIO Symphony Plastic layer focus on macroplastics with diameter > 5mm
+
+# Prepare global data to represent macroplastics
+```{r}
+
+names(plastic_sf2)
+
+# all plastics concentration, including microplastic
+#p_all <- plastic_sf2_c %>% mutate(total = `mass_concentration_l=total` ) %>%  select(total, depth_ID) %>% mutate(total = replace_na(total, 0))
+
+# macroplastics, total concentration WIO
+p_all <- plastic_sf2_c %>% rowwise() %>% mutate(total = sum(c_across(`mass_concentration_l=1638.40[mm]`:`mass_concentration_l=6.40[mm]`))) %>%  select(total, `mass_concentration_l=total`, depth_ID) %>% mutate(total = replace_na(total, 0))
+
+# macroplastics, total concentration global
+p_all_globe <- plastic_sf_c %>% rowwise() %>% mutate(total = sum(c_across(`mass_concentration_l=1638.40[mm]`:`mass_concentration_l=6.40[mm]`))) %>%  select(total, `mass_concentration_l=total`, depth_ID) %>% mutate(total = replace_na(total, 0))
+
+
+# total mass of macroplastics option instead of concentration...
+#p_all <- plastic_sf2_m %>% rowwise() %>% mutate(total = sum(c_across(`mass_total_l=1638.40[mm]`:`mass_total_l=6.40[mm]`))) %>%  select(total, `mass_total_l=total`, depth_ID) %>% #mutate(total = replace_na(total, 0))
+
+
+```
+
+# Shoreline
+```{r}
+# Concentration of total plastic coastlines (on land)
+# select depth layer: 1 = coastlines (on land)
+p <- p_all %>% filter(depth_ID==1)
+
+ext1 <- extent(p)
+crs1 <- st_crs(p)
+r_target <- raster(ext = ext1, crs = crs1, res = 10000)
+crs(r_target) <- sr
+r_target
+
+gs <- gstat(id = "total", formula = total ~ 1, data = p,
+            nmax = 7, set = list(idp = 2.5))
+
+int <- interpolate(r_target, gs)
+
+#plot(int)
+#int_crop <- crop(int, grid_5km)
+
+# Resample to 1 km resolution
+r <- int
+
+r_res <- terra::resample(r, grid_1km, method='bilinear')
+
+r <- r_res
+
+# Final check that all is good...
+r <- terra::merge(r, grid_1km_0)
+r <- terra::crop(r, grid_1km, snap='near')
+r <- terra::mask(r, grid_1km)
+
+r_shore <- r # concentration of total plastic on land
+r_shoreline <- r_shore * shore_1km  # concentration of total plastic on land adjusted by shoreline length in each 1km pixel
+
+plot(r_shore)
+plot(r_shoreline)
+```
+
+## Plastic dispersal - adding spread to shoreline plastic layer
+```{r}
+r <- r_shoreline
+(crs(r))
+(res(r))
+
+#2km dispersal
+w <- focalWeight(r, 2000, "Gauss") # estimating spread of local pollutant effects from shoreline
+
+r_focal_2km <- focal(r, w, fun=sum, na.rm=T, pad=T, NAonly=F) 
+
+plot(r_focal_2km)
+
+r_shoreline_2km <- max(r_focal_2km, r_shoreline)
+
+plot(r_shoreline_2km)
+
+
+```
+
+
+
+
+# Open Ocean plastics
+```{r}
+# Concentration of total plastic 0-5 meters (ocean surface)
+# select depth layer: 0 = 0-5 meters (ocean surface)
+p <- p_all %>% filter(depth_ID==0)
+
+ext1 <- extent(p)
+crs1 <- st_crs(p)
+r_target <- raster(ext = ext1, crs = crs1, res = 10000)
+crs(r_target) <- sr
+r_target
+
+gs <- gstat(id = "total", formula = total ~ 1, data = p,
+            nmax = 7, set = list(idp = 2.5))
+
+int <- interpolate(r_target, gs)
+
+#plot(int)
+#int_crop <- crop(int, grid_5km)
+
+# Resample to 1 km resolution
+r <- int
+
+r_res <- terra::resample(r, grid_1km, method='bilinear')
+
+r <- r_res
+
+# Final check that all is good...
+r <- terra::merge(r, grid_1km_0)
+r <- terra::crop(r, grid_1km, snap='near')
+r <- terra::mask(r, grid_1km)
+
+
+r_0_5m <- r # concentration of total plastic 0-5 meters (ocean surface)
+plot(r_0_5m)
+```
+
+```{r}
+# Concentration of total plastic 5-50 meters
+# select depth layer: -1 = 5-50 meters
+p <- p_all %>% filter(depth_ID==-1)
+
+ext1 <- extent(p)
+crs1 <- st_crs(p)
+r_target <- raster(ext = ext1, crs = crs1, res = 10000)
+crs(r_target) <- sr
+r_target
+
+gs <- gstat(id = "total", formula = total ~ 1, data = p,
+            nmax = 7, set = list(idp = 2.5))
+
+int <- interpolate(r_target, gs)
+
+#plot(int)
+#int_crop <- crop(int, grid_5km)
+
+# Resample to 1 km resolution
+r <- int
+
+r_res <- terra::resample(r, grid_1km, method='bilinear')
+
+r <- r_res
+
+# Final check that all is good...
+r <- terra::merge(r, grid_1km_0)
+r <- terra::crop(r, grid_1km, snap='near')
+r <- terra::mask(r, grid_1km)
+
+
+r_5_50m <- r # concentration of total plastic 5-50 meters
+plot(r_5_50m)
+
+```
+
+
+```{r}
+# Concentration of total plastic 50-500 meters
+# select depth layer: -2 = 50-500 meters
+p <- p_all %>% filter(depth_ID==-2)
+
+ext1 <- extent(p)
+crs1 <- st_crs(p)
+r_target <- raster(ext = ext1, crs = crs1, res = 10000)
+crs(r_target) <- sr
+r_target
+
+gs <- gstat(id = "total", formula = total ~ 1, data = p,
+            nmax = 7, set = list(idp = 2.5))
+
+int <- interpolate(r_target, gs)
+
+#plot(int)
+#int_crop <- crop(int, grid_5km)
+
+# Resample to 1 km resolution
+r <- int
+
+r_res <- terra::resample(r, grid_1km, method='bilinear')
+
+r <- r_res
+
+# Final check that all is good...
+r <- terra::merge(r, grid_1km_0)
+r <- terra::crop(r, grid_1km, snap='near')
+r <- terra::mask(r, grid_1km)
+
+
+r_50_500m <- r # concentration of total plastic 50-500 meters
+plot(r_50_500m)
+
+```
+
+
+
+```{r}
+# Concentration of total plastic 500-inf meters
+# select depth layer: -3 = 500-inf meters
+p <- p_all %>% filter(depth_ID==-3)
+
+ext1 <- extent(p)
+crs1 <- st_crs(p)
+r_target <- raster(ext = ext1, crs = crs1, res = 10000)
+crs(r_target) <- sr
+r_target
+
+gs <- gstat(id = "total", formula = total ~ 1, data = p,
+            nmax = 7, set = list(idp = 2.5))
+
+int <- interpolate(r_target, gs)
+
+#plot(int)
+#int_crop <- crop(int, grid_5km)
+
+# Resample to 1 km resolution
+r <- int
+
+r_res <- terra::resample(r, grid_1km, method='bilinear')
+
+r <- r_res
+
+# Final check that all is good...
+r <- terra::merge(r, grid_1km_0)
+r <- terra::crop(r, grid_1km, snap='near')
+r <- terra::mask(r, grid_1km)
+
+
+r_500m_inf <- r # concentration of total plastic 500-inf meters
+plot(r_500m_inf)
+
+```
+
+# Combine shoreline and pelagic layers and normalise
+```{r}
+
+# Coastal Plastics
+## normalise based on max value in WIO
+#remove outliers
+q99 <- quantile(r_shoreline_2km, probs = 0.99999, na.rm = TRUE)
+
+#r_shoreline_2km_norm <- r_shoreline_2km/cellStats(r_shoreline_2km, max)
+
+r_shoreline_2km_norm <- r_shoreline_2km/q99
+
+r <- r_shoreline_2km_norm
+#r_shoreline_2km_norm <- ifel(r > 1, 1, r)
+r[r > 1] <- 1
+
+r_shoreline_2km_norm <- r
+
+
+plot(r_shoreline_2km_norm)
+
+
+
+
+# Pelagic Plastics
+## Combine all pelagic plastic layers into one using max value in each cell
+
+r_stack <- stack(r_0_5m, r_5_50m, r_50_500m, r_500m_inf)
+r_max <- max(r_stack)
+
+r_sum <- sum(r_stack)
+r_sum
+
+
+
+plot(r_sum)
+plot(r_max)
+hist(r_max)
+
+
+# Normalize pelagic plastic layer to global max
+p_all_globe_filter <- p_all_globe %>% filter(depth_ID!=1) %>% select(total) %>% filter(total!=Inf) 
+
+#remove outliers in global max
+q99_globe <- quantile(p_all_globe_filter$total, probs = 0.9999, na.rm = TRUE) 
+  
+max_globe <- max(p_all_globe_filter$total)
+  
+
+r_max_norm <- r_max/q99_globe
+
+
+plot(r_max_norm)
+
+
+
+# combine normalised rasters for shoreline and pelagics into 1 layer
+
+r_plastic_total_norm01 <- max(r_shoreline_2km_norm, r_max_norm)
+(r_plastic_total_norm01)
+
+
+r_plastic_total_norm01 <- r_plastic_total_norm01*100
+plot(r_plastic_total_norm01)
+
+# write to raster to check if ok.
+
+#plastic_norm_path <- path <-  paste(work_path, "r_shoreline_pelagic_norm.tif", sep="")
+#writeRaster(r_plastic_total_norm01, path, overwrite=T, COMPRESS=LZW)
+#plastic_1km_norm <- raster(path)
+
+
+
+
+
+```
+
+# Combine V02 with aspects from v01 (looking at the point sources and estimated local impact around those)
+```{r}
+
+#Allow v01 plastic layer from 2022 to contribute if 25% of max value of v01 is larger then v01. Assuming there is local impact from the major river sources that the global model may be underestimating
+
+r_plastic_total_v01_v02 <- max(r_plastic_total_norm01, 0.1*plastic_v1)
+
+plot(r_plastic_total_v01_v02)
+
+```
+
+
+
+#==========================================================================================================================#
+# EXPORT
+#==========================================================================================================================#
+
+# SOURCESYM
+Create sourcesym file with all source IDs used (data and data_raw) 
+```{r}
+## data raw sources (dir)
+(data_raw_sources <- tibble(id = c(source_id)) #add all new data_raw sources (if they are already in the loaded sourcesym file disregard)
+
+## data sources (files)
+#add any new sourcesym files that are not already represented in the loaded sourcesym
+
+data_sources <- data4_sourcesym %>% # add any "sourcesym" files applicable to this product (check indata section), keep adding sourcesym files as needed
+#  add_row(data2_sourcesym)%>%  
+#  add_row(data3_sourcesym)%>% 
+  unique() %>% 
+  print()
+
+## Sources combined
+
+all_sources <-data_raw_sources %>% add_row(data_sources)  %>% unique()
+print(all_sources)
+
+```
+
+# SOURCESYM 2
+Create sourcesym file with all source IDs used (data and data_raw) 
+```{r}
+## data raw sources (dir)
+(data_raw_sources2 <- tibble(id = c(source_id))) #add all new data_raw sources (if they are already in the loaded sourcesym file disregard)
+
+## data sources (files)
+#add any new sourcesym files that are not already represented in the loaded sourcesym
+
+data_sources2 <- data4_sourcesym %>% # add any "sourcesym" files applicable to this product (check indata section), keep adding sourcesym files as needed
+  add_row(plastic_v1_sourcesym) %>%  
+  unique() %>% 
+  print()
+
+## Sources combined
+
+all_sources2 <- data_raw_sources2 %>% add_row(data_sources2)  %>% unique()
+print(all_sources2)
+
+```
+
+
+
+# PRODUCT 1: Plastic pollution
+OBS if you need pointers for other naming, the full template has the instructions e.g. pointing to the component list with names, and using theme/subtheme to make the name...
+```{r}
+
+export_object1 <- (r_plastic_total_norm01) # v02 data only
+export_object2 <- (r_plastic_total_v01_v02) # v02 data combined with 25% v01 layer
+
+
+dir(dest_path)
+product_orig1 <- "macroplastic_conc_norm01" 
+product_orig2 <- "macroplastic_conc_merged_norm01" 
+
+
+(product_path1 <- paste(dest_path, product_orig1, name1, "_1km_", version, d_version, ".tif", sep="" ))  # Example, change the "uncertainty part as needed (norm01 for example)
+(product_path2 <- paste(dest_path, product_orig2, name1, "_1km_", version, d_version, ".tif", sep="" ))
+
+# check datatype to be appropriate for values ('FLT4S' (normalised data) / 'INT4S' (uncertainty data) main standards to use)
+writeRaster(export_object1, product_path1, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
+writeRaster(export_object2, product_path2, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
+
+write_tsv(all_sources, paste(product_path1, "_sourcesym.txt", sep="")) 
+write_tsv(all_sources2, paste(product_path2, "_sourcesym.txt", sep=""))  
+```
+
+
+# SAVE SCRIPT
+1. save your current R script (File/Save)
+2. Save a carbon copy of the R script to proc_log (identical script to what is used to create the products exported
+Do not change the *.Rmd carbon copy in proc_log/ unless you change this version of the products (new versions are developed under process/r)
+
+```{r}
+# 2. run code below and go to File/Save As and paste link and name:
+(script_name <- paste(theme, "_", subtheme,"_", location, "_", seq, "_", version, d_version, "_",name1, ".Rmd", sep=""))
+```
+
+#==========================================================================================================================#
+# FINAL CHECK
+#==========================================================================================================================#
+# Developer check
+ Do your own final check on the products and double check sourcesym file exists and are complete for all files in root 
+ -> Sign at top of script in about section (# Approved by:)
+
+# External check 
+ To ensure repeatability and quality, make sure one colleague can run the script
+ When script is proven repeatable/understandable and products/metadata look ok 
+ -> Sign at top of script in about section (# Approved by:), and make any comments if needed
+ There is also a work_log document in onedrive / gitHUB, check current arrangement with Swedish dev team

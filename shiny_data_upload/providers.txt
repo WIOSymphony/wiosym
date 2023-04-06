@@ -1,6 +1,7 @@
 provider_name	provider_val
 No provider selected (none)	none
 Africa Regional Data Cube (ardc)	ardc
+African Marine Atlas (ama)	ama
 African Development Bank (afdb)	afdb
 Allen Coral Atlas (allen)	allen
 AquaMaps (aquamaps)	aquamaps
@@ -126,3 +127,5 @@ World Database on Protected Areas (wdpa)	wdpa
 World Environment Center (wec)	wec
 World Resources Institute (wri)	wri
 World Wide Fund for Nature (wwf)	wwf
+Pure Earth (pureearth)	pureearth
+Ocean Parcels (oceanparcels)	oceanparcels

@@ -1,0 +1,31 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(raster)
+library(scales)
+```
+
+```{r}
+files <- c("bfish_demersal_demfish_sdm_v01.0.tif", 
+           "mam_dolph_dolphin_sdm_v01.0.tif", 
+           "mam_whales_sdm_v01.1.tif",
+           "inv_inv_epifauna_sdm_v01.0.tif", 
+           "bfish_pelagic_pelfish_sdm_v01.1.tif", 
+           "cfish_rays_rays_sdm_v01.0.tif",
+           "bird_sea_seabirds_sdm_v01.0.tif", 
+           "cfish_shark_shark_sdm_v01.0.tif", 
+           "bfish_tuna_tuna_sdm_v01.0.tif")
+```
+
+```{r}
+for(i in 1:length(files)){
+  temp <- raster(paste0("source_layers/", files[i]))
+  temp[] <- scales::rescale(temp[], to = c(0,1))
+  writeRaster(temp, paste0("source_layers/", files[i]), overwrite = T)
+}
+```
+
