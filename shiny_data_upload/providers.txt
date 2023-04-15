@@ -1,8 +1,7 @@
 provider_name	provider_val
-No provider selected (none)	none
 Africa Regional Data Cube (ardc)	ardc
-African Marine Atlas (ama)	ama
 African Development Bank (afdb)	afdb
+African Marine Atlas (ama)	ama
 Allen Coral Atlas (allen)	allen
 AquaMaps (aquamaps)	aquamaps
 Association of African Maritime Administrations (aama)	aama
@@ -51,6 +50,7 @@ International Submarine Cable Protection Committe (iscpc)	iscpc
 International Union for the Conservation of Nature (iucn)	iucn
 Kenya Forest Service (kfs)	kfs
 Kenya Marine and Fisheries Research Institute (kmfri)	kmfri
+Khaled bin Sultan Living Oceans Foundation (kslof)	kslof
 Koordinates (koord)	koord
 Literature (lit)	lit
 Locally Managed Marine Area (lmma)	lmma
@@ -72,13 +72,16 @@ Natural Earth (naturalearth)	naturalearth
 Nelson Mandela University (nmu)	nmu
 New Partnership for Africa’s Development (nepad)	nepad
 NMU Institute for Coastal and Marine Research (cmr)	cmr
+No provider selected (none)	none
 Norsk Polarinstitutt (npi)	npi
 Northern Mozambique Channel initiative (nmci)	nmci
 Ocean Biogeographic Information System (obis)	obis
+Ocean Parcels (oceanparcels)	oceanparcels
 OceanSITES (ocsi)	ocsi
 Open Street Map (osm)	osm
 Orbcomm Satellite AIS (orbcom)	orbcom
 Pangaea (pangaea)	pangaea
+Pure Earth (pureearth)	pureearth
 ReefBase (reba)	reba
 Regional Coastal Zone Management Programme of the Indian Ocean Commission (ioc_recomap)	ioc_recomap
 Regional Fisheries Management Organization (rfmo)	rfmo
@@ -127,5 +130,3 @@ World Database on Protected Areas (wdpa)	wdpa
 World Environment Center (wec)	wec
 World Resources Institute (wri)	wri
 World Wide Fund for Nature (wwf)	wwf
-Pure Earth (pureearth)	pureearth
-Ocean Parcels (oceanparcels)	oceanparcels
