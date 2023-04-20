@@ -1,0 +1,32 @@
+suggestion how to write dataset citations when missing
+
+https://libguides.murdoch.edu.au/Vancouver/dataset
+
+
+DOI available:
+
+#. Author A, Author B. Dataset name [format]. Date of publication [cited year month day]. Source. Available from: DOI.
+
+ 
+
+No DOI available:
+
+#. Author A, Author B. Dataset name [format]. Date of publication [cited year month day]. Source. Available from: URL.
+
+Examples
+
+Dataset
+
+1. Coin L. Genomics of development and disease [dataset]. 2014 Jun 1 [cited 2017 Jun 9]. The University of Queensland. Available from: http://dx.doi.org/10.14264/uql.2016.583.
+
+Dataset repository
+
+2. Global Health Observatory Data Repository [Internet]. Geneva: WHO. [cited 2019 Jul 3]. Available from: http://www.who.int/gho/database/en/.
+
+Dataset deposit record
+
+3. Zimmermann B, Tkalčec Z, Mešić A, Kohler A. Characterizing aeroallergens by infrared spectroscopy of fungal spores and pollen [dataset]. 2015 Apr 27 [cited 2019 Jul 3]. Dryad Digital Repository. Available from: https://datadryad.org/resource/doi:10.5061/dryad.f4v0s. Referenced in doi: 10.1371/journal.pone.0124240.
+
+Dataset description article
+
+4. Mann C, Kane L, Dai M, Jacobson K. Description of the 2012 NEMSIS public-release research dataset. Prehosp Emerg Care. 2015;19(2):232-40. doi: 10.3109/10903127.2014.959219.

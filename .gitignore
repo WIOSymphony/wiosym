@@ -12,7 +12,7 @@
 /process/*/*/*/*
 
 !metadata/
-/metadata/*/*/*
+/metadata/*/*/*/*
 
 !products/
 /products/*/*/*
