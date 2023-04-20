@@ -15,4 +15,4 @@
 "subtheme"	"Coral (e.g. photic, mesophotic corals)"
 "subtheme_tag"	"bh_coral"
 "tags"	";eco;coral;habitat;coral;"
-"comments"	""
+"comments"	"redundant, data is the same as what already is in WCMC"
