@@ -23,7 +23,7 @@
 # block all files
 *.*
 
-# allow upload of product images
+# allow upload of products
 !/products/v1/output_images/eco/*.png
 !/products/v1/output_images/pres/*.png
 !/products/v2/output_images/eco/*.png
