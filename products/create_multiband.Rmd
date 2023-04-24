@@ -12,6 +12,8 @@ dir.create(paste0(ver, "/source_layers_reproject"), recursive = T)
 dir.create(paste0(ver, "/output_images/eco"), recursive = T)
 dir.create(paste0(ver, "/output_images/pres"), recursive = T)
 dir.create(paste0(ver, "/output_multiband"), recursive = T)
+dir.create(paste0(ver, "/output_geotiffs/eco"), recursive = T)
+dir.create(paste0(ver, "/output_geotiffs/pres"), recursive = T)
 ```
 
 
@@ -297,4 +299,66 @@ for(i in 1:length(layer_files)){
 
 writeRaster(eco, paste0(ver,"/output_multiband/pressures_", ver, ".tif"), bandorder='BIL', datatype = 'INT2U', COMPRESS=LZW, overwrite=TRUE)
 ```
+
+
+# ECOSYSTEM COMPONENTS - Export individual layers in small file size for GitHub
+```{r}
+place <- grid * 0
+layers <- rio::import(paste0("layer_list_", ver, ".xlsx"))  |> dplyr::filter(theme == "Ecosystem")
+layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
+layer_files <- layers$file_name
+
+for(i in 1:length(layer_files)){
+  temp <- raster(paste0(ver, "/source_layers_fixed/", layer_files[i]))
+  temp[temp == 0] <- NA
+  if(layer_files[i] == "placeholder.tif"){temp <- place}
+  if(layer_files[i] != "placeholder.tif"){temp[] <- scales::rescale(temp[], to = c(1, layers$max_value[i]))}
+  temp[is.na(temp)] <- 0
+  temp[is.na(grid_proj)] <- NA
+  temp <- round(temp, digits = 0)
+  temp <- as.integer(temp)
+  n <- layers$title[i]
+  n <- tolower(n) |> 
+       gsub(pattern = " ", replacement = "_", fixed = T) |> 
+       gsub(pattern = "(", replacement = "_", fixed = T) |> 
+       gsub(pattern = ")", replacement = "_", fixed = T) |> 
+       gsub(pattern = "__", replacement = "_", fixed = T)
+  if(layer_files[i] != "placeholder.tif"){
+    writeRaster(temp, paste0(ver, "/output_geotiffs/eco/", n, ".tif"), datatype = 'INT2U', COMPRESS=LZW,overwrite = T)
+    }
+  cat("\nIteration", i, "complete - Title:", layers$title[i], "- TIFF name:", layers$file_name[i])
+}
+
+```
+
+# ECOSYSTEM COMPONENTS - Export individual layers in small file size for GitHub
+```{r}
+place <- grid * 0
+layers <- rio::import(paste0("layer_list_", ver, ".xlsx"))  |> dplyr::filter(theme == "Pressure")
+layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
+layer_files <- layers$file_name
+
+for(i in 1:length(layer_files)){
+  temp <- raster(paste0(ver, "/source_layers_fixed/", layer_files[i]))
+  temp[temp == 0] <- NA
+  if(layer_files[i] == "placeholder.tif"){temp <- place}
+  if(layer_files[i] != "placeholder.tif"){temp[] <- scales::rescale(temp[], to = c(1, layers$max_value[i]))}
+  temp[is.na(temp)] <- 0
+  temp[is.na(grid_proj)] <- NA
+  temp <- round(temp, digits = 0)
+  temp <- as.integer(temp)
+  n <- layers$title[i]
+  n <- tolower(n) |> 
+       gsub(pattern = " ", replacement = "_", fixed = T) |> 
+       gsub(pattern = "(", replacement = "_", fixed = T) |> 
+       gsub(pattern = ")", replacement = "_", fixed = T) |> 
+       gsub(pattern = "__", replacement = "_", fixed = T)
+  if(layer_files[i] != "placeholder.tif"){
+    writeRaster(temp, paste0(ver, "/output_geotiffs/pres/", n, ".tif"), datatype = 'INT2U', COMPRESS=LZW,overwrite = T)
+    }
+  cat("\nIteration", i, "complete - Title:", layers$title[i], "- TIFF name:", layers$file_name[i])
+}
+
+```
+
 
