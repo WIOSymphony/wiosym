@@ -16,7 +16,6 @@ dir.create(paste0(ver, "/output_geotiffs/eco"), recursive = T)
 dir.create(paste0(ver, "/output_geotiffs/pres"), recursive = T)
 ```
 
-
 ```{r, warning=FALSE}
 library(raster)
 library(dplyr)
@@ -300,7 +299,6 @@ for(i in 1:length(layer_files)){
 writeRaster(eco, paste0(ver,"/output_multiband/pressures_", ver, ".tif"), bandorder='BIL', datatype = 'INT2U', COMPRESS=LZW, overwrite=TRUE)
 ```
 
-
 # ECOSYSTEM COMPONENTS - Export individual layers in small file size for GitHub
 ```{r}
 place <- grid * 0
@@ -331,7 +329,7 @@ for(i in 1:length(layer_files)){
 
 ```
 
-# ECOSYSTEM COMPONENTS - Export individual layers in small file size for GitHub
+# PRESSURES - Export individual layers in small file size for GitHub
 ```{r}
 place <- grid * 0
 layers <- rio::import(paste0("layer_list_", ver, ".xlsx"))  |> dplyr::filter(theme == "Pressure")
@@ -360,5 +358,6 @@ for(i in 1:length(layer_files)){
 }
 
 ```
+
 
 
