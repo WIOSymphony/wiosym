@@ -320,7 +320,8 @@ for(i in 1:length(layer_files)){
        gsub(pattern = " ", replacement = "_", fixed = T) |> 
        gsub(pattern = "(", replacement = "_", fixed = T) |> 
        gsub(pattern = ")", replacement = "_", fixed = T) |> 
-       gsub(pattern = "__", replacement = "_", fixed = T)
+       gsub(pattern = "__", replacement = "_", fixed = T) |>
+       sub(pattern = "_$", replacement = "")
   if(layer_files[i] != "placeholder.tif"){
     writeRaster(temp, paste0(ver, "/output_geotiffs/eco/", n, ".tif"), datatype = 'INT2U', COMPRESS=LZW,overwrite = T)
     }
@@ -350,7 +351,8 @@ for(i in 1:length(layer_files)){
        gsub(pattern = " ", replacement = "_", fixed = T) |> 
        gsub(pattern = "(", replacement = "_", fixed = T) |> 
        gsub(pattern = ")", replacement = "_", fixed = T) |> 
-       gsub(pattern = "__", replacement = "_", fixed = T)
+       gsub(pattern = "__", replacement = "_", fixed = T) |>
+       sub(pattern = "_$", replacement = "")
   if(layer_files[i] != "placeholder.tif"){
     writeRaster(temp, paste0(ver, "/output_geotiffs/pres/", n, ".tif"), datatype = 'INT2U', COMPRESS=LZW,overwrite = T)
     }
