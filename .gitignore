@@ -28,6 +28,8 @@
 !/products/v1/output_images/pres/*.png
 !/products/v2/output_images/eco/*.png
 !/products/v2/output_images/pres/*.png
+!/products/v2/output_geotiffs/eco/*.tif
+!/products/v2/output_geotiffs/pres/*.tif
 
 # add files that we want...
 
