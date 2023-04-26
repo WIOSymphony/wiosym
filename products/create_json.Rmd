@@ -1,0 +1,72 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Specify version
+```{r}
+ver <- "v2"
+
+dir.create(paste0(ver, "/output_geotiffs/eco"), recursive = T)
+dir.create(paste0(ver, "/output_geotiffs/pres"), recursive = T)
+```
+
+```{r, warning=FALSE}
+library(raster)
+library(dplyr)
+library(tidyr)
+library(rio)
+library(scales)
+library(crayon)
+library(mapview)
+library(RColorBrewer)
+library(rgdal)
+library(rjson)
+library(jsonlite)
+
+meta <- rio::import(paste0("layer_list_", ver, ".xlsx"))
+meta$file_name[is.na(meta$file_name)] <- "placeholder.tif"
+```
+
+# Create JSON files for metadata
+```{r}
+layers <- rio::import(paste0("layer_list_", ver, ".xlsx"))
+layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
+
+js <- read_json(path = "datasetTemplate.json")
+
+#for(i in 1:nrow(layers)){
+for(i in 1:1){
+
+js$name <- paste0("Spatial raster layer of ", tolower(layers$title[i]), " used in WIO Symphony tool")
+
+# Keywords
+js$keywords[[1]] <- "Western Indian Ocean"
+js$keywords[[2]] <- "WIO Symphony"
+js$keywords[[3]] <- "Symphony"
+js$keywords[[4]] <- "Cumulative impact assessment"
+js$keywords[[5]] <- "Marine spatial planning"
+js$keywords[[6]] <- "Ecosystems"
+js$keywords[[7]] <- "Pressures"
+js$keywords[[8]] <- layers$title[i]
+
+# Export JSON
+
+n <- layers$title[i]
+n <- tolower(n) |> 
+     gsub(pattern = " ", replacement = "_", fixed = T) |> 
+     gsub(pattern = "(", replacement = "_", fixed = T) |> 
+     gsub(pattern = ")", replacement = "_", fixed = T) |> 
+     gsub(pattern = "__", replacement = "_", fixed = T) |>
+     sub(pattern = "_$", replacement = "")
+
+if(layers$theme[i] == "Ecosystem"){
+  write_json(js, path = paste0(ver, "/output_geotiffs/eco/", n, ".json"))
+}
+
+if(layers$theme[i] == "Pressure"){
+  write_json(js, path = paste0(ver, "/output_geotiffs/pres/", n, ".json"))
+}
+
+}
+```
