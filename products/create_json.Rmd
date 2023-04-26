@@ -12,33 +12,33 @@ dir.create(paste0(ver, "/output_geotiffs/pres"), recursive = T)
 ```
 
 ```{r, warning=FALSE}
-library(raster)
 library(dplyr)
 library(tidyr)
 library(rio)
-library(scales)
-library(crayon)
-library(mapview)
-library(RColorBrewer)
-library(rgdal)
 library(rjson)
 library(jsonlite)
+library(gsheet)
 
 meta <- rio::import(paste0("layer_list_", ver, ".xlsx"))
 meta$file_name[is.na(meta$file_name)] <- "placeholder.tif"
 ```
 
-# Create JSON files for metadata
+# Create JSON files for metadata - ECOSYSTEMS
 ```{r}
-layers <- rio::import(paste0("layer_list_", ver, ".xlsx"))
+layers <- gsheet2tbl("docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing") |> dplyr::filter(theme == "Ecosystem")
+#layers <- rio::import(paste0("layer_list_", ver, ".xlsx")) |> dplyr::filter(theme == "Ecosystem")
 layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
 
 js <- read_json(path = "datasetTemplate.json")
 
 #for(i in 1:nrow(layers)){
-for(i in 1:1){
+for(i in 49:49){
 
-js$name <- paste0("Spatial raster layer of ", tolower(layers$title[i]), " used in WIO Symphony tool")
+# Name, description, etc.
+js$name <- paste0("Spatial raster layer of the ", layers$title[i], " ecosystem component, used in the WIO Symphony tool")
+js$description <- layers$method_summary[i]
+js$url <- "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco"
+js$sameAs[[1]] <- ""
 
 # Keywords
 js$keywords[[1]] <- "Western Indian Ocean"
@@ -60,13 +60,16 @@ n <- tolower(n) |>
      gsub(pattern = "__", replacement = "_", fixed = T) |>
      sub(pattern = "_$", replacement = "")
 
-if(layers$theme[i] == "Ecosystem"){
-  write_json(js, path = paste0(ver, "/output_geotiffs/eco/", n, ".json"))
-}
-
-if(layers$theme[i] == "Pressure"){
-  write_json(js, path = paste0(ver, "/output_geotiffs/pres/", n, ".json"))
-}
+write_json(js, path = paste0(ver, "/output_geotiffs/eco/", n, ".json"),
+             pretty = TRUE,
+             auto_unbox = TRUE)
 
 }
+```
+
+# Create JSON files for metadata - PRESSURES
+```{r}
+layers <- gsheet2tbl("docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing") |> dplyr::filter(theme == "Pressure")
+#layers <- rio::import(paste0("layer_list_", ver, ".xlsx")) |> dplyr::filter(theme == "Ecosystem")
+layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
 ```
