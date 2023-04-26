@@ -73,3 +73,4 @@ layers <- gsheet2tbl("docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPN
 #layers <- rio::import(paste0("layer_list_", ver, ".xlsx")) |> dplyr::filter(theme == "Ecosystem")
 layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
 ```
+
