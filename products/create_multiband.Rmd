@@ -25,6 +25,8 @@ library(scales)
 library(crayon)
 library(mapview)
 library(RColorBrewer)
+library(rgdal)
+library(terra)
 
 # Import grid
 grid <- raster("grid/grid_1km_v01.1.tif")
