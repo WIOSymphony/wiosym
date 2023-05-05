@@ -170,7 +170,8 @@ glimpse(wcmc_sg)
 ```{r}
 # data1: coral data from allen atlas
 source2_dir <- source_dir <-  "./data_raw/reg/eco/bhab/allen/gk2304132229/"
-source2_id <- source_id <- "gk2304132229" # cut and past your source id here
+source2 <- source_id <- "gk2304132229" # cut and past your source id here
+
 source2_metasym <- read_tsv(paste(source_dir, source_id, "_metasym.txt", sep="")) # reads the associated metasym file
 print(source2_metasym) # check that metasym file is populated, and fix if not
 # check what data is in data_raw directory and read in all files to use from the directory:
@@ -194,7 +195,7 @@ coral_allen <- st_read(source_path)
 ```{r}
 # data4: updated coral data from allen atlas, somalia region
 source4_dir <- source_dir <-  "./data_raw/reg/eco/bh_coral/kslof/gk2302231136/"
-source4_id <- source_id <- "gk2302231136" # cut and past your source id here
+source4 <- source_id <- "gk2302231136" # cut and past your source id here
 source4_metasym <- read_tsv(paste(source_dir, source_id, "_metasym.txt", sep="")) # reads the associated metasym file
 print(source4_metasym) # check that metasym file is populated, and fix if not
 # check what data is in data_raw directory and read in all files to use from the directory:
@@ -214,7 +215,7 @@ coral_lof <- st_read(source_path)
 ```{r}
 # data5: updated coral data from allen atlas, somalia region
 source5_dir <- source_dir <-  "./data_raw/reg/eco/bh_coral/kslof/gk2304141400/"
-source5_id <- source_id <- "gk2304141400" # cut and past your source id here
+source5 <- source_id <- "gk2304141400" # cut and past your source id here
 source5_metasym <- read_tsv(paste(source_dir, source_id, "_metasym.txt", sep="")) # reads the associated metasym file
 print(source5_metasym) # check that metasym file is populated, and fix if not
 # check what data is in data_raw directory and read in all files to use from the directory:
@@ -408,6 +409,20 @@ depth_250m <- raster(data_path) # read in your data object if appropriate and pe
 
 ```
 
+## DATA 5: Saya seagrass model
+```{r}
+data5_dir <- data_dir <-  "./data/reg/eco/bh/v02/"  # input your data directory
+dir(data_dir) # check what data is in this directory
+data_file <- "Seagrass_percent_cover_Saya_model_v02.1.tif" # your data file
+data5_sourcesym <- read_tsv(paste(data_dir, data_file, "_sourcesym.txt", sep=""))
+data5_path <- data_path <- paste(data_dir, data_file, sep="")
+
+sgm_1km <- raster(data_path) # read in your data object if appropriate and perhaps change name to more informative...
+(sgm_1km)
+plot(sgm_1km)
+
+```
+
 
 ## declare number of "data" files
 ```{r}
@@ -562,7 +577,7 @@ wcmc_sg_pt_250m_r <- raster(output_path)
 ```
 
 
-## SAYA BANK  Points to 250m grid
+## SAYA BANK  Points to 250m grid  !! Not used in final map, instead a Machine learning model (eco_bh_reg_s01_model_seagrass_02.1.Rmd) was developed and intergrated futher down... 
 ### buffer points
 ```{r}
 point_sf <- saya_pt
@@ -997,60 +1012,50 @@ kslof_mapfootprint_250m_zero <- merge(kslof_habitat_250m_r_val1, grid_250m_0)
 # COMBINE seagrass 250m into one layer
 ```{r}
 
-# set path to rasters to combine
-#(indata_paths <- c(wcmc_sg_pt_250m_path, wcmc_sg_250m_masked_path, kslof_habitat_250m_path, #kslof_seagrass_250m_path, lof_habitat_250m_path, lof_seagrass_250m_path, #allen_habitat_250m_path, allen_seagrass_250m_path))
+# Had problems with code below for v02 using GdalUtil (same as in coral script)... Alternative and probably better road to go could be to write a function that sorts all files, but also worked with the merge used below.. good luck on v3! :)
 
-#(indata_paths <- c(wcmc_sg_pt_250m_path, wcmc_sg_250m_masked_path, allen_habitat_250m_path, #allen_seagrass_250m_path))
-
-
-
-
-# write empty grid for gdalutil output
-sg_250m_path <- output_path <- paste(work_path, "sg_250m_na4.tif", sep= "")
-writeRaster(grid_250m_na, output_path,  overwrite=T, COMPRESS=LZW)
-
-mosaic_r <- gdalUtils::mosaic_rasters(
-  gdalfile = c(wcmc_sg_pt_250m_path, wcmc_sg_250m_masked_path, kslof_habitat_250m_path, allen_habitat_250m_path,
-  kslof_seagrass_250m_path, lof_habitat_250m_path, lof_seagrass_250m_path, allen_seagrass_250m_path),
-  dst_dataset = output_path,
-  output.vrt = NULL,
-  output_Raster = FALSE,
-  separate = FALSE,
-  trim_margins = NULL,
-  gdalwarp_index = 1,
-  gdalwarp_params = list(r = "near"),
-  #force_ot = "Int16",
-  verbose = FALSE,
-  COMPRESS=LZW,
-)
+#new_seagrass <- grid * 0
+#for (i in 1:ncell(grid)){
+# if(wcmc[i] == 1){new_seagrass[i] == 1} else
+#  if(is.na(wcmc[i] == T)){new_seagrass[i] == NA}
+#}
 
 
-r <- raster(sg_250m_path)
-
-sg_250m_lzw_path <- output_path <- paste(work_path, "grid_250m_seagrass_combined3_lzw.tif", sep= "")
-
-writeRaster(r, output_path,  overwrite=T, datatype = 'INT4S', COMPRESS=LZW)
-sg_250m_r <- raster(output_path)
+# Mask WCMC data with footprint from higher quality maps
 
 
-sg_250m_r_zero <- merge(sg_250m_r, grid_250m_0)
+# Mosaic wcmc data with mask 
 
-sg_250m_zero_path <- output_path <- paste(work_path, "grid_250m_seagrass_combined3_zero.tif", sep= "")
-writeRaster(sg_250m_r_zero, output_path,  overwrite=T, datatype = 'INT4S', COMPRESS=LZW)
+# mosaic kslof and allen together
+r1 <- raster(allen_habitat_250m_path)
+r2 <- raster(wcmc_sg_250m_masked_path)
+r3 <- raster(wcmc_sg_pt_250m_path)
 
-sg_250m_r_zero <-raster(sg_250m_zero_path)
-plot(sg_250m_r_zero)
-```
 
-alternative way to mosaic
-```{r}
-(indata_r <- c(wcmc_sg_pt_250m_r, wcmc_sg_250m_r, kslof_habitat_250m_r, kslof_seagrass_250m_r, lof_habitat_250m_r, lof_seagrass_250m_r, allen_habitat_250m_r, allen_seagrass_250m_r))
+sg_250m_wcmc_masked_r_zero <- merge(r1, r2, r3, grid_250m_0)
 
-comb_mosaicT <- mosaic(wcmc_sg_pt_250m_r, wcmc_sg_250m_r, kslof_habitat_250m_r, kslof_seagrass_250m_r, lof_habitat_250m_r, lof_seagrass_250m_r, allen_habitat_250m_r, allen_seagrass_250m_r, fun=last)
-comb_mosaicF <- mosaic(wcmc_sg_pt_250m_r, wcmc_sg_250m_r, kslof_habitat_250m_r, kslof_seagrass_250m_r, lof_habitat_250m_r, lof_seagrass_250m_r, allen_habitat_250m_r, allen_seagrass_250m_r, fun=last, na.rm = F)
+sg_250m_wcmc_masked_r_zero_path <- output_path <- paste(work_path, "sg_250m_wcmc_merged_zero.tif", sep= "")
+writeRaster(sg_250m_wcmc_masked_r_zero, output_path,  overwrite=T, COMPRESS=LZW)
 
-wcmc_sg_pt_250m_r
+sg_250m_wcmc<- r <- raster(sg_250m_wcmc_masked_r_zero_path)
+plot(r)
 
+
+# Merge / mosaic kslof and allen together, considered equally good here, no footprint masking as in wcmc
+
+r1 <- raster(allen_seagrass_250m_path)
+r2 <- raster(kslof_seagrass_250m_path)
+r3 <- raster(lof_seagrass_250m_path)
+
+sg_250m_allenkslof_r_zero <- merge(r1, r2, r3, grid_250m_0)
+
+
+sg_250m_allenkslof_r_zero_path <- output_path <- paste(work_path, "sg_250m_allenkslof_merged_zero.tif", sep= "")
+writeRaster(sg_250m_allenkslof_r_zero, output_path,  overwrite=T, COMPRESS=LZW)
+
+sg_250m_ak <- r <- raster(sg_250m_allenkslof_r_zero_path)
+r
+plot(r)
 ```
 
 
@@ -1058,30 +1063,114 @@ wcmc_sg_pt_250m_r
 # Aggregate to 1km grid
 
 ```{r}
+sg_250m_ak <- r <- raster(sg_250m_allenkslof_r_zero_path)
 
-sg_250m_r_zero <- r <- raster(sg_250m_zero_path)
-sg_1km_proportion <- aggregate(r, fact=4, fun=sum) / 16 #4*4=16, i.e. divide by the maximum cell number to get proportions
+
+sg_1km_ak_proportion <- aggregate(r, fact=4, fun=sum) / 16 #4*4=16, i.e. divide by the maximum cell number to get proportions
 #crs(sg_1km_proportion) <- crs(grid_1km)
-(sg_1km_proportion)
-plot(sg_1km_proportion) # ready to be exported if OK
+(sg_1km_ak_proportion)
+plot(sg_1km_ak_proportion) # ready to be exported if OK
 
-r <- sg_1km_proportion
-sg_1km_proportion_path <- output_path <- paste(work_path, "grid_1km_seagrass_proportion.tif", sep= "")
+r <- sg_1km_ak_proportion
+sg_1km_proportion_path <- output_path <- paste(work_path, "grid_1km_seagrass_ak_proportion.tif", sep= "")
 writeRaster(r, output_path,  overwrite=T, datatype = 'FLT4S', COMPRESS=LZW)
 
 
 
-# adding Saya del Mahla bank data
+# WCMC to 1km
+sg_250m_wcmc <- r <- raster(sg_250m_wcmc_masked_r_zero_path)
 
-saya_1km <- raster(saya_1km_path)
 
-sg_1km_proportion_saya <- r <- sg_1km_proportion +  saya_1km/100
-sg_1km_proportion_saya_path <- output_path <- paste(work_path, "grid_1km_seagrass_proportion_saya.tif", sep= "")
+sg_1km_wcmc_proportion <- aggregate(r, fact=4, fun=sum) / 16 #4*4=16, i.e. divide by the maximum cell number to get proportions
+#crs(sg_1km_proportion) <- crs(grid_1km)
+(sg_1km_wcmc_proportion)
+plot(sg_1km_wcmc_proportion) # ready to be exported if OK
+
+r <- sg_1km_wcmc_proportion
+sg_1km_proportion_wcmc_path <- output_path <- paste(work_path, "grid_1km_seagrass_wcmc_proportion.tif", sep= "")
 writeRaster(r, output_path,  overwrite=T, datatype = 'FLT4S', COMPRESS=LZW)
 
 
-(sg_1km_proportion_saya)
-(plot(sg_1km_proportion_saya))  # "final" layer if looks good
+plot(r)
+```
+
+
+## Adjust wcmc data to high res data
+```{r}
+# 
+
+wcmc_1km <- r <- raster(sg_1km_proportion_wcmc_path)
+
+
+r[r==0]<- NA
+
+mean_wcmc <- cellStats(r, 'mean', na.rm=T)
+
+allen_1km <- r <- raster(sg_1km_proportion_path)
+
+r[r==0]<- NA
+
+mean_allen <- cellStats(r, 'mean', na.rm=T)
+
+(k <- mean_allen/mean_wcmc)
+
+
+# adjusting wcmc with k
+
+# creating adjustment layer due to cover differences between wcmc and allen data at 1km scale
+
+wcmc_adj1_1km <- wcmc_1km * (1-k)
+
+
+
+# combine wcmc with saya del Mahla bank model... take averge of both maps, hard to tell which is worse...
+
+#saya_1km <- raster(saya_1km_path)
+
+r <- sgm_1km  # seagrass model
+
+r[r==0]<- NA
+
+r
+
+r1 <- wcmc_adj1_1km
+
+r1[r1==0]<- NA
+
+
+r2 <- (r+r1)/2  # overlapping area mean value for model and wcmc
+
+plot(r2)
+
+saya_wcmc_model <- r2
+
+# merge final map together
+
+sg_wcmc_model_1km <- merge(r, r2, wcmc_adj1_1km)
+
+plot(sg_wcmc_model_1km)
+
+sg_1km <- sg_wcmc_model_1km + allen_1km
+
+
+plot(sg_1km)  # final layer
+
+
+
+
+
+
+# adding Saya del Mahla bank point data  - not used, instead model above
+
+#saya_1km <- raster(saya_1km_path)
+
+#sg_1km_proportion_saya <- r <- sg_1km_proportion +  saya_1km/100
+#sg_1km_proportion_saya_path <- output_path <- paste(work_path, "grid_1km_seagrass_proportion_saya.tif", sep= "")
+#writeRaster(r, output_path,  overwrite=T, datatype = 'FLT4S', COMPRESS=LZW)
+
+
+#(sg_1km_proportion_saya)
+#(plot(sg_1km_proportion_saya))  # "final" layer if looks good
 
 
 
@@ -1090,18 +1179,18 @@ writeRaster(r, output_path,  overwrite=T, datatype = 'FLT4S', COMPRESS=LZW)
 # Map final layers to 1km standard grid with 0 values
 ```{r}
 
-sg_1km_proportion_zero <- merge(sg_1km_proportion_saya, grid_1km_0)
+#sg_1km_proportion_zero <- merge(sg_1km_proportion_saya, grid_1km_0)
 
 #sg_1km_proportion_relativefootprint_zero <- merge(.., grid_1km_o) # have not done this version yet... only for corals for now. 
 
-plot(sg_1km_proportion_zero)
+#plot(sg_1km_proportion_zero)
 
 # adjust double counting of points (saya) and polygons (wcmc) >1
 
-r <- sg_1km_proportion_zero
-r[r>=1] <- 1
+#r <- sg_1km_proportion_zero
+#r[r>=1] <- 1
 
-sg_1km_proportion_zero <- r
+#sg_1km_proportion_zero <- r
  
 ```
 
@@ -1110,16 +1199,16 @@ sg_1km_proportion_zero <- r
 
 #sg_250m_zero <- merge(sg_250m_r, grid_250m_0)
 
-sg_250m_zero <- raster(sg_250m_zero_path)
+#sg_250m_zero <- raster(sg_250m_zero_path)
 
-plot(sg_250m_zero)
+#plot(sg_250m_zero)
 
 
 ```
 
 
 ```{r}
-r <- raster("./data/reg/eco/bh/v02/proc/seagrass_1km_sayamodel_addedpoints_percent_crop_lzw.tif")
+r <- sg_1km
 
 #plot(raster(dstfile))
 # Final check that all is good...
@@ -1133,11 +1222,9 @@ r
 seagrass_1km <- r
 
 
-writeRaster(seagrass_1km , paste("./data/reg/eco/bh/v02/proc/", "seagrass_1km_sayamodel_percent_addedpoints.tif", sep=""), overwrite=F, COMPRESS=LZW)
-
-seagrass_1km <- raster(paste("./data/reg/eco/bh/v02/proc/", "seagrass_1km_sayamodel_percent_addedpoints.tif", sep=""))
-
+writeRaster(seagrass_1km , paste("./data/reg/eco/bh/v02/proc/", "seagrass_1km.tif", sep=""), overwrite=F, COMPRESS=LZW)
 ```
+
 
 
 #==========================================================================================================================#
@@ -1148,7 +1235,7 @@ seagrass_1km <- raster(paste("./data/reg/eco/bh/v02/proc/", "seagrass_1km_sayamo
 
 
 # SOURCESYM
-Create sourcesym file with all source IDs used (data and data_raw) 
+#Create sourcesym file with all source IDs used (data and data_raw) 
 ### data raw sources (dir)
 ```{r}
 print(paste("data_raw metasym files used = ", data_raw_metasym_num, sep=""))
@@ -1157,7 +1244,7 @@ print(paste("data_raw metasym files used = ", data_raw_metasym_num, sep=""))
 ### data sources (files)
 ```{r}
 print(paste("data_sourcym files = ", data_sourcesym_num, sep=""))
-data_sources <- data4_sourcesym %>% # add any "sourcesym" files applicable to this product (check indata section), keep adding sourcesym files as needed
+data_sources <- data5_sourcesym %>% # add any "sourcesym" files applicable to this product (check indata section), keep adding sourcesym files as needed
   #add_row(data2_sourcesym)%>%  
   #add_row(data3_sourcesym)%>% 
   #add_row(data4_sourcesym)%>% 
@@ -1176,7 +1263,7 @@ if a product only use a subset of the total sources, copy the section above and 
 # PRODUCT 1: SG 1km
 read objects
 ```{r}
-product_orig <- sg_1km_proportion_zero # input and check your object to be written to file
+product_orig <- seagrass_1km # input and check your object to be written to file
 plot(product_orig)
 ```
 set names
@@ -1206,24 +1293,24 @@ write_tsv(all_sources, paste(product_orig_path, "_sourcesym.txt", sep=""))
 ```
 
 
-# PRODUCT 2: SG 250m 
+# PRODUCT 2: SG 250m - not year done for v2... check
 ```{r}
-product_orig <- sg_250m_zero # input and check your object to be written to file
-plot(product_orig)
+#product_orig <- sg_250m_zero # input and check your object to be written to file
+#plot(product_orig)
 
-scale <- "250m" # "1km" / "250m"
-unit <- "presence"  # add unit for product with original values (e.g. m, km, perc, presence, proportion
+#scale <- "250m" # "1km" / "250m"
+#unit <- "presence"  # add unit for product with original values (e.g. m, km, perc, presence, proportion
 
-descriptive_name <- "seagrass_bed"  # name of product, for pressure/ecosystem components select from name list above
+#descriptive_name <- "seagrass_bed"  # name of product, for pressure/ecosystem components select from name list above
 
-(product_orig_path <- paste(dest_path, descriptive_name, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+#(product_orig_path <- paste(dest_path, descriptive_name, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
 
 ```
 Write to file
 ```{r}
 # check datatype to be appropriate for values (flt or int, 'INT4S' option to..)
-writeRaster(product_orig, product_orig_path, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
-write_tsv(all_sources, paste(product_orig_path, "_sourcesym.txt", sep=""))  
+#writeRaster(product_orig, product_orig_path, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
+#write_tsv(all_sources, paste(product_orig_path, "_sourcesym.txt", sep=""))  
 ```
 
 

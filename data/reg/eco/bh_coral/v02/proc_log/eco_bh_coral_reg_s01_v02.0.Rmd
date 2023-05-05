@@ -1,0 +1,1491 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+# ========================================================================================================= #
+## IMPORTANT - To get started:
+Because this script is an R Markdown script, the default directory is the location of this .Rmd file.
+You must open this script from within the .Rproj file associated with your wiosym database for it to work.
+If you haven't used R notebooks before (.Rmd), each of the code "chunks" can be executed by clicking the green play
+button at the top right of the chunk.
+
+To run the script from the project directory, in R Studio, you need to go to: Tools > Global Options > R Markdown
+and set "Evaluate chunks in directory" to "Project", though for latest version of R/Rstudio it may not be needed...
+# ========================================================================================================= #
+# ABOUT
+# ========================================================================================================= #
+## Brief description: 
+Coral components, shallow (assuming none of the current data sources represent deeper then ~40m reefs).
+The code combines multiple data sources for corals, taking in account the resolution and quality of each code to try and produce as harmonised proportional data of coral reefs at 1km scale. the current layer does not consider live coral cover, just the presence of coral reef, live or dead..
+
+Script is using gdal engine to cope with massive vector data (especially Allen Coral Atlas data), and large rasters, this will likely have to be rewritten in future version into terra or stars package since R is moving away from the raster package, and gdal is depreciated by R, though still works for R 4.1 
+
+## Scripts/processes that needs to be updated prior?: 
+## Suggestions on future improvements: 
+## Created: 
+gk, sgu 2021
+## Updated: 
+gk, sgu, 230417, adding new data from coral atlas (v2)
+## Developer check: Initial, org, yymmdd, comments
+## External check: Initial, org, yymmdd, comments
+# ========================================================================================================= #
+### INSTRUCTIONS
+# ========================================================================================================= #    
+# Style
+  # Write code that is easy to follow and repeat.
+  # Suggested R style is tidyverse. Style guide here https://style.tidyverse.org/index.html
+
+# Metadata
+  # All indata from "data_raw" must have a unique ID with *_metasym.txt file to go along, check before you add data.
+  # All indata from and outputs to "data" must have a *_sourcesym.txt file with all (accumulated) sourceIDs used to create the layer.
+  # The metasym files and tracking of those in the sourcesym files ensures correct sources for products and ISO metadata. This template helps you get it right..
+  
+# Naming and folders
+  # Predefined standard names for main/sub folders and final products in two text files that can be added to in need.
+  # ..\shiny_data_upload\modify_txt_files_v01.2.xlsx and ..\process\templates\modify_txt_files_data_v01.0.xlsx
+  # Main version (e.g. v01 for 2021) follows dev cycles for all WIO Symphony. For version control within v01 use V01.1, V01.2 etc..
+  # More code/instructions to standardize folders and names under "set destinations" section
+  # Each product dir have a "proc" folder. It's the temp space where all workfiles are stored. No final products here.  
+  # All final products are stored under the root folder (e.g. ..\data\reg\eco\bh_coral\v01) together with 
+  # a nameofmyfile_sourcesym.txt file with all source IDs used. No other files here. move products to _archive\ dir if defunct 
+# ========================================================================================================= # 
+# PREPARATIONS
+# ========================================================================================================= #
+
+```{r}
+x <- c("tidyverse", "sf", "raster", "rgdal", "fasterize", "labelled", "gdalUtils", "foreign")
+#install.packages(x, dependencies=TRUE)
+                                            
+library(tidyverse)
+library(sf)
+library(raster)
+library(rgdal)
+library(labelled)
+library(gdalUtils)
+library(foreign) # write dbf 
+```
+
+## Set version
+```{r}
+version = "v02" # relates to major iteration of WIOSym (v01 for grid 2021, v02 for grid 2022)
+d_version = ".0"  # detailed version (you can add another level e.g. 0.0  -> v01.0.0)
+seq = "s01" # sequential order - change accordingly if process is run in several scripts
+```
+
+## Set geographic scope
+```{r}
+read_tsv("./shiny_data_upload/locations.txt")  # prints available locations to choose from and their abbreviations
+```
+
+```{r}
+location = "reg" # choose applicable 3 letter abbreviation from "location_val" -  reg for whole WIO area
+```
+
+## Set main theme
+```{r}
+folders_raw <- read_tsv("./shiny_data_upload/folders.txt")
+folders_data <- read_tsv("./shiny_data_upload/folders_data.txt") # additional folders for data not applicable for data_raw 
+folders <- folders_raw %>% add_row(folders_data)
+(unique(folders["theme_folder"]))
+```
+
+```{r}
+theme <- "eco" # Copy from "theme_folder" (e.g. "eco")
+```
+
+## Set Subtheme
+```{r}
+folders %>%
+  filter(theme_folder == theme) %>% 
+  dplyr::select(subtheme_folder, subtheme_name) %>% 
+  print(n = Inf)
+```
+
+```{r}
+subtheme <- "bh_coral" # copy from "subtheme_folder"
+```
+
+## Set paths
+```{r}
+(dest_path <- paste("./data", location, theme, subtheme, version, "", sep="/")) # path to final product
+(work_path <- paste(dest_path, "proc/", sep=""))
+(proc_path <- paste(dest_path, "proc_log/", sep=""))
+(archive_path <- paste(dest_path, "_archive/", sep=""))
+(script_path <- "./process/r/")
+```
+
+## Create directories
+```{r}
+dir.create(dest_path, recursive = TRUE)
+dir.create(work_path, recursive = TRUE)
+dir.create(proc_path, recursive = TRUE)
+dir.create(archive_path, recursive = TRUE)
+dir.create(script_path, recursive = TRUE)
+```
+
+## Save R Script
+```{r}
+name1 <- "" # "REPLACE_" if script need additional name... don't use unless needed to avoid duplication.
+(script_path_windows <- paste(getwd(), "/process/r", sep=""))
+(script_name <- paste(theme, "_", subtheme,"_", location, "_", name1, seq, "_", version, ".Rmd", sep=""))
+```
+ # copy path and name and use File/Save As in R studio to save rmd file
+ 
+#==========================================================================================================================#
+# INDATA
+#==========================================================================================================================#
+
+# Set DATA_RAW sources
+IMPORTANT all data harvested from data_raw needs to have a metasym.txt file in its root directory (not file specific)
+##DIR1 Allen Coral
+```{r}
+# data1: coral data from allen atlas
+source1_dir <- source_dir <-  "./data_raw/reg/eco/bhab/allen/gk2304132229/"
+source1_id <- source_id <- "gk2304132229" # cut and past your source id here
+source1_metasym <- read_tsv(paste(source_dir, source_id, "_metasym.txt", sep="")) # reads the associated metasym file
+print(source1_metasym) # check that metasym file is populated, and fix if not
+# check what data is in data_raw directory and read in all files to use from the directory:
+```
+
+```{r}
+#File1: Allen coral data
+dir(source_dir) # check what data is in data_raw directory
+#source_file <- "Benthic-Map/benthic.gpkg" # your data file(s)
+source_file <- "Benthic-Map/benthic.geojson" # your data file(s)
+source1_path1 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_allen <- st_read(source_path)
+#coral_sf_full
+```
+## DIR2 wcmc
+```{r}
+# data2: wcmc
+source2_dir <- source_dir <-  "./data_raw/glo/eco/bh_coral/wcmc/gk2105272129/"
+source2_id <- source_id <- "gk2105272129" # cut and past your source id here
+source2_metasym <- read_tsv(paste(source_dir, source_id, "_metasym.txt", sep="")) # reads the associated metasym file
+source2_metasym # check that metasym file is populated, and fix if not
+# check what data is in data_raw directory and read in all files to use from the directory:
+dir(source_dir, recursive=T) 
+#File1: wcmc coral data
+source_file <- "01_Data/WCMC008_CoralReef2018_Py_v4_1.shp"  # your data file(s)
+source2_path1 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_wcmc <- st_read(source_path)
+coral_wcmc
+```
+
+
+## DIR3 African Marine Atlas data - retrieved through Ocean Info HUB - Madagascar 2008
+```{r}
+# data3: African Marine Atlas data
+source3_dir <- source_dir <-  "./data_raw/reg/eco/bh_coral/ama/gk2304031925/"
+source3_id <- source_id <- "gk2304031925" # cut and past your source id here
+source3_metasym <- read_tsv(paste(source_dir, source_id, "_metasym.txt", sep="")) # reads the associated metasym file
+print(source3_metasym) # check that metasym file is populated, and fix if not
+# check what data is in data_raw directory and read in all files to use from the directory:
+```
+
+```{r}
+#File1: Madagascar coral polygons 2008
+dir(source_dir) # check what data is in data_raw directory
+source_file <- "test_recif-p_dd.shp" # your data file(s)
+source3_path1 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_ama <- st_read(source_path)
+#coral_sf_full
+```
+
+## DIR4 Living Oceans Fundation (Chagos)
+```{r}
+# data4: updated coral data from allen atlas, somalia region
+source4_dir <- source_dir <-  "./data_raw/reg/eco/bh_coral/kslof/gk2302231136/"
+source4_id <- source_id <- "gk2302231136" # cut and past your source id here
+source4_metasym <- read_tsv(paste(source_dir, source_id, "_metasym.txt", sep="")) # reads the associated metasym file
+print(source4_metasym) # check that metasym file is populated, and fix if not
+# check what data is in data_raw directory and read in all files to use from the directory:
+```
+
+```{r}
+#File1: Living Ocean Foundation data - Chagos
+dir(source_dir, recursive=T) # check what data is in data_raw directory
+source_file <- "KSLOF-GISPackage-WIO/BIOT-PB/Habitats/BIOTPB_20171117_Habitat_Classes_Consolidated.shp" # your data file(s)
+source4_path1 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_lof <- st_read(source_path)
+#coral_sf_full
+```
+
+## DIR5 Living Oceans Fundation (Seyshelles)
+```{r}
+# data5: updated coral data from allen atlas, somalia region
+source5_dir <- source_dir <-  "./data_raw/reg/eco/bh_coral/kslof/gk2304141400/"
+source5_id <- source_id <- "gk2304141400" # cut and past your source id here
+source5_metasym <- read_tsv(paste(source_dir, source_id, "_metasym.txt", sep="")) # reads the associated metasym file
+print(source5_metasym) # check that metasym file is populated, and fix if not
+# check what data is in data_raw directory and read in all files to use from the directory:
+```
+
+```{r}
+#File1: Living Ocean Foundation data - Seychelles
+dir(source_dir, recursive=T) # check what data is in data_raw directory
+source_file <- "KSLOF-GISPackage-WIO/Seychelles/Vector datasets/african_banks.shp" # your data file(s)
+source5_path1 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_kslof1 <- st_read(source_path)
+
+source_file <- "KSLOF-GISPackage-WIO/Seychelles/Vector datasets/alphonse.shp" # your data file(s)
+source5_path2 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_kslof2 <- st_read(source_path)
+
+source_file <- "KSLOF-GISPackage-WIO/Seychelles/Vector datasets/bijoutier_stFrancois.shp" # your data file(s)
+source5_path3 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_kslof3 <- st_read(source_path)
+
+source_file <- "KSLOF-GISPackage-WIO/Seychelles/Vector datasets/boudeuse.shp" # your data file(s)
+source5_path4 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_kslof4 <- st_read(source_path)
+
+source_file <- "KSLOF-GISPackage-WIO/Seychelles/Vector datasets/darros.shp" # your data file(s)
+source5_path5 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_kslof5 <- st_read(source_path)
+
+source_file <- "KSLOF-GISPackage-WIO/Seychelles/Vector datasets/desnoeufs.shp" # your data file(s)
+source5_path6 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_kslof6 <- st_read(source_path)
+
+source_file <- "KSLOF-GISPackage-WIO/Seychelles/Vector datasets/etoile.shp" # your data file(s)
+source5_path7 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_kslof7 <- st_read(source_path)
+
+source_file <- "KSLOF-GISPackage-WIO/Seychelles/Vector datasets/marieLouise.shp" # your data file(s)
+source5_path8 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_kslof8 <- st_read(source_path)
+
+
+source_file <- "KSLOF-GISPackage-WIO/Seychelles/Vector datasets/poivre.shp" # your data file(s)
+source5_path9 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_kslof9 <- st_read(source_path)
+
+source_file <- "KSLOF-GISPackage-WIO/Seychelles/Vector datasets/remire.shp" # your data file(s)
+source5_path10 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_kslof10 <- st_read(source_path)
+
+source_file <- "KSLOF-GISPackage-WIO/Seychelles/Vector datasets/sand_cay.shp" # your data file(s)
+source5_path11 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_kslof11 <- st_read(source_path)
+
+source_file <- "KSLOF-GISPackage-WIO/Seychelles/Vector datasets/st_joseph.shp" # your data file(s)
+source5_path12 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_kslof12 <- st_read(source_path)
+
+#coral_sf_full
+```
+
+
+
+
+
+
+
+## Number of "data_raw" directorys?
+```{r}
+data_raw_metasym_num <- 5 # set total number of data_raw dir used (e.g. <- 1), to help in export section
+```
+
+# DATA sources
+IMPORTANT Products in data are based on information in data_raw. Check that *_sourcesym.txt exists for each file to track acccumulated IDs. 
+
+## DATA1: Grid 1km - loading all flavours (watermask 1, 0, NA) at once since same sourcesym apply
+```{r}
+data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
+dir(data_dir) # check what data is in this directory
+
+data1_file <- "grid_1km_v01.1.tif" 
+data1_file2 <- "grid_1km_0_v01.1.tif" 
+data1_file3 <- "grid_1km_na_v01.1.tif" 
+
+(grid_1km <- raster(paste(data_dir, data1_file, sep=""))) # read and check your data
+(grid_1km_0 <- raster(paste(data_dir, data1_file2, sep=""))) # read and check your data
+(grid_1km_na <- raster(paste(data_dir, data1_file3, sep=""))) # read and check your data
+
+data1_sourcesym <- read_tsv(paste(data_dir, data1_file, "_sourcesym.txt", sep=""))
+# check that source IDs exists and make sense
+
+plot(grid_1km)
+```
+
+## DATA2: Grid 250m - loading all flavours (watermask 1, 0, NA) at once since same sourcesym apply
+```{r}
+data2_dir <- data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
+
+data2_file <- "grid_250m_v01.1.tif" # your data file
+data2_file2 <- "grid_250m_0_v01.1.tif" # your data file
+data2_file3 <- "grid_250m_na_v01.1.tif" # your data file
+
+(grid_250m <- raster(paste(data_dir, data2_file, sep=""))) # read and check your data
+(grid_250m_0 <- raster(paste(data_dir, data2_file2, sep=""))) # read and check your data
+(grid_250m_na <- raster(paste(data_dir, data2_file3, sep=""))) # read and check your data
+
+(data2_sourcesym <- read_tsv(paste(data_dir, data2_file, "_sourcesym.txt", sep="")))
+# check so source IDs exists and make sense
+# check that source IDs exists and make sense
+#plot(grid_250m)
+```
+
+
+## DATA 3: bounding box shapefile
+```{r}
+data3_dir <- data_dir <-  "./data/reg/grid/scope/v01/"  # input your data directory
+
+data3_file <- "wiosym_grid_bounding_box_v01.shp" # your data file
+
+data3_sourcesym <- read_tsv(paste(data_dir, data3_file, "_sourcesym.txt", sep=""))
+#data3_sourcesym # check so source IDs exists and make sense - ok for these
+data3_path <- data_path <- paste(data_dir, data3_file, sep="")
+
+grid_poly <- st_read(data_path) # read in your data object if appropriate and perhaps change name to more informative...
+#grid_poly
+#plot(grid_poly)
+```
+
+
+```{r}
+# data6: mangrove
+#data6_dir <- data_dir <-  "./data/reg/eco/ch_mangrove/v01/"  # input your data directory
+#dir(data_dir) # check what data is in this directory
+#data_file <- "eco_ch_mangrove_1km_combined_presence_v01.0.tif" # your data file
+#data6_sourcesym <- read_tsv(paste(data_dir, data_file, "_sourcesym.txt", sep=""))
+#data6_sourcesym # check so source IDs exists and make sense
+#data6_path <- data_path <- paste(data_dir, data_file, sep="")
+#data_path
+#Mangrove_1km <- raster(data_path) # read in your data object if appropriate and perhaps change name to more informative...
+#plot(Mangrove_1km)
+```
+
+```{r}
+# data7: depth
+#data7_dir <- data_dir <-  "./data/reg/env/topo/v01/"  # input your data directory
+#dir(data_dir) # check what data is in this directory
+#data_file <- "bathymetry_mean_m_1km_v01.1.tif" # your data file
+#data7_sourcesym <- read_tsv(paste(data_dir, data_file, "_sourcesym.txt", sep=""))
+#data7_sourcesym # check so source IDs exists and make sense
+#data7_path <- data_path <- paste(data_dir, data_file, sep="")
+#data_path
+#depth_1km <- raster(data_path) # read in your data object if appropriate and perhaps change name to more informative...
+#plot(depth_1km)
+```
+
+
+# declare number of "data" files
+```{r}
+data_sourcesym_num <- 3 # REPLACE - set total number of data files (e.g. <- 2), to help in export section
+```
+
+#==========================================================================================================================#
+### PROCESSING
+#==========================================================================================================================#
+# Allen coral FILE1 from shape to raster grid 
+```{r}
+coral_sf <- coral_allen
+glimpse(coral_sf)
+(coral_sf)
+#unique(coral_sf$class)
+#class(coral_sf)
+```
+
+## Allen 1. Coral only - Select coral polygons and convert to raster (next chunk)
+```{r}
+# combine into one file
+
+# select coral class
+selected_sf <- coral_sf %>%
+  filter(class=="Coral/Algae") %>% 
+  #  mutate(class_code=class) %>% 
+  mutate(class_code = recode(class, "Coral/Algae" = "1")) %>% 
+  mutate(class_code = as.numeric(class_code))
+#  recode(class_code, "Coral/Algae" = 1)
+
+glimpse(selected_sf)
+```
+
+```{r}
+#write coral file to work directory for gdalutil
+input_path <- paste(work_path, "temp_allen1.shp", sep="")
+input_path
+
+st_write(selected_sf,input_path, append=FALSE) 
+
+allen1_coral_250m_path <- output_path <- paste(work_path, "grid_250m_allen1_coral.tif", sep= "")
+output_path
+
+writeRaster(grid_250m_na, output_path,  overwrite=T, COMPRESS=LZW)
+
+# 250m grid mapping
+coral_warp <- gdalUtils::gdal_rasterize(src_datasource = input_path,
+                                        dst_filename = output_path,
+                                        b = 1,
+                                        at = T,
+                                        a = "class_code",
+                                        output_Raster = TRUE,
+)
+
+r <- raster(output_path)
+allen1_coral_250m_path <- output_path <- paste(work_path, "grid_250m_allen1_coral_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'INT4S', COMPRESS=LZW)
+allen1_coral_250m_r <- raster(output_path)
+
+allen1_coral_250m_zero <- merge(allen1_coral_250m_r, grid_250m_0)
+plot(allen1_coral_250m_zero)
+
+```
+
+## Allen 1. Seagrass  - not needed for the coral layer, only here to enable faster work with seagrass layer later on...
+```{r}
+# combine into one file
+coral_sf <- coral_allen
+# select coral class
+selected_sf <- coral_sf %>%
+  filter(class=="Seagrass") %>% 
+  #  mutate(class_code=class) %>% 
+  mutate(class_code = recode(class, "Seagrass" = "1")) %>% 
+  mutate(class_code = as.numeric(class_code))
+#  recode(class_code, "Coral/Algae" = 1)
+
+glimpse(selected_sf)
+```
+
+```{r}
+#write coral file to work directory for gdalutil
+input_path <- paste(work_path, "temp_allen1_seagrass.shp", sep="")
+input_path
+
+st_write(selected_sf,input_path, append=FALSE) 
+
+allen1_seagrass_250m_path <- output_path <- paste(work_path, "grid_250m_allen1_seagrass.tif", sep= "")
+output_path
+
+writeRaster(grid_250m_na, output_path,  overwrite=T, COMPRESS=LZW)
+
+# 250m grid mapping
+coral_warp <- gdalUtils::gdal_rasterize(src_datasource = input_path,
+                                        dst_filename = output_path,
+                                        b = 1,
+                                        at = T,
+                                        a = "class_code",
+                                        output_Raster = TRUE,
+)
+
+rm(coral_warp)
+r <- raster(output_path)
+allen1_seagrass_250m_path <- output_path <- paste(work_path, "grid_250m_allen1_seagrass_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'INT4S', COMPRESS=LZW)
+allen1_seagrass_250m_r <- raster(output_path)
+```
+
+## Allen 1. Map footprint - shape to raster grid 
+```{r}
+coral_sf <- coral_allen
+#glimpse(coral_sf)
+#unique(coral_sf$class)
+#class(coral_sf)
+
+#Select only coral polygons
+
+selected_sf <- coral_sf %>%
+  filter(class!="Unknown") %>% 
+  #  mutate(class_code=class) %>% 
+  mutate(class_code = recode(class, "Coral/Algae" = "0", "Rubble" = "0", "Microalgal Mats" = "0", "Seagrass" = "0", "Rock"="0", "Sand"="0")) %>% 
+  mutate(class_code = as.numeric(class_code))
+#  recode(class_code, "Coral/Algae" = 1)
+
+(glimpse(selected_sf))
+
+# convertion from coral shape to raster 
+
+#write habitat file to work directory for gdalutil
+input_path <- paste(work_path, "temp_allen_footprint.shp", sep= "")
+
+st_write(selected_sf,input_path, append=FALSE) 
+
+# write empty grid for gdalutil work
+allen1_habitat_250m_path <- output_path <- paste(work_path, "grid_250m_allen1_habitat.tif", sep= "")
+
+writeRaster(grid_250m_na, output_path,  overwrite=T, COMPRESS=LZW)
+
+# 250m grid mapping
+coral_warp <- gdalUtils::gdal_rasterize(src_datasource = input_path,
+                                        dst_filename = output_path,
+                                        b = 1,
+                                        at = T,
+                                        a = "class_code",
+                                        output_Raster = TRUE,
+)
+
+r <- raster(output_path)
+allen1_habitat_250m_path <- output_path <- paste(work_path, "grid_250m_allen1_habitat_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'INT4S', COMPRESS=LZW)
+allen1_habitat_250m_r <- raster(output_path)
+
+
+
+# change map footprint value from 0 to 1 in order to summarize footprints
+
+allen_habitat_250m_r_val1 <- r <- reclassify(allen1_habitat_250m_r, cbind(0, 1))
+
+allen_habitat_250m_val1_path <- output_path <- paste(work_path, "grid_250m_allen_habitat_val1_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'INT4S', COMPRESS=LZW)
+
+allen_habitat_250m_r_val1 <- raster(output_path)
+
+allen_mapfootprint_250m_zero <- merge(allen_habitat_250m_r_val1, grid_250m_0)
+
+```
+
+
+# WCMC coral - shape to raster 250m grid 
+```{r}
+
+coral_sf <- coral_wcmc
+#glimpse(coral_sf)
+#unique(coral_sf$METADATA_I)
+#class(coral_sf)
+
+coral_sf_sel1 <- coral_sf %>%
+  #  filter(class=="Coral/Algae") %>% 
+  #  mutate(class_code=class) %>% 
+  #  mutate(class_code = recode(class, "Coral/Algae" = "1")) %>% 
+  mutate(class_code = 1)
+#  recode(class_code, "Coral/Algae" = 1)
+
+#glimpse(coral_sf_sel1)
+
+
+# convertion from coral shape to raster 
+
+#write coral file to work directory for gdalutil
+input_path <- paste(work_path, "temp_wcmc.shp", sep= "")
+st_write(coral_sf_sel1, input_path, append=FALSE)
+
+
+# write empty grid for gdalutil work
+wcmc_coral_250m_path <- output_path <- paste(work_path, "grid_250m_coral_wcmc.tif", sep= "")
+writeRaster(grid_250m_na, output_path,  overwrite=T, COMPRESS=LZW)
+
+# 250m grid mapping
+coral_warp <- gdalUtils::gdal_rasterize(src_datasource = input_path,
+                                        dst_filename = output_path,
+                                        b = 1,
+                                        at = T,
+                                        a = "class_code",
+                                        output_Raster = TRUE,
+)
+
+r <- raster(output_path)
+wcmc_coral_250m_path <- output_path <- paste(work_path, "grid_250m_coral_wcmc_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'INT4S', COMPRESS=LZW)
+wcmc_coral_250m_r <- raster(output_path)
+
+
+wcmc_coral_250m_zero <- merge(wcmc_coral_250m_r, grid_250m_0)
+
+
+```
+# African Marine Atlas (ama) Madagascar 2008 coral - shape to raster 250m grid 
+```{r}
+
+coral_sf <- coral_ama
+#glimpse(coral_sf)
+#unique(coral_sf$METADATA_I)
+#class(coral_sf)
+
+coral_sf_sel1 <- coral_sf %>%
+  #  filter(class=="Coral/Algae") %>% 
+  #  mutate(class_code=class) %>% 
+  #  mutate(class_code = recode(class, "Coral/Algae" = "1")) %>% 
+  mutate(class_code = 1)
+#  recode(class_code, "Coral/Algae" = 1)
+
+#glimpse(coral_sf_sel1)
+
+
+# convertion from coral shape to raster 
+
+#write coral file to work directory for gdalutil
+input_path <- paste(work_path, "temp_ama.shp", sep= "")
+st_write(coral_sf_sel1, input_path, append=FALSE)
+
+
+# write empty grid for gdalutil work
+ama_coral_250m_path <- output_path <- paste(work_path, "grid_250m_coral_ama.tif", sep= "")
+writeRaster(grid_250m_na, output_path,  overwrite=T, COMPRESS=LZW)
+
+# 250m grid mapping
+coral_warp <- gdalUtils::gdal_rasterize(src_datasource = input_path,
+                                        dst_filename = output_path,
+                                        b = 1,
+                                        at = T,
+                                        a = "class_code",
+                                        output_Raster = TRUE,
+)
+
+r <- raster(output_path)
+ama_coral_250m_path <- output_path <- paste(work_path, "grid_250m_coral_ama_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'INT4S', COMPRESS=LZW)
+ama_coral_250m_r <- raster(output_path)
+
+
+ama_coral_250m_zero <- merge(ama_coral_250m_r, grid_250m_0)
+
+
+```
+
+
+# KSLOF.Chagos- Coral only - Select coral polygons and convert to raster (next chunk)
+```{r}
+# combine into one file
+coral_sf <- coral_lof
+# select coral class
+
+(classes_lof <- coral_sf %>% distinct(Class_name))
+
+# selecting classes that likely contain coral reef
+selected_classes <- c("coralline algal ridge (reef crest)", "back reef coral framework", "back reef coral bommies",  "deep fore reef slope", "lagoonal pinnacle reefs - massive coral dominated", "lagoonal pinnacle reefs - branching coral dominated", "shallow fore reef slope", "lagoonal fringing reefs", "lagoonal patch reefs", "lagoonal floor - coral bommies", "shallow fore reef terrace")
+
+selected_sf <- coral_sf %>%
+  filter(Class_name %in% selected_classes) %>% 
+  #  mutate(class_code=class) %>% 
+  mutate(class_code = 1)
+#  recode(class_code, "Coral/Algae" = 1)
+
+
+# check all coral classes are included...
+(class_selected <- distinct(selected_sf, Class_name))
+glimpse(selected_sf)
+```
+
+```{r}
+#write coral file to work directory for gdalutil
+input_path <- paste(work_path, "temp_lof.shp", sep="")
+input_path
+
+st_write(selected_sf,input_path, append=FALSE) 
+
+lof_coral_250m_path <- output_path <- paste(work_path, "grid_250m_lof_coral.tif", sep= "")
+output_path
+
+writeRaster(grid_250m_na, output_path,  overwrite=T, COMPRESS=LZW)
+
+# 250m grid mapping
+coral_warp <- gdalUtils::gdal_rasterize(src_datasource = input_path,
+                                        dst_filename = output_path,
+                                        b = 1,
+                                        at = T,
+                                        a = "class_code",
+                                        output_Raster = TRUE,
+)
+
+r <- raster(output_path)
+lof_coral_250m_path <- output_path <- paste(work_path, "grid_250m_lof_coral_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'INT4S', COMPRESS=LZW)
+lof_coral_250m_r <- raster(output_path)
+
+lof_coral_250m_zero <- merge(lof_coral_250m_r, grid_250m_0)
+
+```
+
+
+## KSLOF.Chagos. Map footprint - shape to raster grid 
+```{r}
+coral_sf <- coral_lof
+
+(classes_lof) #<- coral_sf %>% distinct(Class_name))
+
+# selecting classes that likely contain coral reef
+deselected_classes <- c("deep ocean water", "deep lagoonal water", "Clouds")
+
+selected_sf <- coral_sf %>%
+  filter(!Class_name %in% deselected_classes) %>% 
+  #  mutate(class_code=class) %>% 
+  mutate(class_code = 0)
+#  recode(class_code, "Coral/Algae" = 1)
+
+
+# check all coral classes are included...
+(class_selected_lof_habitat <- distinct(selected_sf, Class_name))
+glimpse(selected_sf)
+
+# convertion from coral shape to raster 
+
+#write habitat file to work directory for gdalutil
+input_path <- paste(work_path, "temp_lof_footprint.shp", sep= "")
+
+st_write(selected_sf,input_path, append=FALSE) 
+
+# write empty grid for gdalutil work
+lof_habitat_250m_path <- output_path <- paste(work_path, "grid_250m_lof_habitat.tif", sep= "")
+
+writeRaster(grid_250m_na, output_path,  overwrite=T, COMPRESS=LZW)
+
+# 250m grid mapping
+coral_warp <- gdalUtils::gdal_rasterize(src_datasource = input_path,
+                                        dst_filename = output_path,
+                                        b = 1,
+                                        at = T,
+                                        a = "class_code",
+                                        output_Raster = TRUE,
+)
+
+r <- raster(output_path)
+lof_habitat_250m_path <- output_path <- paste(work_path, "grid_250m_lof_habitat_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'INT4S', COMPRESS=LZW)
+lof_habitat_250m_r <- raster(output_path)
+
+
+# change map footprint value from 0 to 1 in order to summarize footprints
+
+lof_habitat_250m_r_val1 <- r <- reclassify(lof_habitat_250m_r, cbind(0, 1))
+
+lof_habitat_250m_val1_path <- output_path <- paste(work_path, "grid_250m_lof_habitat_val1_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'INT4S', COMPRESS=LZW)
+
+lof_habitat_250m_r_val1 <- raster(output_path)
+
+lof_mapfootprint_250m_zero <- merge(lof_habitat_250m_r_val1, grid_250m_0)
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+# KSLOF. Seychelles - Coral only - Select coral polygons and convert to raster (next chunk)
+```{r}
+# combine into one file
+#kslof_list <- c(coral_kslof1, coral_kslof2, coral_kslof3, coral_kslof4, coral_kslof5, coral_kslof6, coral_kslof7, coral_kslof8, coral_kslof9, coral_kslof10, #coral_kslof11, coral_kslof12)
+
+# select common attributes (gridcode, habitat) and combine into one sf object
+names(coral_kslof1)
+
+coral_kslof_1 <- coral_kslof1 %>% dplyr::select(GRIDCODE, Habitat) 
+coral_kslof_2 <- coral_kslof2 %>% dplyr::select(GRIDCODE, Habitat) 
+coral_kslof_3 <- coral_kslof3 %>% dplyr::select(GRIDCODE, Habitat) 
+coral_kslof_4 <- coral_kslof4 %>% dplyr::select(GRIDCODE, Habitat) 
+coral_kslof_5 <- coral_kslof5 %>% dplyr::select(GRIDCODE, Habitat) 
+coral_kslof_6 <- coral_kslof6 %>% dplyr::select(GRIDCODE, Habitat) 
+coral_kslof_7 <- coral_kslof7 %>% dplyr::select(GRIDCODE, Habitat) 
+coral_kslof_8 <- coral_kslof8 %>% dplyr::select(GRIDCODE, Habitat) 
+coral_kslof_9 <- coral_kslof9 %>% dplyr::select(GRIDCODE, Habitat) 
+coral_kslof_10 <- coral_kslof10 %>% dplyr::select(GRIDCODE, Habitat) 
+coral_kslof_11 <- coral_kslof11 %>% dplyr::select(GRIDCODE, Habitat) 
+coral_kslof_12 <- coral_kslof12 %>% dplyr::select(GRIDCODE, Habitat) 
+
+
+all_kslof <- bind_rows(coral_kslof_1, coral_kslof_2 , coral_kslof_3, coral_kslof_4, coral_kslof_5, coral_kslof_6, coral_kslof_7, coral_kslof_8, coral_kslof_9, coral_kslof_10, coral_kslof_11, coral_kslof_12)
+
+
+selected_sf <- all_kslof
+
+kslof_classes <- distinct(selected_sf, GRIDCODE, Habitat)
+(kslof_classes)
+glimpse(selected_sf)
+
+
+# selecting classes that likely contain coral reef
+selected_classes <- c("Forereef slope coral spurs with coralline algae", "Coral sandstone raised reef",  "Forereef slope with coral", "Lagoon patch reef", "Coral boulders", "Rocky forereef slope")
+
+selected_sf <- all_kslof %>%
+  filter(Habitat %in% selected_classes) %>% 
+  #  mutate(class_code=class) %>% 
+  mutate(class_code = 1)
+#  recode(class_code, "Coral/Algae" = 1)
+
+
+# check all coral classes are included...
+(classes_kslof <- distinct(selected_sf, Habitat))
+glimpse(selected_sf)
+```
+
+```{r}
+#write coral file to work directory for gdalutil
+input_path <- paste(work_path, "temp1_kslof.shp", sep="")
+input_path
+
+st_write(selected_sf,input_path, append=FALSE) 
+
+kslof_coral_250m_path1 <- output_path <- paste(work_path, "grid_250m_kslof_coral.tif", sep= "")
+output_path
+
+writeRaster(grid_250m_na, output_path,  overwrite=T, COMPRESS=LZW)
+
+# 250m grid mapping
+coral_warp <- gdalUtils::gdal_rasterize(src_datasource = input_path,
+                                        dst_filename = output_path,
+                                        b = 1,
+                                        at = T,
+                                        a = "class_code",
+                                        output_Raster = TRUE,
+)
+
+r <- raster(output_path)
+kslof_coral_250m_path <- output_path <- paste(work_path, "grid_250m_kslof_coral_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'INT4S', COMPRESS=LZW)
+
+kslof_coral_250m_r <- raster(output_path)
+kslof_coral_250m_zero <- merge(kslof_coral_250m_r, grid_250m_0)
+```
+
+
+## KSLOF.Seyshelles. Map footprint - shape to raster grid 
+```{r}
+coral_sf <- all_kslof    
+
+#coral_map <- st_read(paste(work_path, "temp_kslof.shp", sep=""))
+
+#(classes_kslof_map <- coral_map %>% distinct(Habitat))
+
+(classes_kslof <- coral_sf %>% distinct(Habitat))
+
+# de-selecting classes that are not part of the footprint (e.g. unknown)
+deselected_classes <- c("Forereef slope rubble and sand", "Rock pavement", "Unclassified")
+
+selected_sf <- coral_sf %>%
+  filter(!Habitat %in% deselected_classes) %>% 
+  #  mutate(class_code=class) %>% 
+  mutate(class_code = 0)
+#  recode(class_code, "Coral/Algae" = 1)
+
+
+# check all coral classes are included...
+(class_selected_kslof_habitat <- distinct(selected_sf, Habitat))
+glimpse(selected_sf)
+
+# convertion from coral shape to raster 
+
+#write habitat file to work directory for gdalutil
+input_path <- paste(work_path, "temp_kslof_footprint.shp", sep= "")
+
+st_write(selected_sf,input_path, append=FALSE) 
+
+# write empty grid for gdalutil work
+kslof_habitat_250m_path <- output_path <- paste(work_path, "grid_250m_kslof_habitat.tif", sep= "")
+
+writeRaster(grid_250m_na, output_path,  overwrite=T, COMPRESS=LZW)
+
+# 250m grid mapping
+coral_warp <- gdalUtils::gdal_rasterize(src_datasource = input_path,
+                                        dst_filename = output_path,
+                                        b = 1,
+                                        at = T,
+                                        a = "class_code",
+                                        output_Raster = TRUE,
+)
+
+r <- raster(output_path)
+kslof_habitat_250m_path <- output_path <- paste(work_path, "grid_250m_kslof_habitat_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'INT4S', COMPRESS=LZW)
+kslof_habitat_250m_r <- raster(output_path)
+
+# change map footprint value from 0 to 1 in order to summarize footprints
+
+kslof_habitat_250m_r_val1 <- r <- reclassify(kslof_habitat_250m_r, cbind(0, 1))
+
+kslof_habitat_250m_val1_path <- output_path <- paste(work_path, "grid_250m_kslof_habitat_val1_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'INT4S', COMPRESS=LZW)
+
+kslof_habitat_250m_r_val1 <- raster(output_path)
+
+kslof_mapfootprint_250m_zero <- merge(kslof_habitat_250m_r_val1, grid_250m_0)
+
+```
+
+
+
+
+## Allen 1. Seagrass  - not needed for the coral layer, only here to enable faster work with seagrass layer later on...
+```{r}
+# Allen seagrass
+
+# select coral class
+coral_sf <- coral_allen
+selected_sf <- coral_sf %>%
+  filter(class=="Seagrass") %>% 
+  #  mutate(class_code=class) %>% 
+  mutate(class_code = recode(class, "Seagrass" = "1")) %>% 
+  mutate(class_code = as.numeric(class_code))
+#  recode(class_code, "Coral/Algae" = 1)
+
+glimpse(selected_sf)
+```
+
+```{r}
+#write seagrass file to work directory for gdalutil
+input_path <- paste(work_path, "temp.shp", sep="")
+input_path
+
+st_write(selected_sf,input_path, append=FALSE) 
+
+allen1_seagrass_250m_path <- output_path <- paste(work_path, "grid_250m_na_allen1_seagrass.tif", sep= "")
+output_path
+
+writeRaster(grid_250m_na, output_path,  overwrite=T, COMPRESS=LZW)
+
+# 250m grid mapping
+coral_warp <- gdalUtils::gdal_rasterize(src_datasource = input_path,
+                                        dst_filename = output_path,
+                                        b = 1,
+                                        at = T,
+                                        a = "class_code",
+                                        output_Raster = TRUE,
+)
+
+rm(coral_warp)
+r <- raster(output_path)
+allen1_seagrass_250m_path <- output_path <- paste(work_path, "grid_250m_na_allen1_seagrass_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'FLT4S', COMPRESS=LZW)
+allen1_seagrass_250m_r <- raster(output_path)
+```
+
+
+
+
+## LOF. Seagrass only - Select coral polygons and convert to raster (next chunk)
+```{r}
+# combine into one file
+coral_sf <- coral_lof
+# select segrass class
+
+(classes_sf <- coral_sf %>% distinct(Class_name))
+
+# selecting classes that likely contain seagrass
+selected_classes <- c("dense seagrass meadows")
+
+selected_sf <- coral_sf %>%
+  filter(Class_name %in% selected_classes) %>% 
+  #  mutate(class_code=class) %>% 
+  mutate(class_code = 1)
+#  recode(class_code, "Coral/Algae" = 1)
+
+
+# check all coral classes are included...
+(distinct(selected_sf, Class_name))
+glimpse(selected_sf)
+```
+
+```{r}
+#write coral file to work directory for gdalutil
+input_path <- paste(work_path, "temp_lof_seagrass.shp", sep="")
+input_path
+
+st_write(selected_sf,input_path, append=FALSE) 
+
+lof_seagrass_250m_path <- output_path <- paste(work_path, "grid_250m_na_lof_seagrass.tif", sep= "")
+output_path
+
+writeRaster(grid_250m_na, output_path,  overwrite=T, COMPRESS=LZW)
+
+# 250m grid mapping
+coral_warp <- gdalUtils::gdal_rasterize(src_datasource = input_path,
+                                        dst_filename = output_path,
+                                        b = 1,
+                                        at = T,
+                                        a = "class_code",
+                                        output_Raster = TRUE,
+)
+
+r <- raster(output_path)
+lof_seagrass_250m_path <- output_path <- paste(work_path, "grid_250m_na_lof_seagrass_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'FLT4S', COMPRESS=LZW)
+lof_seagrass_250m_r <- raster(output_path)
+
+```
+
+product_orig <- coral_250m_combined_zero # input and check your object to be written to file
+product_orig2 <- mapfootprint_250m_combined_zero # input and check your object to be written to file
+product_orig3 <- wcmc_coral_250m_zero # input and check your object to be written to file
+product_orig4 <- allen1_coral_250m_zero # input and check your object to be written to file
+product_orig5 <- allen_mapfootprint_250m_zero # input and check your object to be written to file
+product_orig6 <- lof_coral_250m_zero
+product_orig7 <- lof_mapfootprint_250m_zero
+product_orig8 <- kslof_coral_250m_zero
+product_orig9 <- kslof_mapfootprint_250m_zero
+product_orig10 <- ama_coral_250m_zero
+
+
+[1] "./data/reg/eco/bh_coral/v02/coral_reef_combined_presence_250m_v02.0.tif"
+[1] "./data/reg/eco/bh_coral/v02/coral_reef_combined_mapfootprint_250m_v02.0.tif"
+[1] "./data/reg/eco/bh_coral/v02/coral_reef_wcmc_presence_250m_v02.0.tif"
+[1] "./data/reg/eco/bh_coral/v02/coral_reef_allen_presence_250m_v02.0.tif"
+[1] "./data/reg/eco/bh_coral/v02/coral_reef_allen_mapfootprint_250m_v02.0.tif"
+[1] "./data/reg/eco/bh_coral/v02/coral_reef_kslof_chagos_presence_250m_v02.0.tif"
+[1] "./data/reg/eco/bh_coral/v02/coral_reef_kslof_chagos_mapfootprint_250m_v02.0.tif"
+[1] "./data/reg/eco/bh_coral/v02/coral_reef_kslof_seyshelles_presence_250m_v02.0.tif"
+[1] "./data/reg/eco/bh_coral/v02/coral_reef_kslof_seyshelles_mapfootprint_250m_v02.0.tif"
+[1] "./data/reg/eco/bh_coral/v02/coral_reef_ama_presence_250m_v02.0.tif"
+
+# COMBINE All 
+## COMBINED CORAL MAP 250m 
+combine wcmc, ama, kslof and Allen data, use Allen and KSLOF footprint to remove areas mapped as corals in low res data (but not in high res) due to lower spatial precision in wcmc and ama data. assumed rank of data quality from low to high - ama, wcmc, kslof, Allen Coral Atlas. 
+```{r}
+# write empty grid for gdalutil output
+
+writeRaster(grid_250m_na, paste(work_path, "grid_250m_coral_combined_3.tif", sep= ""), overwrite=T, COMPRESS=LZW)
+
+coral_250m_combined <- paste(work_path, "grid_250m_coral_combined_3.tif", sep= "")
+
+coral_250m_combined_r <- gdalUtils::mosaic_rasters(
+  gdalfile = c(ama_coral_250m_path, wcmc_coral_250m_path, kslof_habitat_250m_path, kslof_coral_250m_path, lof_habitat_250m_path, lof_coral_250m_path, allen1_habitat_250m_path, allen1_coral_250m_path),
+  dst_dataset = coral_250m_combined,
+  output.vrt = NULL,
+  output_Raster = FALSE,
+  separate = FALSE,
+  trim_margins = NULL,
+  gdalwarp_index = 1,
+  gdalwarp_params = list(r = "near"),
+  #force_ot = "Int16",
+  verbose = FALSE,
+  COMPRESS=LZW,
+)
+
+r <- raster(coral_250m_combined) # export as product
+crs(r) <- crs(grid_250m)
+path <- paste(work_path, "grid_250m_coral_combined_3_lzw.tif", sep= "")
+
+writeRaster(r, path, overwrite=T, COMPRESS=LZW, datatype = 'INT4S')
+coral_250m_combined_r <- raster(path)
+
+
+coral_250m_combined_zero <- merge(coral_250m_combined_r, grid_250m_0)
+
+```
+
+## COMBINED Footprint 250m 
+combine all footprints from allen, wcmc, kslof and ama in order to balance proportions in 1km agg with number of cells with values, and for uncertainty later
+```{r}
+# write empty grid for gdalutil output
+
+habitat_footprint_250m_path <- output_path <- paste(work_path, "grid_250m_habitat_footprint_combined_3.tif", sep= "")
+writeRaster(grid_250m_na, output_path, overwrite=T, COMPRESS=LZW)
+
+
+
+mosaic_r <- gdalUtils::mosaic_rasters(
+  gdalfile = c(ama_coral_250m_path, wcmc_coral_250m_path, kslof_habitat_250m_val1_path, lof_habitat_250m_val1_path, allen_habitat_250m_val1_path),
+  dst_dataset = output_path,
+  output.vrt = NULL,
+  output_Raster = FALSE,
+  separate = FALSE,
+  trim_margins = NULL,
+  gdalwarp_index = 1,
+  gdalwarp_params = list(r = "near"),
+  #force_ot = "Int16",
+  verbose = FALSE,
+  COMPRESS=LZW,
+)
+
+r <- raster(output_path) # export as product
+crs(r) <- crs(grid_250m)
+habitat_footprint_250m_path <- path <- paste(work_path, "grid_250m_habitat_footprint_combined_3_lzw.tif", sep= "")
+writeRaster(r, path,  overwrite=T, COMPRESS=LZW, datatype = 'INT4S')
+habitat_footprint_250m_r <- raster(path)
+
+
+mapfootprint_250m_combined_zero <- merge(habitat_footprint_250m_r, grid_250m_0)
+
+
+#writeRaster(coral_250m_combined, paste(work_path, "grid_250m_coral_combined_3_lzw.tif", sep= ""), overwrite=T, COMPRESS=LZW, #datatype = 'INT4S')
+
+```
+
+
+## ADJUSTMENTS wcmc and ama MAP 250m - footprint adjustment
+
+combine wcmc and ama data adjusted by kslof and Allen data (same as above, but add code to track which cells belong to ama and wcmc in order to adjust for resolution bias at 1km scale 
+```{r}
+# adjust ama and wcmc data with f10 to track ID of remaining cells
+
+ama_f10 <- raster("./data/reg/eco/bh_coral/v02/proc/grid_250m_coral_ama_lzw.tif")*10
+wcmc_f10 <- raster("./data/reg/eco/bh_coral/v02/proc/grid_250m_coral_wcmc_lzw.tif")*10
+
+ama_f10
+wcmc_f10
+
+ama_f10_path <-  "./data/reg/eco/bh_coral/v02/proc/grid_250m_coral_ama_lzw_f10.tif"
+wcmc_f10_path <-  "./data/reg/eco/bh_coral/v02/proc/grid_250m_coral_wcmc_lzw_f10.tif"
+
+writeRaster(ama_f10, ama_f10_path, overwrite=T, COMPRESS=LZW, datatype = 'INT4S')
+
+writeRaster(wcmc_f10, wcmc_f10_path, overwrite=T, COMPRESS=LZW, datatype = 'INT4S')
+
+
+# write empty grid for gdalutil output
+ama_wcmc_path <- paste(work_path, "grid_250m_ama_wcmc_combined_3_footprint_adjusted_f10.tif", sep= "")
+writeRaster(grid_250m_na, ama_wcmc_path , overwrite=T, COMPRESS=LZW)
+
+
+ama_wcmc_r <- gdalUtils::mosaic_rasters(
+  gdalfile = c(ama_f10_path, wcmc_f10_path, kslof_habitat_250m_path, kslof_coral_250m_path, lof_habitat_250m_path, lof_coral_250m_path, allen1_habitat_250m_path, allen1_coral_250m_path),
+  dst_dataset = ama_wcmc_path,
+  output.vrt = NULL,
+  output_Raster = FALSE,
+  separate = FALSE,
+  trim_margins = NULL,
+  gdalwarp_index = 1,
+  gdalwarp_params = list(r = "near"),
+  #force_ot = "Int16",
+  verbose = FALSE,
+  COMPRESS=LZW,
+)
+
+
+#r <- raster(coral_250m_combined) # export as product
+r <- raster(ama_wcmc_path) # export as product
+# reclassify
+r_reclass <- raster::calc(r, function(x){x[x<2]<-NA; return(x)})
+
+r <- r_reclass
+
+
+crs(r) <- crs(grid_250m)
+path <- paste(work_path, "grid_250m_ama_wcmc_combined_3_footprint_adjusted_f10_lzw.tif", sep= "")
+
+writeRaster(r, path, overwrite=T, COMPRESS=LZW, datatype = 'INT4S')
+ama_wcmc_r <- raster(path)/10
+
+
+
+```
+
+
+
+## ## ADJUSTMENTS - AGGREGATE 1km wcmc vs allen - compute approximate diff for  in order to adjust proportional bias due to map resolution
+```{r}
+
+wcmc_250m <- raster("./data/reg/eco/bh_coral/v02/proc/grid_250m_coral_wcmc_lzw.tif")
+
+wcmc_coral_250m_agg1km <- r <- aggregate(wcmc_250m, fact=4, fun=sum) / 16 #4*4=16, i.e. divide by the maximum cell number to get proportions - export as product
+
+mean_wcmc <- cellStats(r, 'mean', na.rm=T)
+
+
+allen_coral_250m_agg1km <- r <- aggregate(allen1_coral_250m_r, fact=4, fun=sum) / 16 #4*4=16, i.e. divide by the maximum cell number 
+
+mean_allen <- cellStats(r, 'mean', na.rm=T)
+
+(k <- mean_allen/mean_wcmc)
+
+
+
+# aggregating ama and wcmc data using the footprint of ama and wcmc in the combined coral map
+ama_wcmc_agg1km <- aggregate(ama_wcmc_r, fact=4, fun=sum) / 16
+
+#mean_ama_wcmc <- cellStats(ama_wcmc_agg1km, 'mean', na.rm=T)
+
+ama_wcmc_agg1km_zero <- merge(ama_wcmc_agg1km, grid_1km_0)
+writeRaster(ama_wcmc_agg1km_zero, paste(work_path, "grid_1km_ama_wcmc_proportion_1km_footprintonly_lzw.tif", sep= ""),  overwrite=T, COMPRESS=LZW)
+
+
+# Check
+#ra <- wcmc_coral_250m_agg1km - ama_wcmc_agg1km_zero
+#plot(ra)
+
+
+# creating adjustment layer due to cover differences between wcmc and allen data at 1km scale
+
+ama_wcmc_adjustment_1km <- ama_wcmc_agg1km_zero * (1-k)
+
+(ama_wcmc_adjustment_1km) 
+plot(ama_wcmc_adjustment_1km)
+
+path_adj_coeff <- paste(work_path, "grid_1km_ama_wcmc_adjustment.tif", sep= "")
+writeRaster(ama_wcmc_adjustment_1km, path_adj_coeff,  overwrite=T, COMPRESS=LZW)
+
+```
+
+
+
+## AGGREGATE 1km all corals and make adjustment of proportions for ama and wcmc cells 
+```{r}
+combined_coral_250m_agg1km <- aggregate(coral_250m_combined_r, fact=4, fun=sum) / 16 #4*4=16, i.e. divide by the maximum cell number to get proportions - export as product
+plot(combined_coral_250m_agg1km)
+
+path_comb <- paste(work_path, "grid_1km_coral_combined_3_proportion250m.tif", sep= "")
+writeRaster(combined_coral_250m_agg1km, path_comb,  overwrite=T, COMPRESS=LZW)
+
+
+# adjusting final coral layer with the adjust ama_wcmc coefficient layer
+combined_coral_250m_agg1km_adj <- combined_coral_250m_agg1km - ama_wcmc_adjustment_1km
+
+plot(combined_coral_250m_agg1km_adj)
+
+path_adj <- paste(work_path, "grid_1km_coral_combined_3_proportion250m_adj.tif", sep= "")
+writeRaster(combined_coral_250m_agg1km_adj, path_adj,  overwrite=T, COMPRESS=LZW)
+
+combined_coral_250m_agg1km <- raster(path_adj)
+
+
+```
+
+## AGGREGATE 1km all footprint
+```{r}
+combined_footprint_250m_agg1km <- aggregate(habitat_footprint_250m_r, fact=4, fun=sum) / 16 #4*4=16, i.e. divide by the maximum cell number to get proportions - export as product
+plot(combined_footprint_250m_agg1km)
+writeRaster(combined_footprint_250m_agg1km, paste(work_path, "grid_1km_mapfootprint_3_proportion250m.tif", sep= ""),  overwrite=T, COMPRESS=LZW)
+
+combined_footprint_250m_agg1km <- raster(paste(work_path, "grid_1km_mapfootprint_3_proportion250m.tif", sep= ""))
+
+```
+
+## 1km Relative foot print - Coral proportion 
+```{r}
+r1 <- combined_coral_250m_agg1km
+r2 <- combined_footprint_250m_agg1km
+
+summary(r1)
+summary(r2)
+
+r3 <- overlay(r1, r2, fun=function(r1, r2){return(r1/r2)})  # adjusting cells that have only a part mapped
+r3
+plot(r3)
+
+writeRaster(r3, paste(work_path, "grid_1km_coral_combined_3_proportion250m_footprintadjusted.tif", sep= ""),  overwrite=T, COMPRESS=LZW)
+
+footprint_1km <- raster(paste(work_path, "grid_1km_coral_combined_3_proportion250m_footprintadjusted.tif", sep= ""))
+
+```
+
+
+# Map final layers to 1km standard grid with 0 values
+```{r}
+
+combined_coral_250m_agg1km_zero <- merge(combined_coral_250m_agg1km, grid_1km_0)
+
+combined_coral_250m_agg1km_relativefootprint_zero <- merge(r3, grid_1km_0)
+
+
+combined_footprint_250m_agg1km_zero <- merge(combined_footprint_250m_agg1km, grid_1km_0)
+
+plot(combined_coral_250m_agg1km_zero)
+plot(combined_coral_250m_agg1km_relativefootprint_zero)
+plot(combined_footprint_250m_agg1km_zero)
+
+
+
+
+```
+
+
+#==========================================================================================================================#
+### EXPORT
+#==========================================================================================================================#
+Write products to root directory when checked and ready to use elsewhere, accompanied by yourfilename.ext_sourcesym.txt 
+for each file to track source IDs as they accumulate between processes / data
+
+
+# SOURCESYM
+Create sourcesym file with all source IDs used (data and data_raw) 
+data raw sources (dir)
+```{r}
+print(paste("data_raw metasym files used = ", data_raw_metasym_num, sep=""))
+(data_raw_sources <- tibble(id = c(source1_id, source2_id, source3_id, source4_id, source5_id))) # REPLACE / add all data_raw sources
+```
+
+## data sources (files)
+```{r}
+print(paste("data_sourcym files = ", data_sourcesym_num, sep=""))
+#data_sources <- data1_sourcesym %>% # add any "sourcesym" files applicable to this product (check indata section), keep adding sourcesym files as needed
+#  add_row(data2_sourcesym)%>%  
+#  add_row(data3_sourcesym)%>% # bounding box do not have ID since we did it ourselves...
+  #add_row(data4_sourcesym)%>% 
+  #add_row(data5_sourcesym)%>% 
+  #add_row(data6_sourcesym)%>% 
+#  unique() %>% 
+#  print()
+```
+# Sources combined
+```{r}
+(all_sources <- data_raw_sources) #%>% add_row(data_sources))
+```
+# if a product only use a subset of the total sources, copy the section above and create individual files below (e.g. product1_sources <- ...)
+
+
+# PRODUCT 1: Coral 250m
+### read objects
+```{r}
+product_orig <- coral_250m_combined_zero # input and check your object to be written to file
+product_orig2 <- mapfootprint_250m_combined_zero # input and check your object to be written to file
+product_orig3 <- wcmc_coral_250m_zero # input and check your object to be written to file
+product_orig4 <- allen1_coral_250m_zero # input and check your object to be written to file
+product_orig5 <- allen_mapfootprint_250m_zero # input and check your object to be written to file
+product_orig6 <- lof_coral_250m_zero
+product_orig7 <- lof_mapfootprint_250m_zero
+product_orig8 <- kslof_coral_250m_zero
+product_orig9 <- kslof_mapfootprint_250m_zero
+product_orig10 <- ama_coral_250m_zero
+
+plot(product_orig)
+```
+
+
+### set names
+```{r}
+scale <- "250m"
+unit <- "presence"  # add unit for product with original values (e.g. m, km, perc, presence, proportion
+unit2 <- "mapfootprint"
+component_names <- read_tsv("./shiny_data_upload/component_names.txt") 
+component_names_selected <- component_names %>%
+  dplyr::filter(theme_folder == theme) %>% 
+  dplyr::select(group, file_name, description) %>% 
+  print(n = Inf)
+```
+
+```{r}
+descriptive_name <- "coral_reef_combined"  # name of product, for pressure/ecosystem components select from name list above
+descriptive_name2 <- "coral_reef_combined"
+descriptive_name3 <- "coral_reef_wcmc"
+descriptive_name4 <- "coral_reef_allen"
+descriptive_name5 <- "coral_reef_allen"
+descriptive_name6 <- "coral_reef_kslof_chagos"
+descriptive_name7 <- "coral_reef_kslof_chagos"
+descriptive_name8 <- "coral_reef_kslof_seyshelles"
+descriptive_name9 <- "coral_reef_kslof_seyshelles"
+descriptive_name10 <- "coral_reef_ama"
+```
+### paths
+```{r}
+(product_orig_path <- paste(dest_path, descriptive_name, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig2_path <- paste(dest_path, descriptive_name, "_", unit2, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig3_path <- paste(dest_path, descriptive_name3, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig4_path <- paste(dest_path, descriptive_name4, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig5_path <- paste(dest_path, descriptive_name5, "_", unit2, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig6_path <- paste(dest_path, descriptive_name6, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig7_path <- paste(dest_path, descriptive_name7, "_", unit2, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig8_path <- paste(dest_path, descriptive_name8, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig9_path <- paste(dest_path, descriptive_name9, "_", unit2, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig10_path <- paste(dest_path, descriptive_name10, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+```
+
+### Write to file
+```{r}
+# check datatype to be appropriate for values (flt or int, 'INT4S' option to..)
+writeRaster(product_orig, product_orig_path, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
+writeRaster(product_orig2, product_orig2_path, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
+write_tsv(all_sources, paste(product_orig_path, "_sourcesym.txt", sep=""))  
+write_tsv(all_sources, paste(product_orig2_path, "_sourcesym.txt", sep=""))  
+
+writeRaster(product_orig3, product_orig3_path, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
+writeRaster(product_orig4, product_orig4_path, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
+writeRaster(product_orig5, product_orig5_path, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
+writeRaster(product_orig6, product_orig6_path, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
+writeRaster(product_orig7, product_orig7_path, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
+writeRaster(product_orig8, product_orig8_path, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
+writeRaster(product_orig9, product_orig9_path, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
+writeRaster(product_orig10, product_orig10_path, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
+
+
+```
+
+
+
+# PRODUCT 2: Coral 1km
+### read objects
+```{r}
+product_orig <- combined_coral_250m_agg1km_zero # input and check your object to be written to file
+product_orig2 <-combined_coral_250m_agg1km_relativefootprint_zero # input and check your object to be written to file
+product_orig3 <-combined_footprint_250m_agg1km_zero # input and check your object to be written to file
+
+
+plot(product_orig)
+```
+### set names
+```{r}
+scale <- "1km"
+unit <- "proportion"  # add unit for product with original values (e.g. m, km, perc, presence, proportion
+unit2 <- "proportion_mapnorm"
+component_names <- read_tsv("./shiny_data_upload/component_names.txt") 
+component_names_selected <- component_names %>%
+  dplyr::filter(theme_folder == theme) %>% 
+  dplyr::select(group, file_name, description) %>% 
+  print(n = Inf)
+```
+
+```{r}
+descriptive_name <- "coral_reef"  # name of product, for pressure/ecosystem components select from name list above
+```
+### paths
+```{r}
+(product_orig_path <- paste(dest_path, descriptive_name, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig2_path <- paste(dest_path, descriptive_name, "_", unit2, "_", scale, "_", version, d_version, ".tif", sep="" ))
+(product_orig3_path <- paste(dest_path, descriptive_name, "_footprint_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+
+```
+### Write to file
+```{r}
+# check datatype to be appropriate for values (flt or int, 'INT4S' option to..)
+writeRaster(product_orig, product_orig_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+writeRaster(product_orig2, product_orig2_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+writeRaster(product_orig3, product_orig3_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+write_tsv(all_sources, paste(product_orig_path, "_sourcesym.txt", sep=""))  
+write_tsv(all_sources, paste(product_orig2_path, "_sourcesym.txt", sep=""))  
+write_tsv(all_sources, paste(product_orig3_path, "_sourcesym.txt", sep=""))  
+```
+
+
+## Export pretty image of product raster(s)
+```{r}
+(img_path <- paste(dest_path, descriptive_name, "_", unit, "_", scale, "_", version, d_version, ".png", sep="" ))
+prod1_scale <- product_orig
+prod1_scale[prod1_scale == 0] <- NA
+prod1_scale[] <- scales::rescale(prod1_scale[], to = c(1, 100))
+prod1_scale[is.na(prod1_scale)] <- 0
+prod1_scale[is.na(grid_1km)] <- NA
+
+
+png(img_path, width = ncol(prod1_scale), height = nrow(prod1_scale))
+pal <- colorRampPalette(rev(c('#d53e4f','#f46d43','#fdae61','#fee08b','#ffffbf','#e6f598','#abdda4','#66c2a5','#3288bd')))
+plot(prod1_scale, maxpixels = ncell(prod1_scale), main = "", axes = FALSE, ylim=extent(prod1_scale)[3:4], 
+     breaks = seq(0,100,1), col = pal(101), legend = F, box = F, colNA = "gray92")
+dev.off()
+```
+# SAVE SCRIPT
+## 1. save your current R script (File/Save)
+## 2. Save a carbon copy of the R script to proc_log (identical script to what is used to create the products exported
+
+```{r}
+# 2. run code below and go to File/Save As and paste link and name:
+dest_path_script <- paste(getwd(), proc_path)
+print(dest_path_script <- gsub(" .", "", dest_path_script)) # path
+print(script_name_copy <- paste(gsub(".Rmd", "", script_name), d_version, ".Rmd", sep="")) # script name
+```
+
+#==========================================================================================================================#
+### FINAL CHECK
+#==========================================================================================================================#
+## Developer check
+Do your own final check on the products and double check sourcesym file exists and are complete for all files in root 
+ -> Sign at top of script in about section (# Approved by:)
+
+## External check 
+ To ensure repeatability and quality, make sure one colleage can run the script
+ When script is proven repeatable/understandable and products/metadata look ok 
+ -> Sign at top of script in about section (# Approved by:), and make any comments if needed
+ There is also a work_log document in onedrive / gitHUB, check current arrangement with Swedish dev team
+
