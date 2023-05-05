@@ -15,13 +15,23 @@
 /metadata/*/*/*/*
 
 !products/
-/products/*/*/*
+/products/*/*/*/*/*/*
 
 !shiny_data_upload/
 # gitignore file in shiny_data_upload folder ensures all files are included
 
 # block all files
 *.*
+
+# allow upload of products
+!/products/v1/output_images/eco/*.png
+!/products/v1/output_images/pres/*.png
+!/products/v2/output_images/eco/*.png
+!/products/v2/output_images/pres/*.png
+!/products/v2/output_geotiffs/eco/*.tif
+!/products/v2/output_geotiffs/pres/*.tif
+!/products/v2/output_geotiffs/eco/*.json
+!/products/v2/output_geotiffs/pres/*.json
 
 # add files that we want...
 
