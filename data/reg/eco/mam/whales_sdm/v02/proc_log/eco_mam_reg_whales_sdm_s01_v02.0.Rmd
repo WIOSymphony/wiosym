@@ -1,0 +1,317 @@
+# =========================================================================================================
+# Script by Edmond Sacre, SLU
+# This script creates distribution models based on occurrence records
+# This script also resamples the rasters to the same resolution and extent as the standard WIOSym grid
+# =========================================================================================================
+
+# PREPARATIONS
+```{r, include = FALSE}
+# Install / load packages
+#x <- c("sf", "raster", "tidyr", "dplyr")
+#install.packages(x, dependencies=TRUE)
+```
+
+## Install packages
+```{r, include = FALSE}
+library(sf) 
+library(raster)
+library(fasterize)
+library(tidyr)
+library(dplyr)
+library(rgdal)
+library(tidyverse)
+library(leaflet)
+library(scales)
+```
+
+## View folders/themes
+```{r}
+folders_raw <- read.table("./shiny_data_upload/folders.txt", sep = "\t", header = TRUE)
+folders_data <- read.table("./process/templates/folders_data.txt", sep = "\t", header = TRUE)
+#folders <- folders_raw %>% add_row(folders_data)
+```
+
+## Define versions/directories
+```{r}
+version = "v02"
+d_version = ".0"
+location = "reg"   #check
+theme1 <- "eco"   #check
+subtheme1 <- "mam"   #check
+name1 <- "whales_sdm"   #check
+name2 <- "" #check
+(dest1_path <- paste("./data", location, theme1, subtheme1, name1, version, sep="/"))
+(work1_path <- paste(dest1_path, "proc", sep="/"))
+(proc1_path <- paste(dest1_path, "proc_log", sep="/"))
+script_path <- "./process/r"
+(script_path_windows <- paste(getwd(), "/process/r", sep=""))
+(script_name <- paste(theme1, "_", subtheme1,"_", location, "_", name1,"_s01_",version, ".R", sep=""))
+```
+
+## Create directories
+```{r}
+dir.create(dest1_path, recursive = TRUE)
+dir.create(work1_path, recursive = TRUE)
+dir.create(proc1_path, recursive = TRUE)
+```
+
+## Read in WIOSym standard grid
+```{r}
+grid_1km <- raster("./data/reg/grid/grid/v01/grid_1km_v01.1.tif")
+```
+
+## Define sources
+```{r}
+num_sources <- 2  # write the number of sources you will use in this script (to be used later for exporting metadata)
+  
+source1_dir <-  "./data_raw/glo/eco/spec/obis/es2202041521/"    #check
+source1_id <- "es2202041521"    #check
+source1_metasym <- read.table(paste0(source1_dir, source1_id, "_metasym.txt"), sep = "\t")
+#source1_metasym # check that metasym file is populated, and fix if not - before finalising the processing
+
+source2_dir <-  "./data_raw/reg/env/ocean/copernicus/es2204071326/"   #check
+source2_id <- "es2105070953"    #check
+source2_metasym <- read.table(paste0(source1_dir, source1_id, "_metasym.txt"), sep = "\t")
+#source2_metasym # check that metasym file is populated, and fix if not - before finalising the processing
+
+source_list <- c(source1_id, source2_id) # for multiple sources, should look like - c(source1_id, source2_id, source3_id) etc.
+```
+
+*****************************************************************
+*****************************************************************
+# PROCESSING
+
+# Install processing specific packages
+```{r, include = FALSE}
+library(robis)
+library(spatstat)
+library(spatialEco)
+library(raster)
+library(sf)
+library(sp)
+library(sdm)
+library(mapview)
+library(RColorBrewer)
+library(scales)
+```
+
+# Specify specific taxa to model, e.g. genus
+```{r}
+tax_name <- ''
+```
+
+# Specify taxon for which to pull sightings data from OBIS
+# Taxon IDs can be found at https://www.marinespecies.org/index.php
+# Mysticeti = 148724
+```{r}
+# IF ONLY ONE TAXON GROUP IS DESIRED
+spec <- occurrence(taxonid = 148724, geometry = "POLYGON ((86.66016 23.88584, 89.12109 -47.27923, 
+                   -22.14844 -48.34165, -22.50000 21.77991, 86.66016 23.88584))")
+
+map_leaflet(spec, popup = function(x){x["scientificName"]})
+```
+
+```{r}
+# Identify taxa with most observations
+#spec$genus <- gsub("([A-Za-z]+).*", "\\1", spec$scientificName)
+temp <- dplyr::count(spec, genus)
+temp <- dplyr::count(spec, scientificName)
+temp <- filter(temp, n > 0)
+#spec2 <- spec[spec$scientificName %in% temp$scientificName,]
+#map_leaflet(spec2, popup = function(x){x["scientificName"]})
+```
+
+```{r}
+# Select specific species/genus
+spec_temp <- filter(spec, grepl(tax_name, scientificName))
+map_leaflet(spec_temp, popup = function(x){x["scientificName"]})
+spec <- spec_temp
+```
+
+# Convert OBIS sightings to spatial points object
+```{r}
+xy <- spec[, c("decimalLongitude", "decimalLatitude")]
+spec_sp <- SpatialPointsDataFrame(coords = xy, data = spec, proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
+
+# Downsample so that only 1 sighting per grid cell is counted (removes some sampling bias)
+# temp <- grid_1km
+# spec_sp$Occurrence <- 1
+# spec_raster <- raster::rasterize(spec_sp, temp, field = "Occurrence", fun = mean)
+# spec_sp <- rasterToPoints(spec_raster, spatial = TRUE)
+species <- spec_sp
+```
+
+```{r}
+temp <- as.data.frame(species)
+```
+
+# Import predictor layers
+```{r}
+lst <- list.files("./data/reg/util/sdm_predictors/", full.names = T)
+preds <- stack(lst)
+species$Occurrence <- 1
+species <- species[,"Occurrence"]
+e <- raster::extract(preds, species, method = "simple") # Extract predictor values to points
+species <- cbind(species, e)
+temp <- as.data.frame(species)
+temp <- temp[rowSums(is.na(temp)) <= 10,] # Remove points with NA in more than 10 predictors
+xy <- temp[, c("decimalLongitude", "decimalLatitude")]
+spec <- subset(temp, select=-c(decimalLongitude,decimalLatitude))
+species <- SpatialPointsDataFrame(coords = xy, data = spec, proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
+plot(preds, maxnl = 32)
+```
+
+# Determine number of pseudo absences
+```{r}
+temp <- as.data.frame(species)
+pn <- nrow(temp[!duplicated(temp),])
+bgn <- pn
+if(bgn < 100){bgn <- 100}
+#bgn <- 3000 # manual number
+```
+
+# If desired, decrease the resolution of the predictions to speed up processing time (e.g. for testing)
+```{r}
+preds <- aggregate(preds, fact = 3)
+```
+
+# Run ensemble distribution modelling
+```{r}
+d <- sdm::sdmData(formula = Occurrence~., train = species, predictors = preds, bg=list(n = bgn, remove = TRUE))
+d
+m1 <- sdm(Occurrence~.,data=d,methods=c('brt','svm','glm','rf'), n = 1, replication = "sub")
+m1
+write.sdm(d, filename = paste0(work1_path,"/", name1, "_sdmdata"), overwrite = T)
+write.sdm(m1, filename = paste0(work1_path,"/", name1, "_sdmmodel"), overwrite = T)
+```
+
+```{r}
+# Individual models
+#p1 <- predict(m1,newdata=preds,filename='./process/r/_archive/p1.tif', overwrite = T, nc = 6)
+#plot(p1)
+```
+
+```{r}
+# Ensemble model
+e1 <- ensemble(m1,newdata=preds,filename='e1.tif',setting=list(method='weighted',stat='TSS'), overwrite=T, nc=6)
+mapview(-e1, col.regions = brewer.pal(11, "Spectral"))
+```
+
+```{r}
+# Other analytics of interest
+#rcurve(m1, id =4)
+#getVarImp(m1, id = 1)
+```
+
+```{r}
+# Evaluation
+getEvaluation(m1, w = 1:4, opt = 1, stat = 'threshold')
+evaluates(d, e1)
+cut <- evaluates(d, e1)@threshold_based$threshold[1]
+#cut <- min(getEvaluation(m1, w = 1:4, opt = 1, stat = 'threshold')$threshold) # Take the minimum threshold (to be conservative)
+```
+
+# Model with threshold presence/absence cutoff
+```{r}
+prod <- e1
+prod[prod < cut] <- NA # apply thresholds?
+product1 <- projectRaster(prod, crs = crs(grid_1km))
+product1 <- resample(product1, grid_1km)
+product1[product1 == 0] <- NA
+product1[] <- scales::rescale(product1[], to = c(1, 100))
+product1[is.na(product1)] <- 0
+product1[is.na(grid_1km)==TRUE] <- NA
+prod_cut <- product1
+(dest_temp <- paste0(dest1_path, "/", subtheme1, "_", name1, 
+                     ifelse(tax_name == "", tax_name, paste0("_", sub(" ", "_", tax_name))),
+                     "_cutoff_pn", pn, "_bgn", bgn, "_", version, d_version, ".tif"))
+writeRaster(prod_cut, dest_temp, COMPRESS=LZW, overwrite=TRUE)
+
+mapview(-prod_cut, col.regions = brewer.pal(11, "Spectral"))
+```
+
+# Model without threshold presence/absence cutoff
+```{r}
+prod <- e1
+#prod[prod < cut] <- NA # apply thresholds?
+product1 <- projectRaster(prod, crs = crs(grid_1km))
+product1 <- resample(product1, grid_1km)
+product1[product1 == 0] <- NA
+product1[] <- scales::rescale(product1[], to = c(1, 100))
+product1[is.na(product1)] <- 0
+product1[is.na(grid_1km)==TRUE] <- NA
+prod_nocut <- product1
+(dest_temp <- paste0(dest1_path, "/", subtheme1, "_", name1, 
+                     ifelse(tax_name == "", tax_name, paste0("_", sub(" ", "_", tax_name))),
+                     "_nocutoff_pn", pn, "_bgn", bgn, "_", version, d_version, ".tif"))
+writeRaster(prod_nocut, dest_temp, COMPRESS=LZW, overwrite=TRUE)
+
+mapview(-prod_nocut, col.regions = brewer.pal(11, "Spectral"))
+```
+
+# STOP RUN HERE FOR INDIVIDUAL TAXA SUB MODELS
+
+# Combine sdms for different species to get a measure of species richness
+```{r}
+#base <- grid_1km - 1
+eco1 <- raster("./data/reg/eco/mam/whales_sdm/v02/mam_whales_sdm_Eubalaena_australis_cutoff_pn1067_bgn1067_v02.0.tif")
+eco2 <- raster("./data/reg/eco/mam/whales_sdm/v02/mam_whales_sdm_Megaptera_novaeangliae_cutoff_pn1387_bgn1387_v02.0.tif")
+
+eco <- eco1+eco2
+product1 <- eco
+
+mapview(-eco, col.regions = brewer.pal(11, "Spectral"))
+```
+
+
+*****************************************************************
+*****************************************************************
+
+# EXPORT
+
+## Specify output directory and product file name
+
+```{r}
+(dest1_path_file1 <- paste0(dest1_path, "/", subtheme1, "_", name1, "_cutoff_", version, d_version, ".tif"))
+```
+
+## Export image of product raster(s)
+```{r}
+(img_path <- paste0(dest1_path, "/", subtheme1, "_", name1, "_cutoff_", version, d_version, ".png"))
+prod1_scale <- product1
+prod1_scale[prod1_scale == 0] <- NA
+prod1_scale[] <- scales::rescale(prod1_scale[], to = c(1, 100))
+prod1_scale[is.na(prod1_scale)] <- 0
+prod1_scale[is.na(grid_1km)] <- NA
+
+
+png(img_path, width = ncol(prod1_scale), height = nrow(prod1_scale))
+pal <- colorRampPalette(rev(c('#d53e4f','#f46d43','#fdae61','#fee08b','#ffffbf','#e6f598','#abdda4','#66c2a5','#3288bd')))
+plot(prod1_scale, maxpixels = ncell(prod1_scale), main = "", axes = FALSE, ylim=extent(prod1_scale)[3:4], 
+     breaks = seq(0,100,1), col = pal(101), legend = F, box = F, colNA = "gray92")
+dev.off()
+```
+
+## Export metadata
+```{r}
+sourcesym <- data.frame(matrix(data = NA, nrow = num_sources, ncol = 1))
+colnames(sourcesym) <- "id"
+
+for(i in 1:num_sources){
+  sourcesym[i,1] <- source_list[i]
+}
+
+sourcesym
+```
+
+```{r}
+sourcesym_path <- paste0(dest1_path_file1, "_sourcesym.txt")
+write.table(sourcesym, sourcesym_path, row.names = F, sep = "\t")
+```
+
+## Export product
+
+```{r}
+writeRaster(product1, dest1_path_file1, COMPRESS=LZW, overwrite=TRUE)
+```
+
