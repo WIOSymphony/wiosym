@@ -1,0 +1,574 @@
+# ========================================================================================================= #
+# IMPORTANT - To get started:
+Because this script is an R Markdown script, the default directory is the location of this .Rmd file.
+You must open this script from within the .Rproj file associated with your wiosym database for it to work.
+If you haven't used R notebooks before (.Rmd), each of the code "chunks" can be executed by clicking the green play
+button at the top right of the chunk.
+
+To run the script from the project directory, in R Studio, you need to go to: Tools > Global Options > R Markdown
+and set "Evaluate chunks in directory" to "Project", though for latest version of R/Rstudio it may not be needed...
+# ========================================================================================================= #
+# ABOUT
+# ========================================================================================================= #
+## Brief description: 
+
+### Sripts/processes that needs to be updated prior?:
+###
+### Script by: Initial, org, Rver:
+### Updated: Initial, org, Rver, comments
+### Developer check: Initial, org, yymmdd, comments
+### External check: Initial, org, yymmdd, comments
+# ========================================================================================================= #
+# INSTRUCTIONS
+# ========================================================================================================= #    
+This is a simplified template that is made to adjust already exsisting data products, for a full template to producce new data use the main temaplte
+# ========================================================================================================= # 
+# PREPARATIONS
+# ========================================================================================================= #
+
+
+
+x <- c("raster", "RStoolbox", "maptools", "caret", "gbm", "rgdal", "doParallel", "tidyverse", "rsample")
+install.packages(x) # warning: uncommenting this may take a number of minutes
+
+#### load packages ####
+#library(tidyverse)
+#library(sf)
+#library(raster)
+#library(RStoolbox)
+#library(maptools)
+library(caret) #wrapper for multiple types of modeling techniques
+library(gbm) #package contains BRTs
+library(rgdal) #package lets you I/O rasters
+library(doParallel)
+#library(readxl)
+library(rsample)
+
+
+
+
+### Install packages
+```{r, include = FALSE}
+# list all packages that this script is dependent on, remove any redundant ones
+x <- c("sf", "raster", "rgdal", "tidyverse")
+uninstall.packages(x, dependencies=TRUE)
+
+
+install.packages("cli", dependencies=TRUE)
+install.packages("xfun", dependencies=TRUE)
+install.packages("doParallel", dependencies=TRUE)
+install.packages("rsample", dependencies=TRUE)
+```
+
+### Load packages
+```{r, include = FALSE}
+library(sf) 
+library(raster)
+library(rgdal)
+library(tidyverse)
+
+library(caret) #wrapper for multiple types of modeling techniques
+library(gbm) #package contains BRTs
+library(doParallel)
+#library(rsample)
+
+
+
+```
+
+## Set version / theme / subtheme (copy from original script or path to get right..)
+```{r}
+version = "v02" # relates to major iteration of WIOSym (v01 for grid 2021, v02 for grid 2022)
+d_version = ".0"  # detailed version (you can add another level e.g. 0.0  -> v01.0.0)
+seq = "s02" # sequential order - change accordingly if process is run in several scripts
+location = "reg"
+theme = "eco"
+subtheme = "bh_coral"
+name1 <- "_model" # add name what this script does if appropriate ("uncertainty", "norm01")
+```
+
+
+## Set paths
+Locate the relative path (from wiosym folder) to the root directpry of the data folder you are working in, copy and paste to "dest_path", the rest will update itself
+```{r}
+#(dest_path <- "REPLACE") # path to final product
+(dest_path <- "./data/reg/eco/bh_coral/v02/") # example of path to product directory
+
+(work_path <- paste(dest_path, "proc/", sep=""))
+(proc_log_path <- paste(dest_path, "proc_log/", sep=""))
+(archive_path <- paste(dest_path, "_archive/", sep=""))
+(script_path <- "./process/r/")
+```
+
+## Create directories
+```{r}
+dir.create(dest_path, recursive = TRUE)
+dir.create(work_path, recursive = TRUE)
+dir.create(proc_path, recursive = TRUE)
+dir.create(archive_path, recursive = TRUE)
+dir.create(script_path, recursive = TRUE)
+```
+
+
+## Save R Script
+```{r}
+(script_path_windows <- paste(getwd(), "/process/r", sep=""))
+(script_name <- paste(theme, "_", subtheme,"_", location, "_", seq, "_", version, name1, ".Rmd", sep=""))
+```
+ # copy path and name and use File/Save As in R studio to save rmd file
+ 
+#==========================================================================================================================#
+# INDATA
+#==========================================================================================================================#
+
+# Load exisiting sourcesym file
+Load a sourcesym file and make sure you update it for the final expert if any new source IDs are added for this script
+```{r}
+dir(dest_path, pattern = "sourcesym.txt")
+(sourcesym <-  read_tsv(paste(dest_path, "", sep="")))
+```
+
+# Set DATA_RAW sources
+IMPORTANT all data harvested from data_raw needs to have a metasym.txt file in its root directory (not file specific)
+When building on a a previous script you ight already have a complete sourcesym file that you can copy and paste for the product you do in this script (filename_sourcesym.txt), its ok! 
+## copy and paste your data_raw sources from previous script. 
+if you add new ones make sure to ingest the metasym file (see original template if code example is needed)
+
+## DIR1: Literature - EF Nansen 2018 survey Saya Bank
+```{r}
+source1_dir <- source_dir <-  "./data_raw/reg/eco/hab/lit/gk2301231646/"  # REPLACE - internal path
+source1 <- source_id <- "gk2301231646"
+(read_tsv(paste(source_dir, source_id, "_metasym.txt", sep=""))) # check the metasym file
+``` 
+
+```{r}
+dir(source_dir, recursive=T)
+```
+
+```{r}
+# Files
+source1_path1 <- path <- paste(source1_dir, "digitized_data/ramah_etal_coral_obs_saya_2018.shp", sep="")
+saya_pt <- st_read(path)
+(crs(saya_pt))
+glimpse(saya_pt)
+
+#saya_pt_gridcrs <- saya_pt %>% st_transform((crs(grid_1km)))
+#(crs(saya_pt_gridcrs))
+#glimpse(saya_pt_gridcrs)
+# add files from dir as needed
+```
+
+
+
+# DATA sources
+IMPORTANT Products in data are based on information in data_raw. Check that *_sourcesym.txt exists for each file to track acccumulated IDs. 
+The sourcesym files can be identical within some directory in which case you can load only one, but its not always the case which is why there is one file for each file. 
+
+## DATA1: Grid 1km - loading all flavours (watermask 1, 0, NA) at once since identical sourcesym apply
+```{r}
+data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
+dir(data_dir) # check what data is in this directory
+
+data1_file <- "grid_1km_v01.1.tif" 
+data1_file2 <- "grid_1km_0_v01.1.tif" 
+data1_file3 <- "grid_1km_na_v01.1.tif" 
+
+(grid_1km_path <- path <- paste(data_dir, data1_file, sep=""))
+(grid_1km <- raster(path)) # read and check your data
+(grid_1km_0_path <- path <- paste(data_dir, data1_file2, sep=""))
+(grid_1km_0 <- path <- raster(path)) # read and check your data
+(grid_1km_na_path <- path <- paste(data_dir, data1_file3, sep=""))
+(grid_1km_na <- path <- raster(path)) # read and check your data
+(data1_sourcesym <- read_tsv(paste(data_dir, data1_file, "_sourcesym.txt", sep="")))
+# check that source IDs exists and make sense
+
+#plot(grid_1km)
+```
+
+## Data2 environmental data (SLUs utility), note - SLU are yet to update the sourcesym IDs for these
+
+```{r}
+data_dir <-  "./data/reg/util/sdm_predictors/"  # input your data directory
+dir(data_dir) # check what data is in this directory
+
+env_stack1 <- stack(paste(data_dir, list.files(data_dir, pattern = ".tif$", recursive = T), sep=''))
+
+data2_sourcesym <- c("", "", "")  # need to manually add the most improtant sources here...
+
+
+#plot(grid_1km)
+```
+
+
+#==========================================================================================================================#
+# PROCESSING
+#==========================================================================================================================#
+
+### Prepare observations
+Use 100% of data to train model in version 1... to little data
+
+```{r}
+
+# observation data (sf)
+obs <- saya_pt 
+names(obs)
+
+# extract env variables at training points
+env <- env_stack1
+
+env_obs <- raster::extract(env, training, method = "simple") # Extract predictor values to points
+
+#combine predictor and obs data
+df_points <- cbind(obs, env_obs)
+
+#View(df_points)
+
+df<- as_tibble(df_points)
+
+(df)
+
+# correct names
+names(df)
+df <- df %>% 
+  rename(live_hard = Live_hard_) %>% 
+  rename(seagrass = Seagrass__) %>% 
+  rename(seaweed = Seaweed__)
+
+names(df)
+
+obs_env_path <- paste(work_path, "gv_for_modelling_incl_env_var", ".rds", sep="" )
+saveRDS(df, obs_env_path)
+
+# read in all gvdata with env variables --------------------------------------------------------------------------------------
+
+#read in df (training data with all env variables attached), to rerun model script above do not have to be redone, saving time
+df <- readRDS(obs_env_path)
+
+# clear memory --------------------------------------------------------------------------------------------
+# info on how to deal with temp files https://stackoverflow.com/questions/45894133/deleting-tmp-files
+#tmp_dir <- tempdir()
+tmp_dir <- "C:\\Users\\guskag\\AppData\\Local\\Temp\\"
+
+files1 <- list.files(tmp_dir, full.names = T, pattern = "^file")
+files2 <- list.files(tmp_dir, full.names = T, pattern = "^r_tmp", recursive = TRUE)
+file.remove(files1)
+file.remove(files2)
+gc()
+
+```
+
+
+# Modelling GBM percent cover  -----------------------------------------------------------------------------------------
+
+```{r}
+# identify columns numbers for models to run in df
+components <- df %>% 
+  dplyr::select(seagrass:live_hard) %>% 
+  names()
+
+ 
+  
+  #select trainingdata based on fold number (90% used for train)
+  
+i=1
+TrainClasses <- df  %>% 
+    #dplyr::filter(id!=paste("Fold0", k, sep="")) %>% 
+    dplyr::select(components[i])  
+  
+  
+
+  
+  # Tranformation 
+  TrainClasses[TrainClasses <= 0.001] <- 0.001    #remove -infinity (0% cover) and replace with 0.001%
+  TrainClasses[TrainClasses >= 99.999] <- 99.999  #remove infinity (100% cover) and replace with 99.999%
+  
+  TrainClasses_01 <- TrainClasses/100 #converting 0-100 to 0-1
+  
+  TrainClasses_01log <- log(TrainClasses_01/(1 - TrainClasses_01))  #logit transformation to get gaussian distribution
+  
+  hist.default(TrainClasses_01log[[1]]) #plot historigram to check for normal distribution of transformed data
+  
+  
+
+  #set your traingdata to the transformed numeric class
+  TrainClasses <- as.numeric(TrainClasses_01log[[1]])
+
+    
+  # set env TrainData -------------------------------------------------------------------------
+  names(df)
+  
+  # set env variables and train class
+  #TrainData <- df[,c(69:241)]
+ 
+  #select all but one fold of Traindata
+  TrainData <- df %>% 
+    #dplyr::filter(id!=paste("Fold0", k, sep="")) %>% 
+    dplyr::select(c(depth1km:substrate_sand)) 
+    
+  # setup parallel processing for faster computing
+  nCPUs <- detectCores()-2
+  cl <- makeCluster(nCPUs)
+  registerDoParallel(cl)
+  #stopCluster(cl)
+  
+  # Optimize gbm input parameters, change to your prefered settings
+  gbmGrid <- expand.grid(.n.trees = c(1000),
+                         .interaction.depth = c(10),
+                         .shrinkage = c(0.01),
+                         .n.minobsinnode = c(3))
+  
+  
+
+
+  # Develop gbm model --------------------------------------------------------------------------
+    
+  
+  rm(gbm.mod_allpred) #remove any legacy model loaded by mistake
+  gbm.mod_allpred <- train(TrainData, TrainClasses, method = "gbm", verbose = FALSE, distribution="gaussian", tuneGrid=gbmGrid, metric="RMSE", maximize=FALSE)
+  
+  save("gbm.mod_allpred", file = paste(path_name, "_gbm_mod_allpred", ".RData", sep="")) #save model to RData file
+  
+  # way to remove redundant predictors and rerun simpler model
+  
+  sum_mod <- summary(gbm.mod_allpred)
+
+
+
+
+
+```
+
+
+```{r}
+npred_all <- length(TrainData)
+  npred <- npred_all
+  npred_final <- 20
+  
+  # removing env variables with least contribution
+  # solve equation how many % to remove each iteration to reach 20 prd variables after 4 iterations
+  
+  v = npred_final/npred_all
+  z <- matrix(c(-v,0,0,0,1), ncol=1)
+  x <- polyroot(z)
+  
+  x=as.numeric(x[2]) * (-1)
+  
+    for (j in c(1:3)){
+    
+      npred <- npred * x
+    
+      sel_var <- sum_mod %>%  
+      #  filter(rel.inf > 0.75) %>% 
+      slice(1:npred) %>% 
+      dplyr::select(c(var)) %>% 
+      mutate_all(as.character)
+    
+    
+      TrainData1 <- TrainData %>% 
+      dplyr::select(sel_var[[1]])
+    
+      rm(gbm.mod_tmp)
+      gbm.mod_tmp <- train(TrainData1, TrainClasses, method = "gbm", verbose = FALSE, distribution="gaussian", tuneGrid=gbmGrid, metric="RMSE", maximize=FALSE)
+    
+      #save("gbm.mod2", file = paste(output_dir, "allvar_5loop_it_", j, "_", colnames(df)[i], ".RData", sep="")) #save model to RData file
+    
+      sum_mod <- summary(gbm.mod_tmp)   
+    
+    }
+  
+  
+  npred <- npred * x
+  
+  sel_var <- sum_mod %>%  
+    #  filter(rel.inf > 0.75) %>% 
+    slice(1:npred) %>% 
+    dplyr::select(c(var)) %>% 
+    mutate_all(as.character)
+  
+  #adding preselected variables for final model  incase they have been deselected
+  
+  sel_var <-  unique(c(sel_var$var, added_var))
+  
+  
+  TrainData1 <- TrainData %>% 
+    dplyr::select(sel_var)
+  
+  #Optimize gbm input parameters, change to your prefered settings
+  #gbmGrid <- expand.grid(.n.trees = c(1000, 1250, 1500),
+  gbmGrid <- expand.grid(.n.trees = c(1000, 1250, 1500),
+                         .interaction.depth = c(10, 15),
+                         .shrinkage = c(0.01, 0.005),
+                         .n.minobsinnode = c(3)) 
+  
+  #1400, 1500
+  
+  rm(gbm.mod)
+  gbm.mod <- train(TrainData1, TrainClasses, method = "gbm", verbose = FALSE, distribution="gaussian", tuneGrid=gbmGrid, metric="RMSE", maximize=FALSE)
+  
+  save("gbm.mod", file = paste(path_name, ".RData", sep="")) #save model to RData file
+  
+  load(file = paste(path_name, ".RData", sep="")) #load model back into workspace
+  
+  sum_mod_final <- summary(gbm.mod)  %>% 
+    print()
+  print(gbm.mod)
+  
+  #  sel_var1 <- sum_mod_final %>%  
+  #    dplyr::select(c(var)) %>% 
+  #    mutate_all(as.character)
+  
+  # save("gbm.mod", file = paste(output_dir,colnames(training)[i], "_", model_version, ".RData", sep="")) #save model to RData file
+  #  rm("gbm.mod") #remove model from workspace
+  #  load(paste(output_dir,colnames(training)[i], "_", model_version, ".RData", sep="")) #load model back into workspace
+  
+  # print(gbm.mod)
+  #  print(summary(gbm.mod))
+  #  print(ptm <- proc.time())
+  
+  
+  #Optimize gbm input parameters, change to your prefered settings
+  #gbmGrid <- expand.grid(.n.trees = c(800, 900, 1000, 1100, 1200, 1300, 1400, 1500),
+  #                       .interaction.depth = c(10, 12, 15),
+  #                       .shrinkage = c(0.01, 0.005),
+  #                       .n.minobsinnode = c(3))  
+  
+  
+  # spatial prediction ----------------------------------------------------------------------------------------------------------
+  
+  #rasters <- subset(env_sea18, c(sel_var1[[1]]) )
+  rasters <- subset(env_nmi18, c(sel_var))
+  
+  
+  #apply gbm.mod model across space
+  rast.pred <- predict(rasters, gbm.mod, progress="text", type="raw")
+  
+  # backtransform raster prediction from logit transformation
+  rast.pred.bt <- (exp(rast.pred)/(1+exp(rast.pred)))
+  
+  
+  stopCluster(cl)
+  
+  #Export predictions to geotiff file for use as layer in GIS
+  #v=00
+  
+  name
+  path_name
+  
+  writeRaster(rast.pred.bt, paste(path_name, ".tif", sep=""), overwrite=TRUE, COMPRESS=LZW)
+  
+  print(paste(path_name, ".tif", sep=""))
+  
+  rm(rast.pred.bt)
+  rm(rast.pred)
+  
+  }
+
+  #tmp_dir <- tempdir()
+  tmp_dir <- "C:\\Users\\guskag\\AppData\\Local\\Temp\\"
+  files1 <- list.files(tmp_dir, full.names = T, pattern = "^file")
+  files2 <- list.files(tmp_dir, full.names = T, pattern = "^r_tmp", recursive = TRUE)
+  file.remove(files1)
+  file.remove(files2)
+  gc()
+  
+#for (i in c(9)) {  
+#i=9  # calculate mean prediction ----------------------------------------------------------
+  
+  output_dir_mean <- paste(output_dir, "mean/", sep="")
+  # create directory if it doesnt exisist yet...
+  if (!dir.exists(output_dir_mean)){
+    dir.create(output_dir_mean)
+  }
+  output_dir_mean
+  
+  path_name_mean <- paste(output_dir_mean, prj, "_10folds_", colnames(df)[i], sep="")
+  
+  r_stack <- stack(paste(output_dir, list.files(output_dir, pattern = paste(colnames(df)[i], ".tif$", sep=""), recursive = T), sep=''))
+  
+  # Calculate mean
+  r_mean <- calc(r_stack, mean)
+  # Calculate median
+  r_median <- calc(r_stack, median)
+  # Calculate sd
+  r_sd <- calc(r_stack, sd)
+  
+  writeRaster(r_mean, paste(path_name_mean, "_mean.tif", sep=""), overwrite=TRUE, COMPRESS=LZW)
+  writeRaster(r_median, paste(path_name_mean, "_median.tif", sep=""), overwrite=TRUE, COMPRESS=LZW)
+  writeRaster(r_sd, paste(path_name_mean, "_sd.tif", sep=""), overwrite=TRUE, COMPRESS=LZW)
+  
+  #stopCluster(cl)
+#}
+
+
+#==========================================================================================================================#
+# EXPORT
+#==========================================================================================================================#
+
+# SOURCESYM
+Create sourcesym file with all source IDs used (data and data_raw) 
+```{r}
+## data raw sources (dir)
+(sourcesym)
+#(data_raw_sources <- tibble(id = c(source1_id, source2_id,))) # REPLACE / add all new data_raw sources (if they are already in the loaded sourcesym file disregard)
+
+## data sources (files)
+#add any new sourcesym files that are not already represented in the loaded sourcesym
+
+#data_sources <- data1_sourcesym %>% # add any "sourcesym" files applicable to this product (check indata section), keep adding sourcesym files as needed
+#  add_row(data2_sourcesym)%>%  
+#  #add_row(data3_sourcesym)%>% 
+#  unique() %>% 
+#  print()
+
+## Sources combined
+
+all_sources <- sourcesym %>% #add_row(data_sources) %>%data_raw_sources
+print(all_sources)
+```
+
+
+# PRODUCT 1: Uncertainty
+OBS if you need pointers for other naming, the full template has the instructions e.g. pointing to the component list with names, and using theme/subtheme to make the name...
+```{r}
+
+export_object1 <- uncertainty_1km # REPLACE... 
+export_object2 <- uncertainty_250m # REPLACE... 
+
+dir(dest_path)
+product_orig1 <- "REPLACE" 
+#product_orig2 <- "bathymetry_mean_m_250m_v01.1.tif"  # example
+
+(product_path1 <- paste(dest_path, product_orig1, name1, ".tif", sep="" ))  # Example, change the "uncertainty part as needed (norm01 for example)
+#(product_path2 <- paste(dest_path, product_orig2, name1, ".tif", sep="" ))
+
+# check datatype to be appropriate for values ('FLT4S' (normalised data) / 'INT4S' (uncertainty data) main standards to use)
+writeRaster(export_object1, product_path1, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
+#writeRaster(export_object2, product_path2, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
+
+write_tsv(all_sources, paste(product_path1, "_sourcesym.txt", sep="")) 
+#write_tsv(all_sources, paste(product_path2, "_sourcesym.txt", sep=""))  
+```
+
+
+# SAVE SCRIPT
+1. save your current R script (File/Save)
+2. Save a carbon copy of the R script to proc_log (identical script to what is used to create the products exported
+Do not change the *.Rmd carbon copy in proc_log/ unless you change this version of the products (new versions are developed under process/r)
+
+```{r}
+# 2. run code below and go to File/Save As and paste link and name:
+(script_name <- paste(theme, "_", subtheme,"_", location, "_", seq, "_", version, d_version, name1, ".Rmd", sep=""))
+```
+
+#==========================================================================================================================#
+# FINAL CHECK
+#==========================================================================================================================#
+# Developer check
+ Do your own final check on the products and double check sourcesym file exists and are complete for all files in root 
+ -> Sign at top of script in about section (# Approved by:)
+
+# External check 
+ To ensure repeatability and quality, make sure one colleage can run the script
+ When script is proven repeatable/understandable and products/metadata look ok 
+ -> Sign at top of script in about section (# Approved by:), and make any comments if needed
+ There is also a work_log document in onedrive / gitHUB, check current arrangement with Swedish dev team
