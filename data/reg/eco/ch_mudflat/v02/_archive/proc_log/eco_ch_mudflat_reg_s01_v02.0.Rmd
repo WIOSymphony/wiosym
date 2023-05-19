@@ -11,10 +11,11 @@ and set "Evaluate chunks in directory" to "Project", though for latest version o
 # ABOUT
 # ========================================================================================================= #
 ## Brief description: 
-
-### Sripts/processes that needs to be updated prior?:
+tidal flats / mud flats from 30m resolution global dataset of tidal flats, divided into temperate and tropical zone
+### Sripts/processes that needs to be updated prior?: eco_ch_mudflat_reg_s01_v01.1.Rmd (or simply ingest the existing mudflat_v01.tif listed in data sources below, "data6")
 ###
-### Script by: Initial, org, Rver: 
+### Script by: Initial, org, Rver:
+GK, SGU, 4.1.1. - this code is using gdalUtils which has been depreciated from R v.4.2., hence an older R version is used.
 ### Updated: Initial, org, Rver, comments
 ### Developer check: Initial, org, yymmdd, comments
 ### External check: Initial, org, yymmdd, comments
@@ -45,7 +46,7 @@ and set "Evaluate chunks in directory" to "Project", though for latest version o
 ### Install packages
 ```{r, include = FALSE}
 # list all packages that this script is dependent on, remove any redundant ones
-x <- c("sf", "raster", "rgdal", "tidyverse")
+x <- c("sf", "raster", "rgdal", "tidyverse", "gdalUtils")
 #install.packages(x, dependencies=TRUE)
 ```
 
@@ -55,11 +56,12 @@ library(sf)
 library(raster)
 library(rgdal)
 library(tidyverse)
+library(gdalUtils)
 ```
 
 ## Set version
 ```{r}
-version = "v01" # relates to major iteration of WIOSym (v01 for grid 2021, v02 for grid 2022)
+version = "v02" # relates to major iteration of WIOSym (v01 for grid 2021, v02 for grid 2022)
 d_version = ".0"  # detailed version (you can add another level e.g. 0.0  -> v01.0.0)
 seq = "s01" # sequential order - change accordingly if process is run in several scripts
 ```
@@ -82,7 +84,7 @@ folders <- folders_raw %>% add_row(folders_data)
 ```
 
 ```{r}
-theme <- "REPLACE" # Copy from "theme_folder" (e.g. "eco")
+theme <- "eco" # Copy from "theme_folder" (e.g. "eco")
 ```
 
 ## Set Subtheme
@@ -94,7 +96,7 @@ folders %>%
 ```
 
 ```{r}
-subtheme <- "REPLACE" # copy from "subtheme_folder"
+subtheme <- "ch_mudflat" # copy from "subtheme_folder"
 ```
 
 ## Set paths
@@ -129,45 +131,28 @@ name1 <- "" # "REPLACE_" if script need additional name... don't use unless need
 # Set DATA_RAW sources
 IMPORTANT all data harvested from data_raw needs to have a metasym.txt file in its root directory (not file specific)
 ## DIR1: 
+
 ```{r}
-source1_dir <- source_dir <-  "./data_raw/.../uniqueid/"  # REPLACE - internal path
-source1 <- source_id <- "uniqueid" # REPLACE
+source1_dir <- source_dir <-  "./data_raw/reg/eco/ch_mudflat/nasa/pz2112140929/"  # REPLACE - internal path
+source1 <- source_id <- "pz2112140929" # REPLACE
 (read_tsv(paste(source_dir, source_id, "_metasym.txt", sep=""))) # check the metasym file
 ``` 
 
 ```{r}
-dir(source_dir, recursive=F)
+#dir(source_dir, recursive=T)
 ```
 
 ```{r}
 # Files
-source1_path <- path <- paste(source_dir, "REPLACE.ext", sep="")
-object_name <- st_read(path) # REPLACE object_name
+#source1_path <- path <- paste(source_dir, "30m/mosaic_30m/intertidal_2002-04_30m_mosaic.tif", sep="")
+#source1_path
+#object_name <- st_read(path) # REPLACE object_name
 # add files from dir as needed
 ```
-
-## DIR2: 
-```{r}
-source2_dir <- source_dir <-  "./data_raw/.../uniqueid/"  # REPLACE - internal path
-source2 <- source_id <- "uniqueid" # REPLACE
-(read_tsv(paste(source_dir, source_id, "_metasym.txt", sep=""))) # check the metasym file
-``` 
-
-```{r}
-dir(source_dir, recursive=F)
-```
-
-```{r}
-# Files
-source2_path <- path <- paste(source_dir, "REPLACE.ext", sep="")
-object_name <- st_read(path) # REPLACE object_name
-# add files from dir as needed
-```
-
 
 ### declare number of "data_raw" directorys above
 ```{r}
-data_raw_metasym_num <-  REPLACE # set total number of data_raw dir used (e.g. <- 1), to help in export section
+data_raw_metasym_num <-  0 # set total number of data_raw dir used (e.g. <- 1), to help in export section
 ```
 
 
@@ -228,28 +213,165 @@ grid_poly <- st_read(data_path) # read in your data object if appropriate and pe
 #grid_poly
 #plot(grid_poly)
 ```
+## DATA4: temp/trop limit
+```{r}
+
+data4_dir <- data_dir <-  "./data/reg/env/ocean/v01/"  # input your data directory
+dir(data_dir) # check what data is in this directory
+data4_file1 <- "temperate_1km.tif" # your data file
+data4_file2 <- "tropical_1km.tif" # your data file
+data4_sourcesym <- read_tsv(paste(data_dir, "tropicalLimit.tif", "_sourcesym.txt", sep=""))
+
+data4_path1 <- data_path1 <- paste(data_dir, data4_file1, sep="")
+data4_path2 <- data_path2 <- paste(data_dir, data4_file2, sep="")
+
+temp_1km <- raster(data_path1)
+trop_1km <- raster(data_path2)
+
+plot(temp_1km)
+plot(trop_1km)
+```
+
+## DATA5: tital flat dataset from 30m global mosaic
+```{r}
+
+data5_dir <- data_dir <-  "./data/reg/env/intertidal/v02/"  # input your data directory
+(dir(data_dir, recursive=T)) # check what data is in this directory
+
+(data5_files <- paste(data5_path, list.files(data5_path, pattern = ".tif$", recursive = T), sep="" ))
+
+(data5_sourcesym <- read_tsv(paste(data_dir, "intertidal_mosaic_30_v02_sourcesym.txt", sep="")))
+
+```
+## DATA6: mudflat v01 data, original source is same as data5 (Murray 30m mosaic, 2002), but extent is larger
+
+```{r}
+
+data6_dir <- data_dir <-  "./data/reg/eco/ch_mudflat/v01/"  # input your data directory
+(dir(data_dir, recursive=F)) # check what data is in this directory
+
+data6_path <- paste(data5_dir, "/mosaic/", sep="") 
+
+mudflat_1km_v01 <- raster(paste(data6_dir, "tidal_flat_percent_1km_v01.1.tif", sep=""))
+
+(data6_sourcesym <- read_tsv(paste(data_dir, "tidal_flat_percent_1km_v01.1.tif_sourcesym.txt", sep="")))
+
+```
+
 
 ## declare number of "data" files
 ```{r}
-data_sourcesym_num <-  REPLACE # set total number of data files (e.g. <- 2), to help in export section
+data_sourcesym_num <-  6 # set total number of data files (e.g. <- 2), to help in export section
 ```
 
 #==========================================================================================================================#
 # PROCESSING
 #==========================================================================================================================#
 
+# Aggregate tidal habitat
+```{r}
 
-*****************************************************************
-*****************************************************************
-## Here you can perform any processing to generate the data layer
-## Ensure the code is clearly described with comments (#)
-*****************************************************************
-*****************************************************************
+for(i in 1:length(data5_files))  {
 
-*****************************************************************
-## NOTE 1. Normalisation will happen at later "final" stage, do not integrate in main scripts
-## NOTE 2. Create the uncertainty map separate (script *_s02_v01) once main data is ready (script *_s01_v01)
-*****************************************************************
+inraster_path <- data5_files[i]
+  
+# write empty grid for gdalutil work
+writeRaster(grid_250m_na, paste(work_path, "grid_250m_gdalutil", i, ".tif", sep= ""),  overwrite=T, COMPRESS=LZW)
+
+# write to file
+dstfile <- paste(work_path, "grid_250m_gdalutil", i, ".tif", sep= "")
+
+crs(grid_1km)
+# 250m grid transformation from high resolution water mask
+
+sr <- crs(raster(inraster_path))
+tr <- crs(grid_1km)
+#  "+proj=cea +lat_ts=-12 +lon_0=12 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"    
+
+
+
+tidal_250m <- gdalUtils::gdalwarp(srcfile = inraster_path,
+                                dstfile = dstfile,
+                                s_srs = sr,
+                                t_srs = tr,
+                                tr = c(250, 250),
+                                tap = TRUE,
+                                output_Raster = TRUE,
+                                overwrite = TRUE,
+                                r = "average",
+                                multi = TRUE,
+                                srcnodata = "NA"
+)
+
+
+}
+
+
+
+r_list <- paste(work_path, list.files(work_path, pattern = ".tif$"), sep='')
+
+
+tidal_250m <- mosaic(raster(r_list[1]), raster(r_list[2]), raster(r_list[3]), raster(r_list[4]), raster(r_list[5]), raster(r_list[6]), fun=max)
+
+r <- tidal_250m
+
+
+# Final check that all is good...
+r <- merge(r, grid_250m_0)
+r <- crop(r, grid_250m)
+r <- mask(r, grid_250m)
+
+
+tidal_250m <- r
+
+writeRaster(tidal_250m , paste(work_path, "tidal_250m_2002-2016_v02.tif", sep=""), overwrite=T, COMPRESS=LZW)
+
+
+# aggregate to 1km grid
+
+
+tidal_agg_1km <- raster::aggregate(r, fact=4, fun=sum, na.rm=T)
+r <- tidal_agg_1km
+r <- merge(r, grid_1km_0)
+r <- crop(r, grid_1km)
+r <- mask(r, grid_1km)
+
+tidal_agg_1km <- r
+
+tidal_agg_1km <- tidal_agg_1km/16 * 100
+
+
+writeRaster(tidal_agg_1km, paste(work_path, "tidal_1km_0-100_2002-2016_v02.tif", sep=""), overwrite=T, COMPRESS=LZW)
+
+
+# combine v01 and v02 tidal flats layers - they both are missing data but in different areas, due to problems wih high resolution mosaic conversions from Murray 30m dataset
+
+combined_tidal <- mosaic(tidal_agg_1km, mudflat_1km_v01, fun=max)
+
+writeRaster(combined_tidal, paste(work_path, "tidal_1km_0-100_2002-2016_v01_v02.tif", sep=""), overwrite=T, COMPRESS=LZW)
+
+
+plot(combined_tidal)
+
+```
+# Tropical/Temperate Limit
+```{r}
+## Tropical/Temperate Limit
+
+tidal <- raster(paste(work_path, "tidal_1km_0-100_2002-2016_v01_v02.tif", sep=""))
+
+#r.max=cellStats(tidal,"max")
+#r.max
+
+tidal_temp <- tidal * temp_1km
+plot(tidal_temp)
+tidal_trop <- tidal * trop_1km
+plot(tidal_trop)
+
+```
+
+
+```
 
 #==========================================================================================================================#
 # EXPORT
@@ -262,8 +384,10 @@ data_sourcesym_num <-  REPLACE # set total number of data files (e.g. <- 2), to 
 ### Create sourcesym file with all source IDs used (data and data_raw) 
 # data raw sources (dir)
 ```{r}
+# REPLACE / add all data_raw sources
 print(paste("data_raw metasym files used = ", data_raw_metasym_num, sep=""))
-(data_raw_sources <- tibble(id = c(source1, source2, ...))) # REPLACE / add all data_raw sources
+(data_raw_sources <- tibble(id = c(source1))) 
+
 ```
 
 ## data sources (files)
@@ -271,16 +395,21 @@ print(paste("data_raw metasym files used = ", data_raw_metasym_num, sep=""))
 print(paste("data_sourcym files = ", data_sourcesym_num, sep=""))
 data_sources <- data1_sourcesym %>% # add any "sourcesym" files applicable to this product (check indata section), keep adding sourcesym files as needed
   add_row(data2_sourcesym)%>%  
-  #add_row(data3_sourcesym)%>% 
-  #add_row(data4_sourcesym)%>% 
-  #add_row(data5_sourcesym)%>% 
-  #add_row(data6_sourcesym)%>% 
+  add_row(data3_sourcesym)%>% 
+  add_row(data4_sourcesym)%>% 
+  add_row(data5_sourcesym)%>% 
+  add_row(data6_sourcesym)%>% 
   unique() %>% 
   print()
 ```
 ## Sources combined
 ```{r}
-(all_sources <- data_raw_sources %>% add_row(data_sources))
+(all_sources <- data_raw_sources %>% add_row(data_sources) %>%  unique() )
+
+sel_sources <- all_sources %>% filter(id!="gk2104301347") # remove shoreline grid source
+
+sel2_sources <- sel_sources %>% filter(id!="byq2110261901") # remove shoreline grid source
+
 ```
 ### if a product only use a subset of the total sources, copy the section above and create individual files below (e.g. product1_sources <- ...)
 
@@ -288,15 +417,20 @@ data_sources <- data1_sourcesym %>% # add any "sourcesym" files applicable to th
 # PRODUCT 1: 
 ## read objects
 ```{r}
-product_orig <- REPLACE # input and check your object to be written to file
+product_orig <- tidal # input and check your object to be written to file
+product_temp <- tidal_temp # input and check your object to be written to file
+product_trop <- tidal_trop # input and check your object to be written to file
+
+
+
 #product_norm01 <- REPLACE # input and check your object to be written to file
 #product_uncertainty <- REPLACE # input and check your object to be written to file
 plot(c(product_orig))
 ```
 ## set names
 ```{r}
-scale <- "REPLACE" # "1km" / "250m"
-unit <- "REPLACE"  # add unit for product with original values (e.g. m, km, perc, presence, proportion
+scale <- "1km" # "1km" / "250m"
+unit <- "percent"  # add unit for product with original values (e.g. m, km, perc, presence, proportion
 component_names <- read_tsv("./shiny_data_upload/component_names.txt") 
 component_names_selected <- component_names %>%
   dplyr::filter(theme_folder == theme) %>% 
@@ -305,43 +439,41 @@ component_names_selected <- component_names %>%
 ```
 
 ```{r}
-descriptive_name <- "REPLACE"  # name of product, for pressure/ecosystem components select from name list above
+descriptive_name <- "tidal_flat"  # name of product, for pressure/ecosystem components select from name list above
 ```
 ## paths
 ```{r}
 (product_orig_path <- paste(dest_path, descriptive_name, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
-(product_norm01_path <- paste(product_orig_path, "_uncertainty.tif", sep="" ))
-(product_uncertainty_path <- paste(product_orig_path, "_norm01.tif", sep="" ))
+
+(product_temp_path <- paste(dest_path, descriptive_name, "_temp_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+
+(product_trop_path <- paste(dest_path, descriptive_name, "_trop_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+
+#(product_uncertainty <- paste(product_orig_path, "_uncertainty.tif", sep="" ))
+#(product_product_norm01 <- paste(product_orig_path, "_norm01.tif", sep="" ))
 ```
 ## Write to file
 ```{r}
 # check datatype to be appropriate for values (flt or int, 'INT4S' option to..)
 writeRaster(product_orig, product_orig_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+
+writeRaster(product_temp, product_temp_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+
+writeRaster(product_trop, product_trop_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+
+
 #writeRaster(product_norm01, product_norm01_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
 #writeRaster(product_uncertainty, product_uncertainty_path, COMPRESS=LZW, datatype = 'INT1U', overwrite=TRUE)
 # write sourcesym file, change "all_sources" to "selected_sources" if subset only for specific file
-write_tsv(all_sources, paste(product_orig_path, "_sourcesym.txt", sep=""))  
+write_tsv(sel2_sources, paste(product_orig_path, "_sourcesym.txt", sep=""))  
+write_tsv(sel_sources, paste(product_temp_path, "_sourcesym.txt", sep=""))  
+write_tsv(sel_sources, paste(product_trop_path, "_sourcesym.txt", sep=""))  
+
+
 #write_tsv(all_sources, paste(product_norm01_path, "_sourcesym.txt", sep=""))
 #write_tsv(all_sources, paste(product_uncertainty_path, "_sourcesym.txt", sep=""))
 ```
 
-
-## Export pretty image of product raster(s)
-```{r}
-(img_path <- paste(dest_path, descriptive_name, "_", unit, "_norm0100_", scale, "_", version, d_version, ".png", sep="" ))
-prod1_scale <- product_norm0100
-prod1_scale[prod1_scale == 0] <- NA
-prod1_scale[] <- scales::rescale(prod1_scale[], to = c(1, 100))
-prod1_scale[is.na(prod1_scale)] <- 0
-prod1_scale[is.na(grid_1km)] <- NA
-
-
-png(img_path, width = ncol(prod1_scale), height = nrow(prod1_scale))
-pal <- colorRampPalette(rev(c('#d53e4f','#f46d43','#fdae61','#fee08b','#ffffbf','#e6f598','#abdda4','#66c2a5','#3288bd')))
-plot(prod1_scale, maxpixels = ncell(prod1_scale), main = "", axes = FALSE, ylim=extent(prod1_scale)[3:4], 
-     breaks = seq(0,100,1), col = pal(101), legend = F, box = F, colNA = "gray92")
-dev.off()
-```
 
 # SAVE SCRIPT
 ## 1. save your current R script (File/Save)

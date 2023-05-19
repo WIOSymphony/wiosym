@@ -34,7 +34,9 @@ for(i in sourcesym_list$sourcesym){
   file <- import(paste0("./data/", files_source[str_detect(files_source, pattern = i, negate = FALSE)]))
   #  file <- import(paste0("./metadata/wio_provider/wio_summary/Sourcesym/", i))
   source_list <- c(source_list, file$id)
+  print(i)
 }
+
 #paste0("./data/", files_source[str_detect(files_source, pattern = i, negate = FALSE)])
 
 
@@ -54,6 +56,7 @@ meta_list <- tibble(id = c(), downloadDate = c(), provider = c(), provider_long 
 fel <- c()
 providers <- readxl::read_excel("./shiny_data_upload/modify_txt_files_v01.2.1.xlsx", sheet = "providers_master")
 
+source_list <- unique(source_list) %>% discard(is.na)
 
 for(j in unique(source_list)){  # run unique(source_list) to find missing file...
   tryCatch({
@@ -75,7 +78,7 @@ for(j in unique(source_list)){  # run unique(source_list) to find missing file..
 }
 
 meta_list <- arrange(meta_list, provider, downloadDate)
-meta_list
+View(meta_list)
 
 # write updated contributers list to google sheet, please make sure to check citations so looking ok, if update needed do it directly at the metasym level and push to github, then rerun code
 
