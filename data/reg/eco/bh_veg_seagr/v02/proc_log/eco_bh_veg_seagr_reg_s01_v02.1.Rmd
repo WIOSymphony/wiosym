@@ -15,11 +15,12 @@ and set "Evaluate chunks in directory" to "Project", though for latest version o
 # ========================================================================================================= #
 # ABOUT
 # ========================================================================================================= #
-## Brief description:  Seagrass map first version. combininging multiple sources at 250m resolution similar to mangrove and coral process
-###Needs updating with temperate/tropical to be completed
+## Brief description:  Seagrass map  combining multiple sources mapping presence of seagrass at 250m resolution then proportion at 1km, similar to mangrove and coral process. In addition to this script a predictive model was devloped for Saya Del Mahla Banks, then integrated here. Seagrasses combine many kinds of data inclduing different kind of models and maps. The main dataset to calibrate the data against have been the Allen Coral Atlas since it represents the biggest high resolution mapping effort in the WIO region.
 
+###Needs updating with temperate/tropical to be completed
+eco_bh_veg_seagr_reg_s02_v02.1_temptrop_limit.Rmd
 ### Scripts/processes that needs to be updated prior?: 
-Depth, corals
+env_topo_reg_s01_v02.0.Rmd, eco_bh_reg_s01_model_seagrass_02.1.Rmd
 ###
 ### Script by: 
 gk, sgu, R 4.1.1
@@ -1659,7 +1660,22 @@ Write to file
 #write_tsv(all_sources, paste(product_orig_path, "_sourcesym.txt", sep=""))  
 ```
 
+## Export pretty image of product raster(s)
+```{r}
+(img_path <- paste(dest_path, descriptive_name, "_", unit, scale, "_", version, d_version, ".png", sep="" ))
+prod1_scale <- seagrass_1km
+prod1_scale[prod1_scale == 0] <- NA
+prod1_scale[] <- scales::rescale(prod1_scale[], to = c(1, 100))
+prod1_scale[is.na(prod1_scale)] <- 0
+prod1_scale[is.na(grid_1km)] <- NA
 
+
+png(img_path, width = ncol(prod1_scale), height = nrow(prod1_scale))
+pal <- colorRampPalette(rev(c('#d53e4f','#f46d43','#fdae61','#fee08b','#ffffbf','#e6f598','#abdda4','#66c2a5','#3288bd')))
+plot(prod1_scale, maxpixels = ncell(prod1_scale), main = "", axes = FALSE, ylim=extent(prod1_scale)[3:4], 
+     breaks = seq(0,100,1), col = pal(101), legend = F, box = F, colNA = "gray92")
+dev.off()
+```
 
 
 # SAVE SCRIPT

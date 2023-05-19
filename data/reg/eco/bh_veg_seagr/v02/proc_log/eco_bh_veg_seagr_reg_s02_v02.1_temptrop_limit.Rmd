@@ -44,7 +44,7 @@ library(tidyverse)
 ## Set version / theme / subtheme (copy from original script or path to get right..)
 ```{r}
 version = "v02" # relates to major iteration of WIOSym (v01 for grid 2021, v02 for grid 2022)
-d_version = ".0"  # detailed version (you can add another level e.g. 0.0  -> v01.0.0)
+d_version = ".1"  # detailed version (you can add another level e.g. 0.0  -> v01.0.0)
 seq = "s02" # sequential order - change accordingly if process is run in several scripts
 location = "reg"
 theme = "eco"
@@ -69,7 +69,7 @@ Locate the relative path (from wiosym folder) to the root directory of the data 
 ```{r}
 dir.create(dest_path, recursive = TRUE)
 dir.create(work_path, recursive = TRUE)
-dir.create(proc_path, recursive = TRUE)
+dir.create(proc_log_path, recursive = TRUE)
 dir.create(archive_path, recursive = TRUE)
 dir.create(script_path, recursive = TRUE)
 ```
@@ -90,7 +90,7 @@ dir.create(script_path, recursive = TRUE)
 Load a sourcesym file and make sure you update it for the final expert if any new source IDs are added for this script
 ```{r}
 dir(dest_path, pattern = "sourcesym.txt")
-(sourcesym <-  read_tsv(paste(dest_path, "seagrass_bed_proportion_1km_v01.0.tif_sourcesym.txt", sep="")))
+(sourcesym <-  read_tsv(paste(dest_path, "seagrass_bed_proportion_1km_v02.1.tif_sourcesym.txt", sep="")))
 ```
 
 # Set DATA_RAW sources
@@ -149,7 +149,7 @@ grid_250m_na <- path <- raster(path) # read and check your data
 ```{r}
 dir(dest_path)
 #object_name <- raster(paste(dest_path, "REPLACE", sep=""))
-seagrass_1km <- raster(paste(dest_path, "seagrass_bed_proportion_1km_v02.0.tif", sep=""))
+seagrass_1km <- raster(paste(dest_path, "seagrass_bed_proportion_1km_v02.1.tif", sep=""))
 plot(seagrass_1km)
 ```
 ## DATA4: temp/trop limit
@@ -224,8 +224,8 @@ export_object1 <- seagrass_temp
 export_object2 <- seagrass_trop
 
 dir(dest_path)
-product_1 <- "seagrass_bed_temp_percent_1km_v02.0.tif" 
-product_2 <- "seagrass_bed_trop_percent_1km_v02.0.tif"  # example
+product_1 <- "seagrass_bed_temp_percent_1km_v02.1.tif" 
+product_2 <- "seagrass_bed_trop_percent_1km_v02.1.tif"  # example
 
 (product_path1 <- paste(dest_path, product_1 , sep="" ))  # Example, change the "uncertainty part as needed (norm01 for example)
 (product_path2 <- paste(dest_path, product_2 , sep="" ))
