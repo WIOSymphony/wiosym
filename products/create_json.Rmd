@@ -25,7 +25,7 @@ meta$file_name[is.na(meta$file_name)] <- "placeholder.tif"
 
 # Create JSON files for metadata - ECOSYSTEMS
 ```{r}
-layers <- gsheet2tbl("docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing") |> dplyr::filter(theme == "Ecosystem")
+layers <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing") |> dplyr::filter(theme == "Ecosystem")
 #layers <- rio::import(paste0("layer_list_", ver, ".xlsx")) |> dplyr::filter(theme == "Ecosystem")
 layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
 
@@ -35,10 +35,15 @@ js <- read_json(path = "datasetTemplate.json")
 for(i in 49:49){
 
 # Name, description, etc.
-js$name <- paste0("Spatial raster layer of the ", layers$title[i], " ecosystem component, used in the WIO Symphony tool")
+js$name <- paste0(layers$title[i], " - ", layers$description[i], " - ecosystem component from the WIO Symphony tool")
 js$description <- layers$method_summary[i]
-js$url <- "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco"
+js$`@id` <- "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.json"
+js$url <- ""
 js$sameAs[[1]] <- ""
+js$citation <- "Sacre, E, 2022"
+js$version <- paste0(ver,".0")
+js$distribution$contentUrl <- "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.tif"
+
 
 # Keywords
 js$keywords[[1]] <- "Western Indian Ocean"
@@ -49,6 +54,7 @@ js$keywords[[5]] <- "Marine spatial planning"
 js$keywords[[6]] <- "Ecosystems"
 js$keywords[[7]] <- "Pressures"
 js$keywords[[8]] <- layers$title[i]
+js
 
 # Export JSON
 
