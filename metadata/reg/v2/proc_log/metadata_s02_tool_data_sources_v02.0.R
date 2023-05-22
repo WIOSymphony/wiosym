@@ -50,9 +50,12 @@ source_list
 
 providers <- readxl::read_excel("./shiny_data_upload/modify_txt_files_v01.2.1.xlsx", sheet = "providers_master")
 
+source_list_data <- source_list$data_sources %>% unique(source_list) %>% discard(is.na)
+
+
 citation_list <- tibble(data_sources = c(), provider_long = c(), citation = c())
 
-for(j in source_list$data_sources){
+for(j in source_list_data){
   tryCatch({
     file <- read_tsv(paste0("./data_raw/", files_meta[str_detect(files_meta, pattern = paste0(j, "_metasym.txt$"), negate = FALSE)]))
     provider  <- ifelse(file[[5, 2]] == "", file[[6, 2]], file[[5, 2]])
@@ -94,7 +97,7 @@ updated_layer_list_select <- updated_layer_list %>% select(c(providers, `data so
 
 # before write below, check all is safe and in order!
 
-#range_write(data= updated_layer_list_select, "https://docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit#gid=0", sheet = "tool_metadata", range = "O2", col_names=F)
+#range_write(data= updated_layer_list_select, "https://docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit#gid=0", sheet = "tool_metadata", range = "X2", col_names=F)
 
 
 #write_rds(combined_list, paste(outfolder, "combined_list.rds", sep=""))

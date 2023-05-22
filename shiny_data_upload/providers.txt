@@ -130,3 +130,8 @@ World Database on Protected Areas (wdpa)	wdpa
 World Environment Center (wec)	wec
 World Resources Institute (wri)	wri
 World Wide Fund for Nature (wwf)	wwf
+U.S. Department of Agriculture (usda)	usda
+EnvironmenTrix Ltd (envirometrixltd)	envirometrixltd
+The Geological Survey of Sweden (sgu)	sgu
+Universidade Eduardo Mondlane  (uem)	uem
+University of Gothenburg (gu)	gu

@@ -5,6 +5,8 @@
 
 
 install.packages("googlesheets4")
+install.packages("dplyr")
+install.packages("rio")
 
 library(dplyr)
 library(tidyverse)
