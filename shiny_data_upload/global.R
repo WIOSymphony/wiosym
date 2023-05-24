@@ -1,8 +1,8 @@
 # Import input files
-folder_input <- read.table("folders.txt", sep = "\t", header = TRUE)
-location_input <- read.table("locations.txt", sep = "\t", header = TRUE)
-provider_input <- read.table("providers.txt", sep = "\t", header = TRUE)
-tag_list <- read.table("tags.txt", sep = "\t", header = TRUE)
+folder_input <- read.table("folders.txt", sep = "\t", header = TRUE, encoding = "UTF-8")
+location_input <- read.table("locations.txt", sep = "\t", header = TRUE, encoding = "UTF-8")
+provider_input <- read.table("providers.txt", sep = "\t", header = TRUE, encoding = "UTF-8")
+tag_list <- read.table("tags.txt", sep = "\t", header = TRUE, encoding = "UTF-8")
 
 
 # Country list
