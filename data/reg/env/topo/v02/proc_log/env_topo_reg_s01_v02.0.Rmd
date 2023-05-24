@@ -1,0 +1,640 @@
+
+#### ABOUT ####
+# ========================================================================================================= #
+# Purpose: Script to create WIOSym depth grid from gebco data
+#
+# Brief description: standardised depth data to 250m and 1km grid 
+
+# Suggestions on future improvements: include coral atlas sat derived bathymetry (already downloaded but needs masking and some work)
+#
+# Created: GK, sgu, 210528
+# Updated: GK, sgu, 211021 comments: new gebco available, updating accordingly
+# Updated: GK, sgu, 220905 comments: missing some depth zones (200m-1000m, 1000m - inf). adding these.
+
+# Script and products checked by: (initial, organisation), yymmdd, 
+  # comments: 
+
+# ========================================================================================================= #
+
+# Read packages 
+```{r}
+# list all packages that this script is dependent on, remove any redundant ones
+x <- c("tidyverse", "sf", "raster", "rgdal", "fasterize", "labelled", "gdalUtils", "foreign")
+
+#install.packages(x, dependencies=TRUE)
+                                            
+library(tidyverse)
+library(sf)
+library(raster)
+library(rgdal)
+library(fasterize)
+library(labelled)
+library(gdalUtils)
+library(foreign)
+```
+
+# Set main destinations 
+```{r}
+# set version
+version = "v02" # (1, 2, 3... relates to major releases for WIOSym, use v01.1, or v01.1.1 if you need additional version control use "detailed version" below)
+d_version = ".0"  # detailed version (you can add another level e.g. 0.0  -> v01.0.0)
+
+# set main location (i.e. regional for products for whole WIO area, or individual countries for local WIOSym products)
+read_tsv("./shiny_data_upload/locations.txt")  # prints available locations to choose from and their abbreviations
+
+location = "reg" # choose applicable 3 letter abbreviation from "location_val"
+
+# Set names and working folder using standard themes, if available
+
+folders_raw <- read_tsv("./shiny_data_upload/folders.txt")
+folders_data <- read_tsv("./process/templates/folders_data.txt") # additional folders for data not applicable for data_raw 
+folders <- folders_raw %>% 
+  add_row(folders_data)
+
+# select main theme
+unique(folders["theme_folder"])
+
+theme1 <- theme <- "env" # input your main theme e.g. "eco" (choose from list in "theme_folder")
+
+# select subtheme / component
+
+folders %>%
+  filter(theme_folder == theme) %>% 
+  dplyr::select(subtheme_folder, subtheme_name) %>% 
+  print(n = Inf)
+
+subtheme1 <- subtheme <- "topo" # input your subtheme based on the most appropriate option from the list. If your subtheme is missing, please add new subtheme to folders.txt first (and make sure to sync with shared location for WIOSym if applicable)
+
+# Create destination path and folder
+
+dest1_path <- dest_path <- paste("./data/", location, "/", theme, "/", subtheme, "/", version, "/", sep="")  # location for any final products that can be used elsehwere along with datasym.txt file which logs all source IDs. 
+dest_path
+
+if (!dir.exists(dest_path)){
+  dir.create(dest_path, recursive = TRUE)
+}
+
+
+# work directory for any temporary files
+work1_path <- work_path <- paste(dest_path, "proc/", sep="") # in this folder you can organise any files you use in the process using your prefferred structure. No "final products" here, they go under root (path_dest1)
+work_path
+
+if (!dir.exists(work_path)){
+  dir.create(work_path, recursive = TRUE)
+}
+
+# Process log directory, for saving process logs and the exact script (or mxd etc) used to create the output files
+proc1_path <- proc_path <- paste(dest_path, "proc_log/", sep="") # in this folder you can organise any files you use in the process using your prefferred structure. No "final products" here, they go under root (path_dest1)
+proc_path
+
+if (!dir.exists(proc_path)){
+  dir.create(proc_path, recursive = TRUE)
+}
+
+# ... if multiple themes keep adding destinations here, and not futher down in script
+
+
+# Save your R script 
+#location for all active R scripts (latest version) according to theme, subtheme
+script_path <- "./process/r"  # main path
+script_path
+if (!dir.exists(script_path)){
+  dir.create(script_path, recursive = TRUE)
+}
+
+
+# run lines below, copy path and name and use File/Save As in R studio to save your .R workfile in the correct workspace - 
+# Note: in the end of the script (e.g. "write to file section") you are also asked to save a copy of your final code in the destination proc_log directory
+
+script_path_windows <- paste(getwd(), "/process/r/", sep="")  
+
+#script_path_windows <- gsub("/", "\\\\", script_path_windows)
+script_path_windows  # filepath
+
+# name of our script
+script_name <- paste(theme1, "_", subtheme1,"_", location, "_s01_",version, ".R", sep="")  # s  (e.g. "_s01_") stands for sequential order incase you have divided the work in several scripts
+
+script_name # file name
+```
+
+# Set "data_raw" sources 
+# locate available mangrove data
+```{r}
+# data_raw1: description
+source1_dir <- source_dir <-  "./data_raw/reg/env/topo/gebco/gk2305111607/"
+source1_id <- source_id <- "gk2305111607" # cut and past your source id here
+source1_metasym <- read_tsv(paste(source_dir, source_id, "_metasym.txt", sep="")) # reads the associated metasym file
+source1_metasym # check that metasym file is populated, and fix if not
+# check what data is in data_raw directory and read in all files to use from the directory:
+dir(source_dir, recursive=T) 
+#File1: bathymetry from gebco
+dir(source_dir) # check what data is in data_raw directory
+source_file <- "GEBCO_11_May_2023_3ca8d6e22830/gebco_2023_n18.0_s-42.0_w6.0_e80.0.tif"  # your data file(s)
+source1_path1 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+(gebco <- inraster1 <- raster(source_path))
+plot(gebco)
+```
+```{r}
+#File2: bathymetry uncertainty from gebco
+dir(source_dir, recursive=T) # check what data is in data_raw directory
+source_file <- "GEBCO_11_May_2023_3ca8d6e22830/gebco_2023_tid_n18.0_s-42.0_w6.0_e80.0.tif"  # your data file(s)
+source1_path2 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+(gebco_tid <- inraster2 <- raster(source_path))
+plot(gebco_tid)
+
+file1_data_raw_sources <- file_data_raw_sources <- tibble(id = c(source1_id))
+```
+  
+# Set "data" sources
+```{r}
+# declare paths to all sources from "data" directory which are products created from information in data_raw. make sure that all sources are accompanied by the a datasym.txt file, if not fix...
+# data1: standard_grid 1km
+data1_dir <- data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
+
+dir(data_dir) # check what data is in this directory
+data_file <- "grid_1km_v01.1.tif" # your data file
+data1_sourcesym <- read_tsv(paste(data_dir, data_file, "_sourcesym.txt", sep=""))
+data1_sourcesym # check so source IDs exists and make sense
+data1_path <- data_path <- paste(data_dir, data_file, sep="")
+data_path
+(grid_1km <- raster(data_path)) # read in your data object if appropriate and perhaps change name to more informative...
+plot(grid_1km)
+```
+```{r}
+# data2: standard_grid 1km na values
+data2_dir <- data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
+dir(data_dir) 
+data_file <- "grid_1km_na_v01.1.tif" # your data file
+data2_sourcesym <- read_tsv(paste(data_dir, data_file, "_sourcesym.txt", sep=""))
+data2_sourcesym # check so source IDs exists and make sense
+data2_path <- data_path <- paste(data_dir, data_file, sep="")
+data_path
+grid_1km_na <- raster(data_path) # read in your data object if appropriate and perhaps change name to more informative...
+
+
+# data3: standard_grid 250m
+data3_dir <- data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
+dir(data_dir) 
+data_file <- "grid_250m_v01.1.tif" # your data file
+data3_sourcesym <- read_tsv(paste(data_dir, data_file, "_sourcesym.txt", sep=""))
+data3_sourcesym # check so source IDs exists and make sense
+data3_path <- data_path <- paste(data_dir, data_file, sep="")
+data_path
+(grid_250m <- raster(data_path)) # read in your data object if appropriate and perhaps change name to more informative...
+plot(grid_250m)
+# data4: standard_grid 250m NA values
+data4_dir <- data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
+dir(data_dir) # check what data is in this directory
+data_file <- "grid_250m_na_v01.1.tif" # your data file
+data4_sourcesym <- read_tsv(paste(data_dir, data_file, "_sourcesym.txt", sep=""))
+data4_sourcesym # check so source IDs exists and make sense
+data4_path <- data_path <- paste(data_dir, data_file, sep="")
+data_path
+grid_250m_na <- raster(data_path) # read in your data object if appropriate and perhaps change name to more informative...
+grid_250m_na
+
+# data5: bounding box shapefile
+data5_dir <- data_dir <-  "./data/reg/grid/scope/v01/"  # input your data directory
+dir(data_dir) # check what data is in this directory
+data_file <- "wiosym_grid_bounding_box_v01.shp" # your data file
+data5_sourcesym <- read_tsv(paste(data_dir, data_file, "_sourcesym.txt", sep=""))
+data5_sourcesym # check so source IDs exists and make sense
+data5_path <- data_path <- paste(data_dir, data_file, sep="")
+data_path
+grid_poly <- st_read(data_path) # read in your data object if appropriate and perhaps change name to more informative...
+grid_poly
+#plot(grid_poly)
+```
+# create sourcesym file for all sources
+```{r}
+# adding all unique ID together for output sourcesym files
+data_raw_sources <- tibble(id = c(source1_id))
+
+
+file_sourcesym <- data_raw_sources %>% 
+  add_row(data1_sourcesym)%>%  # add any "sourcesym" files applicable to this product, keep adding rows with data sourcesym files as needed
+  add_row(data2_sourcesym)%>% 
+  add_row(data3_sourcesym)%>% 
+  add_row(data4_sourcesym)%>% 
+  add_row(data5_sourcesym)%>% 
+  unique() %>% 
+  print()
+
+# if some output files have less sources, copy this chunk and create indiviual files
+```
+
+# ========================================================================================================= #
+# PROCESS
+# ========================================================================================================= #
+
+```{r}
+# fit to old script ------------------------------------------------------------------
+inraster <- gebco
+inraster
+
+inraster_path <- source1_path1
+inraster_path
+```
+# warp depth to 250m grid --------------------------------------------------------------------
+```{r}
+# write empty grid for gdalutil work
+writeRaster(grid_1km_na, paste(work1_path, "grid_1km_na_mean_depth_gebco2023.tif", sep= ""),  overwrite=T, COMPRESS=LZW)
+writeRaster(grid_250m_na, paste(work1_path, "grid_250m_na_mean_depth_gebco2023.tif", sep= ""),  overwrite=T, COMPRESS=LZW)
+
+# write to file
+dstfile <- paste(work1_path, "grid_250m_na_mean_depth_gebco2023.tif", sep="")
+
+crs(grid_1km)
+# 250m grid transformation from high resolution water mask
+
+sr <- crs(inraster)
+tr <- crs(grid_1km)
+#  "+proj=cea +lat_ts=-12 +lon_0=12 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"    
+
+bat_250m <- gdalUtils::gdalwarp(srcfile = inraster_path,
+                                dstfile = dstfile,
+                                s_srs = sr,
+                                t_srs = tr,
+                                tr = c(250, 250),
+                                tap = TRUE,
+                                output_Raster = FALSE,
+                                overwrite = TRUE,
+                                r = "average",
+                                multi = TRUE,
+)
+
+bat_250m <- raster(dstfile)
+
+writeRaster(bat_250m , paste(work1_path, "grid_250m_na_mean_depth_gebco2023_lzw.tif", sep=""), overwrite=F, COMPRESS=LZW)
+```
+
+```{r}
+dstfile <- paste(work1_path, "grid_1km_na_mean_depth_gebco2023.tif", sep="")
+
+bat_1km <- gdalUtils::gdalwarp(srcfile = inraster_path,
+                               dstfile = dstfile,
+                               s_srs = sr,
+                               t_srs = tr,
+                               tr = c(1000, 1000),
+                               tap = TRUE,
+                               output_Raster = TRUE,
+                               overwrite = TRUE,
+                               r = "average",
+                               multi = TRUE,
+                               srcnodata = "NA"
+)
+
+summary(bat_1km)
+```
+
+
+# masking raster to grid alternative 2 ------------------------------------------------------------------------------------
+```{r}
+bat_250m_mask <- crop(bat_250m, extent(grid_250m))
+bat_250m_mask <- mask(bat_250m_mask, grid_250m)
+
+# reclassify values larger then 0 in bathymetry
+bat_250m_mask[bat_250m_mask>1] <- 1
+plot(bat_250m_mask)
+```
+
+
+```{r}
+writeRaster(bat_250m_mask, paste(dest_path, "bathymetry_mean_m_250m_", version, d_version, ".tif", sep=""), overwrite=T, COMPRESS=LZW, datatype = 'INT4S')
+
+# aggregate to 1 km cells using the 250m grid
+
+bat_1km <- raster::aggregate(bat_250m_mask, fact=4, fun=max, na.rm=T)
+bat_1km
+plot(bat_1km)
+```
+
+## write 1km to dest file
+```{r}
+writeRaster(bat_1km, paste(dest_path, "bathymetry_mean_m_1km_", version, d_version, ".tif", sep=""), overwrite=TRUE, COMPRESS=LZW, datatype = 'INT4S') 
+```
+
+
+# Divide depth into individual rasters with depth zones
+```{r}
+# read data from disk again 
+depth_250m <- raster(paste(dest_path, "bathymetry_mean_m_250m_", version, d_version, ".tif", sep=""))
+depth_1km <- raster(paste(dest_path, "bathymetry_mean_m_1km_", version, d_version, ".tif", sep=""))
+
+# explore data
+hist(depth_1km,
+     main = "Distribution of raster cell values in the WIO Gebco depth data",
+     #breaks = c(0, -40, -200, -1000, -3000, -7000),
+     xlab = "Depth (m)", ylab = "Area",
+     col = "springgreen")
+```
+
+```{r}
+# create classification matrix for depth data using depth zones
+reclass_df <- c(-Inf, -3000, 5,
+                -3000, -1000, 4,
+                -1000, -200, 3,
+                -200, -40, 2,
+                -40, Inf, 1)
+
+reclass_df
+#Reorder into matrix
+reclass_m <- matrix(reclass_df,
+                    ncol = 3,
+                    byrow = TRUE)
+
+reclass_m
+
+depth_250m_classified <- reclassify(depth_250m,
+                                    reclass_m, include.lowest=TRUE)
+
+plot(depth_250m_classified)
+```
+## Check raster plots...
+```{r}
+depth_1km_classified <- reclassify(depth_1km,
+                                   reclass_m, include.lowest=TRUE)
+
+plot(depth_1km_classified)
+```
+
+```{r}
+writeRaster(depth_250m_classified, paste(dest_path, "bathymetry_zone_250m_", version, d_version, ".tif", sep=""), overwrite=TRUE, COMPRESS=LZW, datatype = 'INT4S')  
+writeRaster(depth_1km_classified, paste(dest_path, "bathymetry_zone_1km_", version, d_version, ".tif", sep=""), overwrite=TRUE, COMPRESS=LZW, datatype = 'INT4S')  
+```
+
+# ========================================================================================================= #
+# Export individual zones -----------------------------------------------------------------------
+
+```{r}
+# create classification matrix for depth data using depth zones
+reclass_df_zone <- c(0, 1, 1,
+                     1, 6, 0)
+
+reclass_df_zone
+#Reorder into matrix
+reclass_m_zone <- matrix(reclass_df_zone,
+                         ncol = 3,
+                         byrow = TRUE)
+
+depth_250m_classified_zone <- reclassify(depth_250m_classified,
+                                         reclass_m_zone, include.lowest=TRUE)
+
+plot(depth_250m_classified_zone)
+```
+
+```{r}
+writeRaster(depth_250m_classified_zone, paste(dest_path, "bathymetry_zone_0-40m_250m_", version, d_version, ".tif", sep=""), overwrite=TRUE, COMPRESS=LZW, datatype = 'INT4S')
+```
+
+```{r}
+# zone 40-200m
+reclass_df_zone <- c(0,1,0,
+                    1, 2, 1,
+                     2, 6, 0)
+
+reclass_df_zone
+#Reorder into matrix
+reclass_m_zone <- matrix(reclass_df_zone,
+                         ncol = 3,
+                         byrow = TRUE)
+
+depth_250m_classified_zone <- reclassify(depth_250m_classified,
+                                         reclass_m_zone, include.lowest=TRUE)
+plot(depth_250m_classified_zone)
+```
+
+```{r}
+writeRaster(depth_250m_classified_zone, paste(dest_path, "bathymetry_zone_40-200m_250m_", version, d_version, ".tif", sep=""), overwrite=TRUE, COMPRESS=LZW, datatype = 'INT4S')
+```
+
+```{r}
+# zone 200-1000m
+reclass_df_zone <- c(0, 2, 0,
+                     2, 3, 1, 
+                     3, 6, 0)
+
+reclass_df_zone
+#Reorder into matrix
+reclass_m_zone <- matrix(reclass_df_zone,
+                         ncol = 3,
+                         byrow = TRUE)
+
+depth_250m_classified_zone <- reclassify(depth_250m_classified,
+                                         reclass_m_zone, include.lowest=TRUE)
+
+plot(depth_250m_classified_zone)
+```
+
+```{r}
+
+writeRaster(depth_250m_classified_zone, paste(dest_path, "bathymetry_zone_200-1000m_250m_", version, d_version, ".tif", sep=""), overwrite=TRUE, COMPRESS=LZW, datatype = 'INT4S')
+```
+
+
+```{r}
+# zone 1000m-inf
+reclass_df_zone <- c(0, 3, 0,
+                     3, 6, 1)
+
+reclass_df_zone
+#Reorder into matrix
+reclass_m_zone <- matrix(reclass_df_zone,
+                         ncol = 3,
+                         byrow = TRUE)
+
+depth_250m_classified_zone <- reclassify(depth_250m_classified,
+                                         reclass_m_zone, include.lowest=TRUE)
+
+plot(depth_250m_classified_zone)
+```
+
+```{r}
+
+writeRaster(depth_250m_classified_zone, paste(dest_path, "bathymetry_zone_1000m-inf_250m_", version, d_version, ".tif", sep=""), overwrite=TRUE, COMPRESS=LZW, datatype = 'INT4S')
+```
+
+
+## calculate raster statistics 250m and ratify -----------------------------------------------------
+```{r}
+r_mosaic <- depth_250m_classified
+
+
+df <- as.data.frame(r_mosaic)
+df <- as_tibble(df)   %>%  
+  mutate_all(as.integer) %>% 
+  drop_na()
+resolution = 250
+stat <- df %>% 
+  group_by(bathymetry_mean_m_250m_v02.0) %>% 
+  summarize(n = n()) %>%
+  mutate(km2 = round(n*resolution*resolution/1000000, 2)) %>% 
+  mutate(percent = round(100 * n/sum(n), 2)) %>% 
+  print()
+```
+
+```{r}
+r_mosaic <- ratify(r_mosaic)
+r_mosaic_rat <- levels(r_mosaic)[[1]]
+
+Value <- c(1, 2, 3, 4, 5)
+class_name <- c("0-40m", "40-200m", "200-1000m", "1000m-3000m", ">3000m")
+count <- as.factor(c(stat[["n"]][1],	stat[["n"]][2],	stat[["n"]][3],	stat[["n"]][4],	stat[["n"]][5]))
+class_km2 <- as.factor(c(stat[["km2"]][1],	stat[["km2"]][2],	stat[["km2"]][3],	stat[["km2"]][4],	stat[["km2"]][5]))
+
+stat <- stat %>%
+  rename(Value = bathymetry_mean_m_250m_v02.0)
+
+rat_table <- data.frame(Value, class_name) %>%
+  as_tibble() %>% 
+  mutate(Value = as.integer(Value)) %>% 
+  left_join(stat, by="Value")
+
+rat_table <- rat_table %>% 
+  filter(n>=0) %>% 
+  print()
+```
+
+```{r}
+r_mosaic_rat$Value <- rat_table$Value
+r_mosaic_rat$class_name <- rat_table$class_name
+r_mosaic_rat$count <- rat_table$n
+r_mosaic_rat$class_km2 <- rat_table$km2
+r_mosaic_rat$class_perc <- rat_table$percent
+levels(r_mosaic) <- r_mosaic_rat
+r_mosaic_rat
+
+write.dbf(r_mosaic_rat, file = paste(dest_path, "bathymetry_zone_250m_", version, d_version, ".tif", ".vat.dbf", sep=''), factor2char = TRUE, max_nchar = 254)
+```
+
+
+## calculate raster statistics 1km and ratify -----------------------------------------------------
+```{r}
+r_mosaic <- depth_1km_classified
+
+
+df <- as.data.frame(r_mosaic)
+df <- as_tibble(df)   %>%  
+  mutate_all(as.integer) %>% 
+  drop_na()
+resolution = 1000
+stat <- df %>% 
+  group_by(bathymetry_mean_m_1km_v02.0) %>% 
+  summarize(n = n()) %>%
+  mutate(km2 = round(n*resolution*resolution/1000000, 2)) %>% 
+  mutate(percent = round(100 * n/sum(n), 2)) %>% 
+  print()
+```
+
+```{r}
+r_mosaic <- ratify(r_mosaic)
+r_mosaic_rat <- levels(r_mosaic)[[1]]
+
+Value <- c(1, 2, 3, 4, 5)
+class_name <- c("0-40m", "40-200m", "200-1000m", "1000m-3000m", ">3000m")
+count <- as.factor(c(stat[["n"]][1],	stat[["n"]][2],	stat[["n"]][3],	stat[["n"]][4],	stat[["n"]][5]))
+class_km2 <- as.factor(c(stat[["km2"]][1],	stat[["km2"]][2],	stat[["km2"]][3],	stat[["km2"]][4],	stat[["km2"]][5]))
+
+stat <- stat %>%
+  rename(Value = bathymetry_mean_m_1km_v02.0)
+
+rat_table <- data.frame(Value, class_name) %>%
+  as_tibble() %>% 
+  mutate(Value = as.integer(Value)) %>% 
+  left_join(stat, by="Value")
+
+rat_table <- rat_table %>% 
+  filter(n>=0) %>% 
+  print()
+```
+
+```{r}
+r_mosaic_rat$Value <- rat_table$Value
+r_mosaic_rat$class_name <- rat_table$class_name
+r_mosaic_rat$count <- rat_table$n
+r_mosaic_rat$class_km2 <- rat_table$km2
+r_mosaic_rat$class_perc <- rat_table$percent
+levels(r_mosaic) <- r_mosaic_rat
+r_mosaic_rat
+
+write.dbf(r_mosaic_rat, file = paste(dest_path, "bathymetry_zone_1km_", version, d_version, ".tif", ".vat.dbf", sep=''), factor2char = TRUE, max_nchar = 254)
+```
+
+#==========================================================================================================================#
+# EXPORT
+#==========================================================================================================================#
+
+# SOURCESYM
+Create sourcesym file with all source IDs used (data and data_raw) 
+```{r}
+## data raw sources (dir)
+(data_raw_sources <- tibble(id = c(source1_id))) # REPLACE / add all new data_raw sources (if they are already in the loaded sourcesym file disregard)
+
+## data sources (files)
+#add any new sourcesym files that are not already represented in the loaded sourcesym
+
+data_sources <- data1_sourcesym %>% # add any "sourcesym" files applicable to this product (check indata section), keep adding sourcesym files as needed
+#  add_row(data2_sourcesym)%>%  
+#  #add_row(data3_sourcesym)%>% 
+  unique() %>% 
+ print()
+
+## Sources combined
+
+#all_sources <- data_sources %>% add_row(data_raw_sources) %>% #data_raw_sources
+all_sources <- data_raw_sources
+
+print(all_sources)
+```
+
+
+# PRODUCT 1: Bathymetry
+
+# saved time and did this step above, manually added sourcesym files
+
+#```{r include = FALSE}
+
+export_object1 <- bathymetry_1km 
+export_object2 <- bathymetry_250m 
+
+dir(dest_path)
+product_orig1 <- "bathymetry_mean_m_1km_v02.0.tif" 
+product_orig2 <- "bathymetry_mean_m_250m_v02.0.tif"
+
+(product_path1 <- paste(dest_path, product_orig1, "_uncertainty.tif", sep="" ))
+(product_path2 <- paste(dest_path, product_orig2, "_uncertainty.tif", sep="" ))
+
+# check datatype to be appropriate for values ('FLT4S' (normalised data) / 'INT4S' (uncertainty data) main standards to use)
+writeRaster(export_object1, product_path1, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
+writeRaster(export_object2, product_path2, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
+
+write_tsv(all_sources, paste(product_path1, "_sourcesym.txt", sep="")) 
+write_tsv(all_sources, paste(product_path2, "_sourcesym.txt", sep=""))  
+#```
+
+
+# SAVE SCRIPT
+1. save your current R script (File/Save)
+2. Save a carbon copy of the R script to proc_log (identical script to what is used to create the products exported
+Do not change the *.Rmd carbon copy in proc_log/ unless you change this version of the products (new versions are developed under process/r)
+
+```{r}
+# 2. run code below and go to File/Save As and paste link and name:
+print(script_name_copy <- paste(log_path, gsub(".Rmd", "", script_name), d_version, ".Rmd", sep="")) # script name
+```
+
+#==========================================================================================================================#
+# FINAL CHECK
+#==========================================================================================================================#
+# Developer check
+ Do your own final check on the products and double check sourcesym file exists and are complete for all files in root 
+ -> Sign at top of script in about section (# Approved by:)
+
+# External check 
+ To ensure repeatability and quality, make sure one colleage can run the script
+ When script is proven repeatable/understandable and products/metadata look ok 
+ -> Sign at top of script in about section (# Approved by:), and make any comments if needed
+ There is also a work_log document in onedrive / gitHUB, check current arrangement with Swedish dev team
+

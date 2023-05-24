@@ -1,0 +1,24 @@
+"id"	"gk2305101336"
+"file_path"	"data_raw\nat\saz\eco\hab\sanbi\gk2305101336"
+"local_path"	"\\sgu.se\SGU\prod\proj\marin\swoc\work\wiosym"
+"download_date"	"2023-05-10"
+"user"	"gk"
+"provider_list"	"sanbi"
+"provider_manual"	""
+"source"	"http://bgis.sanbi.org/SpatialDataset/Detail/2687"
+"citation"	""
+"copyright"	"permission needed"
+"copyright_details"	"This data may not be reproduced by any means, nor redistributed via web site or ftp site, without 
+prior permission. Whilst every effort has been made to ensure the accuracy of data, users are 
+advised to use the data and conclusions drawn from its use with caution. Users noting errors and 
+omissions are requested to notify the office of project (Janine.adams@mandela.ac.za) to 
+improve data accuracy. These data are not for resale or replicating. This digital version is in the 
+public domain requiring only the conventional acknowledgement of source in publications and 
+reports"
+"location"	"saz"
+"theme"	"Ecosystem components (e.g. habitat and species)"
+"theme_tag"	"eco"
+"subtheme"	"HABITAT"
+"subtheme_tag"	"hab"
+"tags"	";eco;habitat;coastal habitat"
+"comments"	"Mapped estuarine habitat in South Africa. point of contact: taryn.riddin@live.co.za"

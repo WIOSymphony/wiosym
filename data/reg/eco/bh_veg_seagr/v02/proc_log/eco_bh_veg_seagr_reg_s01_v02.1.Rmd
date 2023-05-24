@@ -1,0 +1,1705 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+# ========================================================================================================= #
+# IMPORTANT - To get started:
+Because this script is an R Markdown script, the default directory is the location of this .Rmd file.
+You must open this script from within the .Rproj file associated with your wiosym database for it to work.
+If you haven't used R notebooks before (.Rmd), each of the code "chunks" can be executed by clicking the green play
+button at the top right of the chunk.
+
+To run the script from the project directory, in R Studio, you need to go to: Tools > Global Options > R Markdown
+and set "Evaluate chunks in directory" to "Project", though for latest version of R/Rstudio it may not be needed...
+# ========================================================================================================= #
+# ABOUT
+# ========================================================================================================= #
+## Brief description:  Seagrass map  combining multiple sources mapping presence of seagrass at 250m resolution then proportion at 1km, similar to mangrove and coral process. In addition to this script a predictive model was devloped for Saya Del Mahla Banks, then integrated here. Seagrasses combine many kinds of data inclduing different kind of models and maps. The main dataset to calibrate the data against have been the Allen Coral Atlas since it represents the biggest high resolution mapping effort in the WIO region.
+
+###Needs updating with temperate/tropical to be completed
+eco_bh_veg_seagr_reg_s02_v02.1_temptrop_limit.Rmd
+### Scripts/processes that needs to be updated prior?: 
+env_topo_reg_s01_v02.0.Rmd, eco_bh_reg_s01_model_seagrass_02.1.Rmd
+###
+### Script by: 
+gk, sgu, R 4.1.1
+### Updated: 
+gk, 230518, sgu, Rver 4.1.1,Adding  estuarine seagrass data for south africa and global maxent seagrass model - including adjustments to compensate for predictive model vs map data
+### Developer check: Initial, org, yymmdd, comments
+### External check: Initial, org, yymmdd, comments
+# ========================================================================================================= #
+# INSTRUCTIONS
+# ========================================================================================================= #    
+## Style
+  # Write code that is easy to follow and repeat.
+  # Suggested R style is tidyverse. Style guide here https://style.tidyverse.org/index.html
+
+## Metadata
+  # All indata from "data_raw" must have a unique ID with *_metasym.txt file to go along, check before you add data.
+  # All indata from and outputs to "data" must have a *_sourcesym.txt file with all (accumulated) sourceIDs used to create the layer.
+  # The metasym files and tracking of those in the sourcesym files ensures correct sources for products and ISO metadata. This template helps you get it right..
+  
+## Naming and folders
+  # Predefined standard names for main/sub folders and final products in two text files that can be added to in need.
+  # ../shiny_data_upload/modify_txt_files_v01.2.xlsx and ..\process\templates\modify_txt_files_data_v01.0.xlsx
+  # Main version (e.g. v01 for 2021) follows dev cycles for all WIOSYm. For version control within v01 use V01.1, V01.2 etc..
+  # More code/instructions to standardize folders and names under "set destinations" section
+  # Each product dir have a "proc" folder. It's the temp space where all workfiles are stored. No final products here.  
+  # All final products are stored under the root folder (e.g. ..\data\reg\eco\bh_coral\v01) together with 
+  # a nameofmyfile_sourcesym.txt file with all source IDs used. No other files here. move products to _archive\ dir if defunct 
+# ========================================================================================================= # 
+# PREPARATIONS
+# ========================================================================================================= #
+
+### Install packages
+```{r, include = FALSE}
+# list all packages that this script is dependent on, remove any redundant ones
+x <- c("leaflet", "sf", "raster", "rgdal", "tidyverse", "fasterize")
+#install.packages(x, dependencies=TRUE)
+```
+
+### Load packages
+```{r, include = FALSE}
+library(leaflet)
+library(sf) 
+library(raster)
+library(rgdal)
+library(tidyverse)
+library(fasterize)
+```
+
+## Set version
+```{r}
+version = "v02" # relates to major iteration of WIOSym (v01 for grid 2021, v02 for grid 2022)
+d_version = ".1"  # detailed version (you can add another level e.g. 0.0  -> v01.0.0)
+seq = "s01" # sequential order - change accordingly if process is run in several scripts
+```
+
+## Set geographic scope
+```{r}
+read_tsv("./shiny_data_upload/locations.txt")  # prints available locations to choose from and their abbreviations
+```
+
+```{r}
+location = "reg" # choose applicable 3 letter abbreviation from "location_val" -  reg for whole WIO area
+```
+
+## Set main theme
+```{r}
+folders_raw <- read_tsv("./shiny_data_upload/folders.txt")
+folders_data <- read_tsv("./shiny_data_upload/folders_data.txt") # additional folders for data not applicable for data_raw 
+folders <- folders_raw %>% add_row(folders_data)
+(unique(folders["theme_folder"]))
+```
+
+```{r}
+theme <- "eco" # Copy from "theme_folder" (e.g. "eco")
+```
+
+## Set Subtheme
+```{r}
+folders %>%
+  filter(theme_folder == theme) %>% 
+  dplyr::select(subtheme_folder, subtheme_name) %>% 
+  print(n = Inf)
+```
+
+```{r}
+subtheme <- "bh_veg_seagr" # copy from "subtheme_folder"
+```
+
+## Set paths
+```{r}
+(dest_path <- paste("./data", location, theme, subtheme, version, "", sep="/")) # path to final product
+(work_path <- paste(dest_path, "proc/", sep=""))
+(proc_path <- paste(dest_path, "proc_log/", sep=""))
+(archive_path <- paste(dest_path, "_archive/", sep=""))
+(script_path <- "./process/r/")
+```
+
+## Create directories
+```{r}
+dir.create(dest_path, recursive = TRUE)
+dir.create(work_path, recursive = TRUE)
+dir.create(proc_path, recursive = TRUE)
+dir.create(archive_path, recursive = TRUE)
+dir.create(script_path, recursive = TRUE)
+```
+
+## Save R Script
+```{r}
+name1 <- "" # "REPLACE_" if script need additional name... don't use unless needed to avoid duplication.
+(script_path_windows <- paste(getwd(), "/process/r", sep=""))
+(script_name <- paste(theme, "_", subtheme,"_", location, "_", name1, seq, "_", version, ".Rmd", sep=""))
+```
+ # copy path and name and use File/Save As in R studio to save rmd file
+ 
+#==========================================================================================================================#
+# INDATA
+#==========================================================================================================================#
+# DATA_RAW sources
+IMPORTANT all data harvested from data_raw needs to have a metasym.txt file in its root directory (not file specific)
+
+## DIR1: WCMC 
+```{r}
+source1_dir <- source_dir <-  "./data_raw/glo/eco/bh_veg_seagr/wcmc/gk2110231307/"  # REPLACE - internal path
+source1 <- source_id <- "gk2110231307"
+(read_tsv(paste(source_dir, source_id, "_metasym.txt", sep=""))) # check the metasym file
+``` 
+
+```{r}
+dir(source_dir, recursive=T)
+```
+
+```{r}
+# Files
+#source1_path1 <- path <- paste(source_dir, "014_001_WCMC013-014_SeagrassPtPy2021_v7_1/01_Data/WCMC_013_014_SeagrassesPt_v7_1.shp", sep="")
+source1_path1 <- path <- "./data/reg/eco/bh_veg_seagr/v01/proc/WCMC_013_014_SeagrassesPt_v7_1_buffer750m.shp" # reading in modified file (750m buffer around points using gis/GM21)
+wcmc_sg_pt <- st_read(path)
+(crs(wcmc_sg_pt))
+glimpse(wcmc_sg_pt)
+#source1_path2 <- path <- paste(source_dir, "014_001_WCMC013-014_SeagrassPtPy2021_v7_1/01_Data/WCMC013014-Seagrasses-Py-v7_1.shp", sep="")
+source1_path2 <- path <- "./data/reg/eco/bh_veg_seagr/v01/proc/WCMC013014-Seagrasses-Py-v7_1_wiosymcrop.shp" # reading in cropped file gm21 due to prolems in r
+wcmc_sg <- st_read(path) %>% st_transform((crs(wcmc_sg_pt)))
+(crs(wcmc_sg))
+wcmc_sg <- wcmc_sg %>% st_transform((crs(wcmc_sg_pt)))
+glimpse(wcmc_sg)
+# add files from dir as needed
+```
+
+
+
+##DIR2 Allen Coral
+```{r}
+# data1: coral data from allen atlas
+source2_dir <- source_dir <-  "./data_raw/reg/eco/bhab/allen/gk2304132229/"
+source2 <- source_id <- "gk2304132229" # cut and past your source id here
+
+source2_metasym <- read_tsv(paste(source_dir, source_id, "_metasym.txt", sep="")) # reads the associated metasym file
+print(source2_metasym) # check that metasym file is populated, and fix if not
+# check what data is in data_raw directory and read in all files to use from the directory:
+```
+
+```{r}
+#File1: Allen coral data
+dir(source_dir) # check what data is in data_raw directory
+#source_file <- "Benthic-Map/benthic.gpkg" # your data file(s)
+source_file <- "Benthic-Map/benthic.geojson" # your data file(s)
+source2_path1 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_allen <- st_read(source_path)
+#coral_sf_full
+```
+
+## DIR3 placeholder... 
+
+
+## DIR4 Living Oceans Fundation (Chagos)
+```{r}
+# data4: updated coral data from allen atlas, somalia region
+source4_dir <- source_dir <-  "./data_raw/reg/eco/bh_coral/kslof/gk2302231136/"
+source4 <- source_id <- "gk2302231136" # cut and past your source id here
+source4_metasym <- read_tsv(paste(source_dir, source_id, "_metasym.txt", sep="")) # reads the associated metasym file
+print(source4_metasym) # check that metasym file is populated, and fix if not
+# check what data is in data_raw directory and read in all files to use from the directory:
+```
+
+```{r}
+#File1: Living Ocean Foundation data - Chagos
+dir(source_dir, recursive=T) # check what data is in data_raw directory
+source_file <- "KSLOF-GISPackage-WIO/BIOT-PB/Habitats/BIOTPB_20171117_Habitat_Classes_Consolidated.shp" # your data file(s)
+source4_path1 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_lof <- st_read(source_path)
+#coral_sf_full
+```
+
+## DIR5 Living Oceans Fundation (Seyshelles)
+```{r}
+# data5: updated coral data from allen atlas, somalia region
+source5_dir <- source_dir <-  "./data_raw/reg/eco/bh_coral/kslof/gk2304141400/"
+source5 <- source_id <- "gk2304141400" # cut and past your source id here
+source5_metasym <- read_tsv(paste(source_dir, source_id, "_metasym.txt", sep="")) # reads the associated metasym file
+print(source5_metasym) # check that metasym file is populated, and fix if not
+# check what data is in data_raw directory and read in all files to use from the directory:
+```
+
+```{r}
+#File1: Living Ocean Foundation data - Seychelles
+dir(source_dir, recursive=T) # check what data is in data_raw directory
+source_file <- "KSLOF-GISPackage-WIO/Seychelles/Vector datasets/african_banks.shp" # your data file(s)
+source5_path1 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_kslof1 <- st_read(source_path)
+
+source_file <- "KSLOF-GISPackage-WIO/Seychelles/Vector datasets/alphonse.shp" # your data file(s)
+source5_path2 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_kslof2 <- st_read(source_path)
+
+source_file <- "KSLOF-GISPackage-WIO/Seychelles/Vector datasets/bijoutier_stFrancois.shp" # your data file(s)
+source5_path3 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_kslof3 <- st_read(source_path)
+
+source_file <- "KSLOF-GISPackage-WIO/Seychelles/Vector datasets/boudeuse.shp" # your data file(s)
+source5_path4 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_kslof4 <- st_read(source_path)
+
+source_file <- "KSLOF-GISPackage-WIO/Seychelles/Vector datasets/darros.shp" # your data file(s)
+source5_path5 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_kslof5 <- st_read(source_path)
+
+source_file <- "KSLOF-GISPackage-WIO/Seychelles/Vector datasets/desnoeufs.shp" # your data file(s)
+source5_path6 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_kslof6 <- st_read(source_path)
+
+source_file <- "KSLOF-GISPackage-WIO/Seychelles/Vector datasets/etoile.shp" # your data file(s)
+source5_path7 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_kslof7 <- st_read(source_path)
+
+source_file <- "KSLOF-GISPackage-WIO/Seychelles/Vector datasets/marieLouise.shp" # your data file(s)
+source5_path8 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_kslof8 <- st_read(source_path)
+
+
+source_file <- "KSLOF-GISPackage-WIO/Seychelles/Vector datasets/poivre.shp" # your data file(s)
+source5_path9 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_kslof9 <- st_read(source_path)
+
+source_file <- "KSLOF-GISPackage-WIO/Seychelles/Vector datasets/remire.shp" # your data file(s)
+source5_path10 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_kslof10 <- st_read(source_path)
+
+source_file <- "KSLOF-GISPackage-WIO/Seychelles/Vector datasets/sand_cay.shp" # your data file(s)
+source5_path11 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_kslof11 <- st_read(source_path)
+
+source_file <- "KSLOF-GISPackage-WIO/Seychelles/Vector datasets/st_joseph.shp" # your data file(s)
+source5_path12 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+coral_kslof12 <- st_read(source_path)
+
+#coral_sf_full
+```
+
+M:\marin\swoc\work\wiosym\data_raw\reg\eco\hab\lit\gk2301231646
+
+## DIR6: Literature - EF Nansen 2018 survey Saya Bank
+```{r}
+source6_dir <- source_dir <-  "./data_raw/reg/eco/hab/lit/gk2301231646/"  # REPLACE - internal path
+source6 <- source_id <- "gk2301231646"
+(read_tsv(paste(source_dir, source_id, "_metasym.txt", sep=""))) # check the metasym file
+``` 
+
+```{r}
+dir(source_dir, recursive=T)
+```
+
+```{r}
+# Files
+source6_path1 <- path <- paste(source6_dir, "digitized_data/ramah_etal_coral_obs_saya_2018.shp", sep="")
+saya_pt <- st_read(path)
+(crs(saya_pt))
+glimpse(saya_pt)
+
+saya_pt <- saya_pt %>% st_transform((crs(grid_1km)))
+(crs(saya_pt))
+glimpse(saya_pt)
+# add files from dir as needed
+```
+
+
+## DIR7 Seagrass NMU SAZ
+
+```{r}
+# data7: Seagrass data from Nelson Mandela Univeristy of seagrass in estuaries
+source7_dir <- source_dir <-  "./data_raw/nat/saz/eco/bh_veg_seagr/nmu/gk2305111559/"
+source7 <- source_id <- "gk2305111559" # cut and past your source id here
+source7_metasym <- read_tsv(paste(source_dir, source_id, "_metasym.txt", sep="")) # reads the associated metasym file
+print(source7_metasym) # check that metasym file is populated, and fix if not
+# check what data is in data_raw directory and read in all files to use from the directory:
+```
+
+```{r}
+#File1: 
+dir(source_dir, recursive=T) # check what data is in data_raw directory
+source_file <- "NMU_Seagrass/NMU_Zostera_only.shp" # your data file(s)
+source7_path1 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+seagrass_nmu <- st_read(source_path)
+
+plot(seagrass_nmu)
+```
+
+## DIR8 Seagrass Global Maxent model
+
+```{r}
+# data8: Seagrass data from Global Maxent model (WCMC)
+source8_dir <- source_dir <-  "./data_raw/glo/eco/bh_veg_seagr/wcmc/gk2305181356/"
+source8 <- source_id <- "gk2305181356" # cut and past your source id here
+source8_metasym <- read_tsv(paste(source_dir, source_id, "_metasym.txt", sep="")) # reads the associated metasym file
+print(source8_metasym) # check that metasym file is populated, and fix if not
+# check what data is in data_raw directory and read in all files to use from the directory:
+```
+
+```{r}
+#File1: 
+dir(source_dir, recursive=T) # check what data is in data_raw directory
+source_file <- "UniAuk_002_ModelledGlobalDistributionSeagrass/01_Data/MaxentModeledSeagrassExtent.shp" # your data file(s)
+source8_path1 <- source_path <- paste(source_dir, source_file, sep="")
+source_path
+seagrass_glo <- st_read(source_path)
+
+plot(seagrass_glo)
+```
+
+### number of "data_raw" directorys?
+```{r}
+data_raw_metasym_num <- 7 # REPLACE - set total number of data_raw dir used (e.g. <- 1), to help in export section
+```
+
+
+
+
+# DATA sources
+IMPORTANT Products in data are based on information in data_raw. Check that *_sourcesym.txt exists for each file to track acccumulated IDs. 
+
+## DATA1: Grid 1km - loading all flavours (watermask 1, 0, NA) at once since same sourcesym apply
+```{r}
+data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
+dir(data_dir) # check what data is in this directory
+```
+
+```{r}
+data1_file <- "grid_1km_v01.1.tif" 
+data1_file2 <- "grid_1km_0_v01.1.tif" 
+data1_file3 <- "grid_1km_na_v01.1.tif" 
+
+(grid_1km <- raster(paste(data_dir, data1_file, sep=""))) # read and check your data
+(grid_1km_0 <- raster(paste(data_dir, data1_file2, sep=""))) # read and check your data
+(grid_1km_na <- raster(paste(data_dir, data1_file3, sep=""))) # read and check your data
+
+(data1_sourcesym <- read_tsv(paste(data_dir, data1_file, "_sourcesym.txt", sep="")))
+# check that source IDs exists and make sense
+
+plot(grid_1km)
+```
+
+## DATA2: Grid 250m - loading all flavours (watermask 1, 0, NA) at once since same sourcesym apply
+```{r}
+data2_dir <- data_dir <-  "./data/reg/grid/grid/v01/"  # input your data directory
+dir(data_dir) 
+data2_file <- "grid_250m_v01.1.tif" # your data file
+data2_file2 <- "grid_250m_0_v01.1.tif" # your data file
+data2_file3 <- "grid_250m_na_v01.1.tif" # your data file
+
+(grid_250m <- raster(paste(data_dir, data2_file, sep=""))) # read and check your data
+(grid_250m_0 <- raster(paste(data_dir, data2_file2, sep=""))) # read and check your data
+(grid_250m_na <- raster(paste(data_dir, data2_file3, sep=""))) # read and check your data
+
+(data2_sourcesym <- read_tsv(paste(data_dir, data2_file, "_sourcesym.txt", sep="")))
+# check so source IDs exists and make sense
+# check that source IDs exists and make sense
+#plot(grid_250m)
+```
+
+
+
+DATA3: Allen seagrass - by-product of coral reef process... loading from data instead of redoing from source
+in v 2 allen data is reprocessed from source to make seagrass script independant of coral layer... hence this one is not used for now
+
+```{r}
+#dir(data_dir <-  "./data/reg/eco/bh_coral/v01/")  # input your data directory
+#data_file <- "seagrass_allen_presence_250m_v01.1.tif" # your data file
+#(allen_sg_path <- path <- paste(data_dir, data_file, sep=""))
+#(allen_sg_250m_r <- raster(paste(data_dir, data_file, sep=""))) # read and check your data
+
+#(data3_sourcesym <- read_tsv(paste(path, "_sourcesym.txt", sep="")))
+# check so source IDs exists and make sense
+# check that source IDs exists and make sense
+#plot(grid_250m)
+```
+
+
+## DATA 3: bounding box shapefile
+```{r}
+data4_dir <- data_dir <-  "./data/reg/grid/scope/v01/"  # input your data directory
+data4_file <- "wiosym_grid_bounding_box_v01.shp" # your data file
+data4_sourcesym <- read_tsv(paste(data_dir, data4_file, "_sourcesym.txt", sep=""))
+data4_path <- data_path <- paste(data_dir, data4_file, sep="")
+grid_poly <- st_read(data_path) # read in your data object if appropriate and perhaps change name to more informative...
+#grid_poly
+#plot(grid_poly)
+```
+## DATA 4: depth
+```{r}
+data4_dir <- data_dir <-  "./data/reg/env/topo/v02/"  # input your data directory
+dir(data_dir) # check what data is in this directory
+data_file <- "bathymetry_mean_m_250m_v02.0.tif" # your data file
+data4_sourcesym <- read_tsv(paste(data_dir, data_file, "_sourcesym.txt", sep=""))
+data4_path <- data_path <- paste(data_dir, data_file, sep="")
+
+depth_250m <- raster(data_path) 
+(depth_250m)
+
+
+data_file <- "bathymetry_mean_m_1km_v02.0.tif" # your data file
+data4_path2 <- data_path <- paste(data_dir, data_file, sep="")
+
+depth_1km <- raster(data_path)
+
+
+#plot(depth_250m)
+
+```
+
+## DATA 5: Saya seagrass model
+```{r}
+data5_dir <- data_dir <-  "./data/reg/eco/bh/v02/"  # input your data directory
+dir(data_dir) # check what data is in this directory
+data_file <- "Seagrass_percent_cover_Saya_model_v02.1.tif" # your data file
+data5_sourcesym <- read_tsv(paste(data_dir, data_file, "_sourcesym.txt", sep=""))
+data5_path <- data_path <- paste(data_dir, data_file, sep="")
+
+sgm_1km <- raster(data_path) # read in your data object if appropriate and perhaps change name to more informative...
+(sgm_1km)
+plot(sgm_1km)
+
+```
+
+
+## declare number of "data" files
+```{r}
+data_sourcesym_num <- 3 # REPLACE - set total number of data files (e.g. <- 2), to help in export section
+```
+
+
+#==========================================================================================================================#
+# PROCESSING
+#==========================================================================================================================#
+# MAP vector data to 250m precenses from all raw data
+
+## WCMC Polygons to 250m grid
+```{r}
+sf <- wcmc_sg
+#glimpse(sf)
+#unique(sf$pxlval)
+sf <- sf %>% 
+  mutate(pxlval = 1) %>% 
+  dplyr::select(pxlval)
+
+
+#problems with crop... doing in GIS and reloading ready file...
+#sf <- sf %>% 
+#  st_intersection(grid_poly)
+#sf_crop <- st_crop(sf
+#                    , xmin = 6, ymin = -42, xmax = 80, ymax = 18)
+#glimpse(sf_crop)
+#class(sf)
+#sf <- sf_crop
+
+input_path <- paste(work_path, "temp1.shp", sep="")
+# write modified shapefile (value 1) to temp file)
+st_write(sf,input_path, append = F) 
+
+# write empty grid for gdalutil work:
+wcmc_sg_250m_path <- output_path <- paste(work_path, "wcmc_sg_250m_na.tif", sep= "")
+writeRaster(grid_250m_na, output_path,  overwrite=T, COMPRESS=LZW)
+
+# 250m grid mapping
+warp <- gdalUtils::gdal_rasterize(src_datasource = input_path,
+                                        dst_filename = output_path,
+                                        b = 1,
+                                        at = T,
+                                        a = "pxlval",
+                                        output_Raster = TRUE,
+)
+
+r <- raster(output_path)
+wcmc_sg_250m_path <- output_path <- paste(work_path, "wcmc_sg_250m_na_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'FLT4S', COMPRESS=LZW)
+wcmc_sg_250m_r <- raster(output_path)
+
+```
+
+### depth mask - adjust artifacts seen in data using depth treshold from gebco bathymetry
+
+```{r}
+r <- wcmc_sg_250m_r
+(r)
+
+r0 <- depth_250m
+# code to mask extent of depth mask... not needed here
+#r0_extent <- extent(r0)
+#r0_extent[2] <- 800000
+#r0_extent
+#r0 <- crop(r0, r0_extent)
+
+#plot(r0) 
+
+# create depth mask for seagrass (using 100m as threshold, accounting for the high uncertainty of gebco in coastal areas)
+r0[r0>-100]<- 1
+r0[r0<=-100]<- 0 
+
+depth_mask <- r0
+
+plot(depth_mask) 
+
+
+#grid_250m_1 <- grid_250m_0# + 1
+#grid_250m_1[grid_250m_1==0]<-1
+#depth_mask <- mosaic(r0, grid_250m_1, fun="min")
+#plot(depth_mask)
+
+
+#depth_mask <- r
+
+wcmc_sg_250m_r_masked <- wcmc_sg_250m_r * depth_mask 
+
+
+# visual check that the masked have worked ok...
+r_diff <- wcmc_sg_250m_r_masked - wcmc_sg_250m_r
+
+
+r_diff_agg_1km <- raster::aggregate(r_diff, fact=4, fun=sum, na.rm=T)/4
+
+writeRaster(r_diff_agg_1km, paste(work_path, "r_diff_wcmc_1km_mask100m.tif", sep=""), overwrite=T, COMPRESS=LZW)
+
+# check so mask have worked ok... then write new seagrass wcmc raster to file
+
+
+r <- wcmc_sg_250m_r_masked
+
+plot(r)
+
+r[r==0]<-NA
+
+wcmc_sg_250m_masked_path <- output_path <- paste(work_path, "wcmc_sg_100mask_250m_na_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'FLT4S', COMPRESS=LZW)
+wcmc_sg_250m_r_masked <- raster(output_path)
+
+plot(wcmc_sg_250m_r_masked)
+
+```
+
+
+
+## WCMC Buffered Points (750m) 250m grid
+```{r}
+sf <- wcmc_sg_pt
+#glimpse(sf)
+#unique(sf$pxlval)
+sf <- sf %>% 
+  mutate(pxlval = 1) %>% 
+  dplyr::select(pxlval)
+
+glimpse(sf)
+#class(sf)
+
+(input_path <- paste(work_path, "temp2.shp", sep=""))
+# write modified shapefile (value 1) to temp file)
+st_write(sf,input_path, append = F) 
+
+# write empty grid for gdalutil work:
+wcmc_sg_pt_250m_path <- output_path <- paste(work_path, "wcmc_sg_pt_250m_na.tif", sep= "")
+writeRaster(grid_250m_na, output_path,  overwrite=T, COMPRESS=LZW)
+
+# 250m grid mapping
+warp <- gdalUtils::gdal_rasterize(src_datasource = input_path,
+                                        dst_filename = output_path,
+                                        b = 1,
+                                        at = T,
+                                        a = "pxlval",
+                                        output_Raster = TRUE,
+)
+
+r <- raster(output_path)
+wcmc_sg_pt_250m_path <- output_path <- paste(work_path, "wcmc_sg_pt_250m_na_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'FLT4S', COMPRESS=LZW)
+wcmc_sg_pt_250m_r <- raster(output_path)
+
+```
+
+
+## SAYA BANK  Points to 250m grid  !! Not used in final map, instead a Machine learning model (eco_bh_reg_s01_model_seagrass_02.1.Rmd) was developed and intergrated futher down... 
+### buffer points
+```{r}
+point_sf <- saya_pt
+
+# area = π · r2  -> r = sqrt(area/pi)
+
+
+
+# assuming full cover around point
+surf_area <- point_sf[["Total_surf"]]
+
+radius_p <- sqrt(point_sf[["Total_surf"]]/pi)
+
+# assuming straight transect instead... and 4 meter swath width of video
+
+transect_m <- point_sf[["Total_surf"]]/4 + 1000 # adding additional 1000m buffer in order to register 1km pixel at minimum
+
+(transect_m)
+
+poly_sf <- point_sf %>% st_buffer(dist = transect_m/2)
+
+plot(poly_sf)
+
+(poly_sf)
+
+```
+
+### rasterize points using % cover of seagrass into 1km raster
+```{r}
+
+sf <- poly_sf
+
+poly_r <- fasterize(
+  poly_sf,
+  grid_1km_0,
+  field = "Seagrass__",
+  fun = "last",
+  background = NA_real_,
+  by = NULL
+)
+
+
+saya_bank_sg_percent_1km <- merge(poly_r, grid_1km_0)
+
+plot(saya_bank_sg_percent_1km)
+(saya_bank_sg_percent_1km)
+
+r <- saya_bank_sg_percent_1km
+saya_1km_path <- output_path <- paste(work_path, "grid_1km_saya_bank_sg_percent.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'FLT4S', COMPRESS=LZW)
+
+```
+
+## Allen. polygons to 250m grid
+```{r}
+# combine into one file
+coral_sf <- coral_allen
+# select coral class
+selected_sf <- coral_sf %>%
+  filter(class=="Seagrass") %>% 
+  #  mutate(class_code=class) %>% 
+  mutate(class_code = recode(class, "Seagrass" = "1")) %>% 
+  mutate(class_code = as.numeric(class_code))
+#  recode(class_code, "Coral/Algae" = 1)
+
+glimpse(selected_sf)
+```
+
+### Allen map seagrass
+```{r}
+#write coral file to work directory for gdalutil
+input_path <- paste(work_path, "temp_allen_seagrass.shp", sep="")
+input_path
+
+st_write(selected_sf,input_path, append=FALSE) 
+
+allen_seagrass_250m_path <- output_path <- paste(work_path, "grid_250m_allen_seagrass.tif", sep= "")
+output_path
+
+writeRaster(grid_250m_na, output_path,  overwrite=T, COMPRESS=LZW)
+
+# 250m grid mapping
+coral_warp <- gdalUtils::gdal_rasterize(src_datasource = input_path,
+                                        dst_filename = output_path,
+                                        b = 1,
+                                        at = T,
+                                        a = "class_code",
+                                        output_Raster = TRUE,
+)
+
+rm(coral_warp)
+r <- raster(allen_seagrass_250m_path)
+allen_seagrass_250m_path <- output_path <- paste(work_path, "grid_250m_allen_seagrass_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'INT4S', COMPRESS=LZW)
+allen_seagrass_250m_r <- raster(output_path)
+(allen_seagrass_250m_r)
+
+
+
+
+```
+
+### Allen Map footprint - shape to raster grid 
+```{r}
+coral_sf <- coral_allen
+#glimpse(coral_sf)
+#unique(coral_sf$class)
+#class(coral_sf)
+
+#Select only coral polygons
+
+selected_sf <- coral_sf %>%
+  filter(class!="Unknown") %>% 
+  #  mutate(class_code=class) %>% 
+  mutate(class_code = recode(class, "Coral/Algae" = "0", "Rubble" = "0", "Microalgal Mats" = "0", "Seagrass" = "0", "Rock"="0", "Sand"="0")) %>% 
+  mutate(class_code = as.numeric(class_code))
+#  recode(class_code, "Coral/Algae" = 1)
+
+(glimpse(selected_sf))
+
+# convertion from coral shape to raster 
+
+#write habitat file to work directory for gdalutil
+input_path <- paste(work_path, "temp_allen_footprint.shp", sep= "")
+
+st_write(selected_sf,input_path, append=FALSE) 
+
+# write empty grid for gdalutil work
+allen_habitat_250m_path <- output_path <- paste(work_path, "grid_250m_allen_habitat.tif", sep= "")
+
+writeRaster(grid_250m_na, output_path,  overwrite=T, COMPRESS=LZW)
+
+# 250m grid mapping
+coral_warp <- gdalUtils::gdal_rasterize(src_datasource = input_path,
+                                        dst_filename = output_path,
+                                        b = 1,
+                                        at = T,
+                                        a = "class_code",
+                                        output_Raster = TRUE,
+)
+
+r <- raster(output_path)
+allen_habitat_250m_path <- output_path <- paste(work_path, "grid_250m_allen_habitat_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'INT4S', COMPRESS=LZW)
+allen_habitat_250m_r <- raster(output_path)
+
+
+
+# change map footprint value from 0 to 1 in order to summarize footprints
+
+allen_habitat_250m_r_val1 <- r <- reclassify(allen_habitat_250m_r, cbind(0, 1))
+
+allen_habitat_250m_val1_path <- output_path <- paste(work_path, "grid_250m_allen_habitat_val1_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'INT4S', COMPRESS=LZW)
+
+allen_habitat_250m_r_val1 <- raster(output_path)
+
+allen_mapfootprint_250m_zero <- merge(allen_habitat_250m_r_val1, grid_250m_0)
+
+(allen_mapfootprint_250m_zero)
+plot(allen_mapfootprint_250m_zero)
+```
+
+
+## KSLOF.Chagos- seagrass polygons to 250m grid 
+### select classes
+```{r}
+# combine into one file
+seagrass_sf <- coral_lof
+# select seagrass class
+
+(classes_lof <- seagrass_sf %>% distinct(Class_name))
+
+# selecting classes that likely contain seagrass
+selected_classes <- c("dense seagrass meadows")
+
+selected_sf <- seagrass_sf %>%
+  filter(Class_name %in% selected_classes) %>% 
+  #  mutate(class_code=class) %>% 
+  mutate(class_code = 1)
+
+
+# check all seagrass classes are included...
+(class_selected <- distinct(selected_sf, Class_name))
+glimpse(selected_sf)
+```
+
+### map to 250m raster
+```{r}
+#write seagrass file to work directory for gdalutil
+input_path <- paste(work_path, "temp_lof.shp", sep="")
+input_path
+
+st_write(selected_sf,input_path, append=FALSE) 
+
+lof_seagrass_250m_path <- output_path <- paste(work_path, "grid_250m_lof_seagrass.tif", sep= "")
+output_path
+
+writeRaster(grid_250m_na, output_path,  overwrite=T, COMPRESS=LZW)
+
+# 250m grid mapping
+seagrass_warp <- gdalUtils::gdal_rasterize(src_datasource = input_path,
+                                        dst_filename = output_path,
+                                        b = 1,
+                                        at = T,
+                                        a = "class_code",
+                                        output_Raster = TRUE,
+)
+
+r <- raster(output_path)
+lof_seagrass_250m_path <- output_path <- paste(work_path, "grid_250m_lof_seagrass_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'INT4S', COMPRESS=LZW)
+lof_seagrass_250m_r <- raster(output_path)
+
+lof_seagrass_250m_zero <- merge(lof_seagrass_250m_r, grid_250m_0)
+
+```
+
+
+###  Map footprint - shape to raster grid 
+```{r}
+seagrass_sf <- coral_lof
+
+(classes_lof) #<- seagrass_sf %>% distinct(Class_name))
+
+# selecting classes that are included in actual map footprint
+deselected_classes <- c("deep ocean water", "deep lagoonal water", "Clouds")
+
+selected_sf <- seagrass_sf %>%
+  filter(!Class_name %in% deselected_classes) %>% 
+  #  mutate(class_code=class) %>% 
+  mutate(class_code = 0)
+
+
+
+# check all seagrass classes are included...
+(class_selected_lof_habitat <- distinct(selected_sf, Class_name))
+glimpse(selected_sf)
+
+# convertion from seagrass shape to raster 
+
+#write habitat file to work directory for gdalutil
+input_path <- paste(work_path, "temp_lof_footprint.shp", sep= "")
+
+st_write(selected_sf,input_path, append=FALSE) 
+
+# write empty grid for gdalutil work
+lof_habitat_250m_path <- output_path <- paste(work_path, "grid_250m_lof_habitat.tif", sep= "")
+
+writeRaster(grid_250m_na, output_path,  overwrite=T, COMPRESS=LZW)
+
+# 250m grid mapping
+seagrass_warp <- gdalUtils::gdal_rasterize(src_datasource = input_path,
+                                        dst_filename = output_path,
+                                        b = 1,
+                                        at = T,
+                                        a = "class_code",
+                                        output_Raster = TRUE,
+)
+
+r <- raster(output_path)
+lof_habitat_250m_path <- output_path <- paste(work_path, "grid_250m_lof_habitat_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'INT4S', COMPRESS=LZW)
+lof_habitat_250m_r <- raster(output_path)
+
+
+# change map footprint value from 0 to 1 in order to summarize footprints
+
+lof_habitat_250m_r_val1 <- r <- reclassify(lof_habitat_250m_r, cbind(0, 1))
+
+lof_habitat_250m_val1_path <- output_path <- paste(work_path, "grid_250m_lof_habitat_val1_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'INT4S', COMPRESS=LZW)
+
+lof_habitat_250m_r_val1 <- raster(output_path)
+
+lof_mapfootprint_250m_zero <- merge(lof_habitat_250m_r_val1, grid_250m_0)
+
+
+```
+
+
+
+## KSLOF. Seychelles seagrass polygons to 250m grid
+### combine datasets and select seagrass
+```{r}
+# combine into one file
+#kslof_list <- c(coral_kslof1, coral_kslof2, coral_kslof3, coral_kslof4, coral_kslof5, coral_kslof6, coral_kslof7, coral_kslof8, coral_kslof9, coral_kslof10, #coral_kslof11, coral_kslof12)
+
+# select common attributes (gridcode, habitat) and combine into one sf object
+names(coral_kslof1)
+
+coral_kslof_1 <- coral_kslof1 %>% dplyr::select(GRIDCODE, Habitat) 
+coral_kslof_2 <- coral_kslof2 %>% dplyr::select(GRIDCODE, Habitat) 
+coral_kslof_3 <- coral_kslof3 %>% dplyr::select(GRIDCODE, Habitat) 
+coral_kslof_4 <- coral_kslof4 %>% dplyr::select(GRIDCODE, Habitat) 
+coral_kslof_5 <- coral_kslof5 %>% dplyr::select(GRIDCODE, Habitat) 
+coral_kslof_6 <- coral_kslof6 %>% dplyr::select(GRIDCODE, Habitat) 
+coral_kslof_7 <- coral_kslof7 %>% dplyr::select(GRIDCODE, Habitat) 
+coral_kslof_8 <- coral_kslof8 %>% dplyr::select(GRIDCODE, Habitat) 
+coral_kslof_9 <- coral_kslof9 %>% dplyr::select(GRIDCODE, Habitat) 
+coral_kslof_10 <- coral_kslof10 %>% dplyr::select(GRIDCODE, Habitat) 
+coral_kslof_11 <- coral_kslof11 %>% dplyr::select(GRIDCODE, Habitat) 
+coral_kslof_12 <- coral_kslof12 %>% dplyr::select(GRIDCODE, Habitat) 
+
+
+all_kslof <- bind_rows(coral_kslof_1, coral_kslof_2 , coral_kslof_3, coral_kslof_4, coral_kslof_5, coral_kslof_6, coral_kslof_7, coral_kslof_8, coral_kslof_9, coral_kslof_10, coral_kslof_11, coral_kslof_12)
+
+
+selected_sf <- all_kslof
+
+kslof_classes <- distinct(selected_sf, GRIDCODE, Habitat)
+(kslof_classes)
+glimpse(selected_sf)
+
+
+# selecting classes that likely contain seagrass
+selected_classes <- c("Low density seagrass macroalgae", "Medium density seagrass", "High density seagrass")
+
+selected_sf <- all_kslof %>%
+  filter(Habitat %in% selected_classes) %>% 
+  #  mutate(class_code=class) %>% 
+  mutate(class_code = 1)
+
+
+
+# check all seagrass classes are included...
+(classes_kslof <- distinct(selected_sf, Habitat))
+glimpse(selected_sf)
+
+
+```
+
+### map seagrass to 250m grid
+```{r}
+#write seagrass file to work directory for gdalutil
+input_path <- paste(work_path, "temp_kslof.shp", sep="")
+input_path
+
+st_write(selected_sf,input_path, append=FALSE) 
+
+kslof_seagrass_250m_path1 <- output_path <- paste(work_path, "grid_250m_kslof_seagrass.tif", sep= "")
+output_path
+
+writeRaster(grid_250m_na, output_path,  overwrite=T, COMPRESS=LZW)
+
+# 250m grid mapping
+seagrass_warp <- gdalUtils::gdal_rasterize(src_datasource = input_path,
+                                        dst_filename = output_path,
+                                        b = 1,
+                                        at = T,
+                                        a = "class_code",
+                                        output_Raster = TRUE,
+)
+
+
+r <- raster(kslof_seagrass_250m_path1)
+
+
+kslof_seagrass_250m_path <- output_path <- paste(work_path, "grid_250m_kslof_seagrass_lzw.tif", sep= "")
+
+writeRaster(r, output_path, overwrite=T, datatype = 'INT4S', COMPRESS=LZW)
+kslof_seagrass_250m_r <- raster(output_path)
+kslof_seagrass_250m_zero <- merge(kslof_seagrass_250m_r, grid_250m_0)
+```
+
+
+### Map footprint to 250m grid
+```{r}
+coral_sf <- all_kslof    
+
+#coral_map <- st_read(paste(work_path, "temp_kslof.shp", sep=""))
+
+#(classes_kslof_map <- coral_map %>% distinct(Habitat))
+
+(classes_kslof <- coral_sf %>% distinct(Habitat))
+
+# de-selecting classes that are not part of the footprint (e.g. unknown)
+deselected_classes <- c("Forereef slope rubble and sand", "Rock pavement", "Unclassified")
+
+selected_sf <- coral_sf %>%
+  filter(!Habitat %in% deselected_classes) %>% 
+  #  mutate(class_code=class) %>% 
+  mutate(class_code = 0)
+#  recode(class_code, "Coral/Algae" = 1)
+
+
+# check all coral classes are included...
+(class_selected_kslof_habitat <- distinct(selected_sf, Habitat))
+glimpse(selected_sf)
+
+# convertion from coral shape to raster 
+
+#write habitat file to work directory for gdalutil
+input_path <- paste(work_path, "temp_kslof_footprint.shp", sep= "")
+
+st_write(selected_sf,input_path, append=FALSE) 
+
+# write empty grid for gdalutil work
+kslof_habitat_250m_path <- output_path <- paste(work_path, "grid_250m_kslof_habitat.tif", sep= "")
+
+writeRaster(grid_250m_na, output_path,  overwrite=T, COMPRESS=LZW)
+
+# 250m grid mapping
+coral_warp <- gdalUtils::gdal_rasterize(src_datasource = input_path,
+                                        dst_filename = output_path,
+                                        b = 1,
+                                        at = T,
+                                        a = "class_code",
+                                        output_Raster = TRUE,
+)
+
+r <- raster(output_path)
+kslof_habitat_250m_path <- output_path <- paste(work_path, "grid_250m_kslof_habitat_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'INT4S', COMPRESS=LZW)
+kslof_habitat_250m_r <- raster(output_path)
+
+# change map footprint value from 0 to 1 in order to summarize footprints
+
+kslof_habitat_250m_r_val1 <- r <- reclassify(kslof_habitat_250m_r, cbind(0, 1))
+
+kslof_habitat_250m_val1_path <- output_path <- paste(work_path, "grid_250m_kslof_habitat_val1_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'INT4S', COMPRESS=LZW)
+
+kslof_habitat_250m_r_val1 <- raster(output_path)
+
+kslof_mapfootprint_250m_zero <- merge(kslof_habitat_250m_r_val1, grid_250m_0)
+
+```
+
+
+
+# COMBINE seagrass 250m into one layer
+```{r}
+
+# Had problems with code below for v02 using GdalUtil (same as in coral script)... Alternative and probably better road to go could be to write a function that sorts all files, but also worked with the merge used below.. good luck on v3! :)
+
+#new_seagrass <- grid * 0
+#for (i in 1:ncell(grid)){
+# if(wcmc[i] == 1){new_seagrass[i] == 1} else
+#  if(is.na(wcmc[i] == T)){new_seagrass[i] == NA}
+#}
+
+
+# Mask WCMC data with footprint from higher quality maps
+
+
+# Mosaic wcmc data with mask 
+
+# mosaic kslof and allen together
+r1 <- raster(allen_habitat_250m_path)
+r2 <- raster(wcmc_sg_250m_masked_path)
+r3 <- raster(wcmc_sg_pt_250m_path)
+
+
+sg_250m_wcmc_masked_r_zero <- merge(r1, r2, r3, grid_250m_0)
+
+sg_250m_wcmc_masked_r_zero_path <- output_path <- paste(work_path, "sg_250m_wcmc_merged_zero.tif", sep= "")
+writeRaster(sg_250m_wcmc_masked_r_zero, output_path,  overwrite=T, COMPRESS=LZW)
+
+sg_250m_wcmc<- r <- raster(sg_250m_wcmc_masked_r_zero_path)
+plot(r)
+
+
+# Merge / mosaic kslof and allen together, considered equally good here, no footprint masking as in wcmc
+
+r1 <- raster(allen_seagrass_250m_path)
+r2 <- raster(kslof_seagrass_250m_path)
+r3 <- raster(lof_seagrass_250m_path)
+
+sg_250m_allenkslof_r_zero <- merge(r1, r2, r3, grid_250m_0)
+
+
+sg_250m_allenkslof_r_zero_path <- output_path <- paste(work_path, "sg_250m_allenkslof_merged_zero.tif", sep= "")
+writeRaster(sg_250m_allenkslof_r_zero, output_path,  overwrite=T, COMPRESS=LZW)
+
+sg_250m_ak <- r <- raster(sg_250m_allenkslof_r_zero_path)
+r
+plot(r)
+```
+
+
+
+# Aggregate to 1km grid
+
+```{r}
+sg_250m_ak <- r <- raster(sg_250m_allenkslof_r_zero_path)
+
+
+sg_1km_ak_proportion <- aggregate(r, fact=4, fun=sum) / 16 #4*4=16, i.e. divide by the maximum cell number to get proportions
+#crs(sg_1km_proportion) <- crs(grid_1km)
+(sg_1km_ak_proportion)
+plot(sg_1km_ak_proportion) # ready to be exported if OK
+
+r <- sg_1km_ak_proportion
+sg_1km_proportion_path <- output_path <- paste(work_path, "grid_1km_seagrass_ak_proportion.tif", sep= "")
+writeRaster(r, output_path,  overwrite=T, datatype = 'FLT4S', COMPRESS=LZW)
+
+
+
+# WCMC to 1km
+sg_250m_wcmc <- r <- raster(sg_250m_wcmc_masked_r_zero_path)
+
+
+sg_1km_wcmc_proportion <- aggregate(r, fact=4, fun=sum) / 16 #4*4=16, i.e. divide by the maximum cell number to get proportions
+#crs(sg_1km_proportion) <- crs(grid_1km)
+(sg_1km_wcmc_proportion)
+plot(sg_1km_wcmc_proportion) # ready to be exported if OK
+
+r <- sg_1km_wcmc_proportion
+sg_1km_proportion_wcmc_path <- output_path <- paste(work_path, "grid_1km_seagrass_wcmc_proportion.tif", sep= "")
+writeRaster(r, output_path,  overwrite=T, datatype = 'FLT4S', COMPRESS=LZW)
+
+
+plot(r)
+```
+
+
+## Adjust wcmc data to high res data
+```{r}
+# 
+
+wcmc_1km <- r <- raster(sg_1km_proportion_wcmc_path)
+
+
+r[r==0]<- NA
+
+mean_wcmc <- cellStats(r, 'mean', na.rm=T)
+
+allen_1km <- r <- raster(sg_1km_proportion_path)
+
+r[r==0]<- NA
+
+mean_allen <- cellStats(r, 'mean', na.rm=T)
+
+(k <- mean_allen/mean_wcmc)
+
+
+# adjusting wcmc with k
+
+# creating adjustment layer due to cover differences between wcmc and allen data at 1km scale
+
+wcmc_adj1_1km <- wcmc_1km * (1-k)
+
+
+
+# combine wcmc with saya del Mahla bank model... take average of both maps, hard to tell which is worse...
+
+#saya_1km <- raster(saya_1km_path)
+
+r <- sgm_1km  # seagrass model
+
+r[r==0]<- NA
+
+r
+
+r1 <- wcmc_adj1_1km
+
+r1[r1==0]<- NA
+
+
+r2 <- (r+r1)/2  # overlapping area mean value for model and wcmc
+
+plot(r2)
+
+saya_wcmc_model <- r2
+```
+
+# merge final map together
+```{r}
+
+sg_wcmc_model_1km <- merge(r, r2, wcmc_adj1_1km)
+
+plot(sg_wcmc_model_1km)
+
+sg_1km <- sg_wcmc_model_1km + allen_1km
+
+
+plot(sg_1km)  # final layer
+
+
+
+```
+
+
+```{r}
+r <- sg_1km
+
+#plot(raster(dstfile))
+# Final check that all is good...
+r <- merge(r, grid_1km_0)
+r <- crop(r, grid_1km)
+r <- mask(r, grid_1km)
+
+plot(r)
+r
+
+seagrass_1km <- r
+
+path_sg <- paste("./data/reg/eco/bh/v02/proc/", "seagrass_1km.tif", sep="")
+writeRaster(seagrass_1km , path_sg, overwrite=F, COMPRESS=LZW)
+
+seagrass_1km <- raster(path_sg)
+
+```
+
+# Adding additional seagrass data (v2.1)
+## Global maxent model
+```{r}
+# loading "final layer" seagrass layer from v2.0
+dir(dest_path)
+path_sg <- paste(dest_path, "seagrass_bed_proportion_1km_v02.0.tif", sep="")
+seagrass_1km <- raster(path_sg)
+
+# Maxent model
+(source8_path1)
+seagrass_glo 
+
+# Map shapefile to 1km raster
+
+sf <- seagrass_glo 
+#glimpse(sf)
+#unique(sf$pxlval)
+sf <- sf %>% 
+  mutate(pxlval = 1) %>% 
+  dplyr::select(pxlval)
+
+
+input_path <- paste(work_path, "temp1.shp", sep="")
+# write modified shapefile (value 1) to temp file)
+st_write(sf,input_path, append = F) 
+
+# write empty grid for gdalutil work:
+maxent_250m_path <- output_path <- paste(work_path, "maxent_250m_na.tif", sep= "")
+writeRaster(grid_250m_na, output_path,  overwrite=T, COMPRESS=LZW)
+
+# 250m grid mapping
+warp <- gdalUtils::gdal_rasterize(src_datasource = input_path,
+                                        dst_filename = output_path,
+                                        b = 1,
+                                        at = T,
+                                        a = "pxlval",
+                                        output_Raster = TRUE,
+)
+
+r <- raster(output_path)
+maxent_250m_path <- output_path <- paste(work_path, "maxent_250m_na_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'FLT4S', COMPRESS=LZW)
+maxent_250m_r <- raster(output_path)
+plot( maxent_250m_r)
+```
+
+### depth mask - maxent model
+
+```{r}
+r <- maxent_250m_r
+(r)
+
+r0 <- depth_250m
+
+
+# create depth mask for seagrass (using 80m as threshold, accounting for the high uncertainty of gebco in coastal areas)
+r0[r0>-80]<- 1
+r0[r0<=-80]<- 0 
+
+depth_mask <- r0
+
+plot(depth_mask) 
+
+
+maxent_250m_r_mask80 <- maxent_250m_r * depth_mask 
+
+plot(maxent_250m_r_mask80)
+
+
+# visual check that the masked have worked ok...
+r_diff <- maxent_250m_r - maxent_250m_r_mask80
+
+plot(r_diff) # check so look ok
+
+#r_diff_agg_1km <- raster::aggregate(r_diff, fact=4, fun=sum, na.rm=T)/4
+
+r <- maxent_250m_r_mask80
+
+maxent_250m_masked_path <- output_path <- paste(work_path, "maxent_mask80_250m.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'FLT4S', COMPRESS=LZW)
+
+maxent_250m_r_mask80 <- raster(output_path)
+
+plot(maxent_250m_r_mask80)
+
+r <- maxent_250m_r_mask80 
+
+# Aggregate to 1km proportion and write to file
+
+maxent_1km <- aggregate(r, fact=4, fun=sum) / 16 
+
+maxent_1km_path <- output_path <- paste(work_path, "maxent_mask80_1km.tif", sep= "")
+writeRaster(maxent_1km, output_path, overwrite=T, datatype = 'FLT4S', COMPRESS=LZW)
+maxent_1km <- raster(output_path)
+
+
+```
+
+### Adjust maxent model based on Allen data
+#### Create footprint mask
+```{r}
+# Map Allen Map footprint to 1km grid 
+allen_habitat_250m_path <- output_path <- paste(work_path, "grid_250m_allen_habitat_val1_lzw.tif", sep= "")
+allen_footprint_250m <- raster(output_path)
+r <- allen_footprint_250m
+allen_footprint_1km <- aggregate(r, fact=4, fun=sum) / 16 
+
+r <- allen_footprint_1km
+
+r[r==0]<-NA
+
+plot(r)
+
+footprint_1km_path <- output_path <- paste(work_path, "allen_footprint_proportion_1km.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'FLT4S', COMPRESS=LZW)
+allen_footprint_1km <- raster(output_path)
+```
+
+#### Mask Allen 1km proportion grid to footprint
+```{r}
+## Load Allen data from file
+allen_seagrass_250m_path <- output_path <- paste(work_path, "grid_250m_allen_seagrass_lzw.tif", sep= "")
+Allen_250m <- raster(output_path)
+
+allen_1km <- aggregate(Allen_250m, fact=4, fun=sum) / 16 
+
+r <- allen_1km
+# check all is good...
+r <- merge(r, grid_1km_0)
+r <- crop(r, grid_1km)
+r <- mask(r, grid_1km)
+
+allen_1km <- r
+
+allen_seagrass_1km_path <- output_path <- paste(work_path, "grid_1km_allen_seagrass_lzw.tif", sep= "")
+
+writeRaster(allen_1km, output_path, overwrite=T, datatype = 'FLT4S', COMPRESS=LZW)
+allen_1km <- raster(output_path)
+
+plot(allen_1km)
+
+# Mask Allen data to footprint
+allen_1km_mask <- allen_1km * allen_footprint_1km
+plot(allen_1km_mask)
+```
+
+#### Mask Maxent data to Allen footprint  
+```{r}
+r <- maxent_1km
+# check all is good...
+r <- merge(r, grid_1km_0)
+r <- crop(r, grid_1km)
+r <- mask(r, grid_1km)
+
+maxent_1km <- r
+
+Maxent_masked <- maxent_1km * allen_footprint_1km
+
+plot(Maxent_masked)
+```
+
+
+### Alternative way.. adjust to presence area only 
+```{r}
+# alternative way.. calculate mean for all mapped areas
+r <- maxent_1km
+
+r[r==0] <- NA
+
+maxent_1km_na <- r
+
+
+r <- allen_1km
+r[r==0] <- NA
+allen_1km_na <- r
+
+
+
+```
+
+####Calculate coefficients and adjust
+```{r}
+#mean_maxent <- cellStats(Maxent_masked, 'mean', na.rm=T)
+(mean_maxent_na <- cellStats(maxent_1km_na, 'mean', na.rm=T))
+
+(mean_allen <- cellStats(allen_1km_mask, 'mean', na.rm=T))
+#(mean_allen_na <- cellStats(allen_1km_na, 'mean', na.rm=T))
+
+(k <- mean_allen/mean_maxent_na)
+
+
+# adjusting maxent with k
+
+# creating adjustment layer due to cover differences between Maxent and allen data at 1km scale
+
+maxent_adj1_1km <- maxent_1km * k
+
+# check so mean is same as allen maps
+r <- maxent_adj1_1km
+r[r==0] <- NA
+mean_maxent_adj1 <- cellStats(r, 'mean', na.rm=T)
+# ok...
+
+
+# write to file
+
+maxent_adj1_1km
+
+maxent_adj1_1km_path <- output_path <- paste(work_path, "maxent_mask80_allen_adjusted1_1km.tif", sep= "")
+writeRaster(maxent_adj1_1km, output_path, overwrite=T, datatype = 'FLT4S', COMPRESS=LZW)
+maxent_adj1_1km <- raster(output_path)
+
+```
+
+###Additional adjustmen of maxent data
+```{r}
+
+#Mapping gradient 20-100m using depth to somewhat account for what still looks like an optimistic model..
+
+depth_1km
+r <- depth_1km
+r <- r+20
+
+r[r<= (-80)] <- -80
+r[r>=0] <- 0
+r <- r/80
+r1 <- (r+1)
+depth_1km_mask20m <- r1 
+
+maxent_adj2_1km <- maxent_adj1_1km * depth_1km_mask20m
+maxent_adj2_1km
+plot(maxent_adj2_1km)
+
+maxent_adj2_1km_path <- output_path <- paste(work_path, "maxent_mask80_allen_adjusted2_1km.tif", sep= "")
+writeRaster(maxent_adj2_1km, output_path, overwrite=T, datatype = 'FLT4S', COMPRESS=LZW)
+
+
+# Remove Allen map footprint from maxent model
+
+allen_footprint_1km
+
+r <- allen_footprint_1km
+# check all is good...
+r <- merge(r, grid_1km_0)
+r <- crop(r, grid_1km)
+r <- mask(r, grid_1km)
+
+allen_footprint_1km_neg <- (r-1)*(-1)
+
+maxent_adj2_1km_Allen0 <- maxent_adj2_1km * allen_footprint_1km_neg 
+
+maxent_adj2_1km_Allen0m_path <- output_path <- paste(work_path, "maxent_mask80_allen_adjusted2_Allen0_1km.tif", sep= "")
+writeRaster(maxent_adj2_1km_Allen0, output_path, overwrite=T, datatype = 'FLT4S', COMPRESS=LZW)
+```
+
+
+## SAZ seagrass data
+```{r}
+# NMU data
+(source7_path1)
+seagrass_nmu 
+
+# Map shapefile to 1km raster
+
+sf <- seagrass_nmu 
+#glimpse(sf)
+#unique(sf$pxlval)
+sf <- sf %>% 
+  mutate(pxlval = 1) %>% 
+  dplyr::select(pxlval)
+
+
+input_path <- paste(work_path, "temp2.shp", sep="")
+# write modified shapefile (value 1) to temp file)
+st_write(sf,input_path, append = F) 
+
+# write empty grid for gdalutil work:
+maxent_250m_path <- output_path <- paste(work_path, "nmu_250m_na.tif", sep= "")
+writeRaster(grid_250m_na, output_path,  overwrite=T, COMPRESS=LZW)
+
+# 250m grid mapping
+warp <- gdalUtils::gdal_rasterize(src_datasource = input_path,
+                                        dst_filename = output_path,
+                                        b = 1,
+                                        at = T,
+                                        a = "pxlval",
+                                        output_Raster = TRUE,
+)
+
+r <- raster(output_path)
+nmu_250m_path <- output_path <- paste(work_path, "nmu_250m_na_lzw.tif", sep= "")
+writeRaster(r, output_path, overwrite=T, datatype = 'FLT4S', COMPRESS=LZW)
+nmu_250m_r <- raster(output_path)
+```
+
+### aggregate NMU to 1km raster
+```{r}
+r <- nmu_250m_r
+nmu_1km <- aggregate(r, fact=4, fun=sum) / 16 
+(nmu_1km)
+plot(nmu_1km) # ready to be exported if OK
+
+r <- nmu_1km
+nmu_1km_path <- output_path <- paste(work_path, "grid_1km_seagrass_nmu_proportion.tif", sep= "")
+writeRaster(r, output_path,  overwrite=T, datatype = 'FLT4S', COMPRESS=LZW)
+
+```
+
+# Final Mosaicing
+```{r}
+
+# loading "final layer" seagrass layer from v2.0
+dir(dest_path)
+path_sg <- paste(dest_path, "seagrass_bed_proportion_1km_v02.0.tif", sep="")
+seagrass_1km <- raster(path_sg)
+
+seagrass_1km_2 <- mosaic(seagrass_1km, nmu_1km, maxent_adj2_1km_Allen0, fun=max) 
+seagrass_1km_2
+
+plot(seagrass_1km_2)
+
+
+seagrass_1km_2_path <- output_path <- paste(work_path, "grid_1km_seagrass_1km_2_proportion.tif", sep= "")
+writeRaster(seagrass_1km_2, output_path,  overwrite=T, datatype = 'FLT4S', COMPRESS=LZW)
+
+# remove the lowest values < 0.5%
+seagrass_1km_3 <- raster(seagrass_1km_2_path)
+
+r <- seagrass_1km_3
+
+r[r<0.005] <- 0
+
+seagrass_1km_3 <- r
+
+```
+
+
+#==========================================================================================================================#
+# EXPORT
+#==========================================================================================================================#
+# Write products to root directory when checked and ready to use elsewhere, accompanied by yourfilename.ext_sourcesym.txt 
+# for each file to track source IDs as they accumulate between processes / data
+
+
+# SOURCESYM
+#Create sourcesym file with all source IDs used (data and data_raw) 
+### data raw sources (dir)
+```{r}
+print(paste("data_raw metasym files used = ", data_raw_metasym_num, sep=""))
+(data_raw_sources <- tibble(id = c(source2, source1, source4, source5, source6, source7, source8))) # REPLACE / add all data_raw sources
+```
+### data sources (files)
+```{r}
+print(paste("data_sourcym files = ", data_sourcesym_num, sep=""))
+data_sources <- data5_sourcesym %>% # add any "sourcesym" files applicable to this product (check indata section), keep adding sourcesym files as needed
+  #add_row(data2_sourcesym)%>%  
+  #add_row(data3_sourcesym)%>% 
+  add_row(data4_sourcesym)%>% 
+  #add_row(data5_sourcesym)%>% 
+  #add_row(data6_sourcesym)%>% 
+  unique() %>% 
+  print()
+```
+Sources combined
+```{r}
+(all_sources <- data_raw_sources %>% add_row(data_sources)) %>% unique()
+```
+if a product only use a subset of the total sources, copy the section above and create individual files below (e.g. product1_sources <- ...)
+
+
+# PRODUCT 1: SG 1km
+read objects
+```{r}
+product_orig <- seagrass_1km_3 # input and check your object to be written to file
+plot(product_orig)
+```
+set names
+```{r}
+scale <- "1km" # "1km" / "250m"
+unit <- "proportion"  # add unit for product with original values (e.g. m, km, perc, presence, proportion
+component_names <- read_tsv("./shiny_data_upload/component_names.txt") 
+component_names_selected <- component_names %>%
+  dplyr::filter(theme_folder == theme) %>% 
+  dplyr::select(group, file_name, description) %>% 
+  print(n = Inf)
+```
+
+```{r}
+descriptive_name <- "seagrass_bed"  # name of product, for pressure/ecosystem components select from name list above
+```
+paths
+```{r}
+(product_orig_path <- paste(dest_path, descriptive_name, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+```
+Write to file
+```{r}
+# check datatype to be appropriate for values (flt or int, 'INT4S' option to..)
+writeRaster(product_orig, product_orig_path, COMPRESS=LZW, datatype = 'FLT4S', overwrite=TRUE)
+write_tsv(all_sources, paste(product_orig_path, "_sourcesym.txt", sep=""))  
+
+```
+
+
+# PRODUCT 2: SG 250m - not yeat done for v2... check
+```{r}
+#product_orig <- sg_250m_zero # input and check your object to be written to file
+#plot(product_orig)
+
+#scale <- "250m" # "1km" / "250m"
+#unit <- "presence"  # add unit for product with original values (e.g. m, km, perc, presence, proportion
+
+#descriptive_name <- "seagrass_bed"  # name of product, for pressure/ecosystem components select from name list above
+
+#(product_orig_path <- paste(dest_path, descriptive_name, "_", unit, "_", scale, "_", version, d_version, ".tif", sep="" ))
+
+```
+Write to file
+```{r}
+# check datatype to be appropriate for values (flt or int, 'INT4S' option to..)
+#writeRaster(product_orig, product_orig_path, COMPRESS=LZW, datatype = 'INT4S', overwrite=TRUE)
+#write_tsv(all_sources, paste(product_orig_path, "_sourcesym.txt", sep=""))  
+```
+
+## Export pretty image of product raster(s)
+```{r}
+(img_path <- paste(dest_path, descriptive_name, "_", unit, scale, "_", version, d_version, ".png", sep="" ))
+prod1_scale <- seagrass_1km
+prod1_scale[prod1_scale == 0] <- NA
+prod1_scale[] <- scales::rescale(prod1_scale[], to = c(1, 100))
+prod1_scale[is.na(prod1_scale)] <- 0
+prod1_scale[is.na(grid_1km)] <- NA
+
+
+png(img_path, width = ncol(prod1_scale), height = nrow(prod1_scale))
+pal <- colorRampPalette(rev(c('#d53e4f','#f46d43','#fdae61','#fee08b','#ffffbf','#e6f598','#abdda4','#66c2a5','#3288bd')))
+plot(prod1_scale, maxpixels = ncell(prod1_scale), main = "", axes = FALSE, ylim=extent(prod1_scale)[3:4], 
+     breaks = seq(0,100,1), col = pal(101), legend = F, box = F, colNA = "gray92")
+dev.off()
+```
+
+
+# SAVE SCRIPT
+## 1. save your current R script (File/Save)
+## 2. Save a carbon copy of the R script to proc_log (identical script to what is used to create the products exported
+## Do not change the *.Rmd carbon copy in proc_log/ unless you change this version of the products (new versions are developed under process/r)
+
+```{r}
+# 2. run code below and go to File/Save As and paste link and name:
+dest_path_script <- paste(getwd(), proc_path)
+print(dest_path_script <- gsub(" .", "", dest_path_script)) # path
+print(script_name_copy <- paste(gsub(".Rmd", "", script_name), d_version, ".Rmd", sep="")) # script name
+```
+
+#==========================================================================================================================#
+# FINAL CHECK
+#==========================================================================================================================#
+## Developer check
+ Do your own final check on the products and double check sourcesym file exists and are complete for all files in
+ root -> Sign at top of script in about section (# Approved by:)
+
+## External check 
+ To ensure repeatability and quality, make sure one colleage can run the script When script is proven 
+ repeatable/understandable and products/metadata look ok 
+ -> Sign at top of script in about section (# Approved by:), and make any comments if needed
+ There is also a work_log document in onedrive / gitHUB, check current arrangement with Swedish dev team
+

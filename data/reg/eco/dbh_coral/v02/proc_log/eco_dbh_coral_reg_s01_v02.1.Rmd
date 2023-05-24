@@ -500,7 +500,7 @@ write_tsv(all_sources, paste(product_norm01_path, "_sourcesym.txt", sep=""))
 ## Export prerry image of product raster(s)
 ```{r}
 (img_path <- paste(dest_path, descriptive_name, "_", unit, "_norm0100_", scale, "_", version, d_version, ".png", sep="" ))
-prod1_scale <- r_norm_0100
+prod1_scale <- product_norm0100
 prod1_scale[prod1_scale == 0] <- NA
 prod1_scale[] <- scales::rescale(prod1_scale[], to = c(1, 100))
 prod1_scale[is.na(prod1_scale)] <- 0

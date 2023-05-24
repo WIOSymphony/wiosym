@@ -32,6 +32,7 @@
 !/products/v2/output_geotiffs/pres/*.tif
 !/products/v2/output_geotiffs/eco/*.json
 !/products/v2/output_geotiffs/pres/*.json
+/products/delivery/
 
 # add files that we want...
 
@@ -41,6 +42,7 @@
 !*.ipynb
 !*metasym.txt
 !*sourcesym.txt
+!/data/*/*/*/*/proc_log/*.docx
 !.gitignore
 !data_collection_coordinates.txt
 !wiosym.Rproj
