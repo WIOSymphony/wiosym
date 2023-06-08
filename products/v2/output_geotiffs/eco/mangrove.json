@@ -1,0 +1,48 @@
+{
+  "@context": {
+    "@vocab": "https://schema.org/"
+  },
+  "@type": "Dataset",
+  "@id": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.json",
+  "name": "Mangrove - Stands of dense mangroves - ecosystem component from the WIO Symphony tool",
+  "description": "This layer was produced by using a combination of mangrove data from TNC and WWF. A mangrove proportion then were mapped within a WIO grid extend. Known limitations: Metadata missing\n",
+  "sameAs": [
+    ""
+  ],
+  "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
+  "citation": "Kågesten G, WIO Symphony team,  2022, Mangrove - ecosystem component from the WIO Symphony tool, https://github.com/WIOSymphony/",
+  "version": "v2.0",
+  "keywords": [
+    "Western Indian Ocean",
+    "WIO Symphony",
+    "Symphony",
+    "Cumulative impact assessment",
+    "Marine spatial planning",
+    "Ecosystems",
+    "Pressures",
+    "Mangrove"
+  ],
+  "spatialCoverage": {
+    "@type": "Place",
+    "geo": {
+      "@type": "GeoShape",
+      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0"
+    },
+    "additionalProperty": {
+      "@type": "PropertyValue",
+      "propertyID": "http://dbpedia.org/resource/Spatial_reference_system",
+      "value": "http://www.w3.org/2003/01/geo/wgs84_pos#lat_long"
+    }
+  },
+  "provider": [
+    {
+      "@type": "Organization",
+      "legalName": "WIO Symphony team",
+      "name": "WIO Symphony team",
+      "url": "https://www.nairobiconvention.org/wio-symphony/"
+    }
+  ],
+  "distribution": {
+    "contentUrl": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.tif"
+  }
+}

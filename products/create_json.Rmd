@@ -31,8 +31,8 @@ layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
 
 js <- read_json(path = "datasetTemplate.json")
 
-#for(i in 1:nrow(layers)){
-for(i in 49:49){
+for(i in 1:nrow(layers)){
+#for(i in 49:49){
 
 # Name, description, etc.
 js$name <- paste0(layers$title[i], " - ", layers$description[i], " - ecosystem component from the WIO Symphony tool")

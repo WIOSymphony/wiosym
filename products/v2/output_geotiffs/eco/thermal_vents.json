@@ -1,0 +1,48 @@
+{
+  "@context": {
+    "@vocab": "https://schema.org/"
+  },
+  "@type": "Dataset",
+  "@id": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.json",
+  "name": "Thermal vents - Formations built around active hydrothermal vents - ecosystem component from the WIO Symphony tool",
+  "description": "This layer was produced by using a hydrothermal vents dataset provided by the World data center PANGAEA. The InterRidge Global Database of Active Submarine Hydrothermal Vent Fields intends to provide a comprehensive list of active submarine hydrothermal vent fields for use in academic research, education, and marine policy. The contents of the InterRidge Vents Database were derived principally from the open literature. The vector data defining the hydrothermal vent areas were cropped to the WIO Symphony area and then rasterize to the 1km grid. Known limitations: Data on deep sea habitats is generally very limited. It is likely that many areas with hydrothermal vents are missing from this map",
+  "sameAs": [
+    ""
+  ],
+  "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
+  "citation": "Freire F, WIO Symphony team,  2022, Thermal vents - ecosystem component from the WIO Symphony tool, https://github.com/WIOSymphony/",
+  "version": "v2.0",
+  "keywords": [
+    "Western Indian Ocean",
+    "WIO Symphony",
+    "Symphony",
+    "Cumulative impact assessment",
+    "Marine spatial planning",
+    "Ecosystems",
+    "Pressures",
+    "Thermal vents"
+  ],
+  "spatialCoverage": {
+    "@type": "Place",
+    "geo": {
+      "@type": "GeoShape",
+      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0"
+    },
+    "additionalProperty": {
+      "@type": "PropertyValue",
+      "propertyID": "http://dbpedia.org/resource/Spatial_reference_system",
+      "value": "http://www.w3.org/2003/01/geo/wgs84_pos#lat_long"
+    }
+  },
+  "provider": [
+    {
+      "@type": "Organization",
+      "legalName": "WIO Symphony team",
+      "name": "WIO Symphony team",
+      "url": "https://www.nairobiconvention.org/wio-symphony/"
+    }
+  ],
+  "distribution": {
+    "contentUrl": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.tif"
+  }
+}
