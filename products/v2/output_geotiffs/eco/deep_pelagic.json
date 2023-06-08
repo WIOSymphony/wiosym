@@ -6,9 +6,6 @@
   "@id": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.json",
   "name": "Deep pelagic - Bathy- & abyssalpelagic  zone (>1000 m to full ocean depth) - ecosystem component from the WIO Symphony tool",
   "description": "Proportion of deep water volume >1000m - seafloor in relation to full ocean depth (6000m) based on GEBCO 2022 bathymetry grid Known limitations: Depth data is uncertain in most areas, however these uncertainties only have small proportional effect on this layer. Another limitation is that the current deep pelagic habitat layer does not productivity or biodiversity into account, only volume of available ocean space.",
-  "sameAs": [
-    ""
-  ],
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
   "citation": "Kagesten G, Queste B, WIO Symphony team,  2022, Deep pelagic - ecosystem component from the WIO Symphony tool, https://github.com/WIOSymphony/",
   "version": "v2.0",
@@ -26,7 +23,7 @@
     "@type": "Place",
     "geo": {
       "@type": "GeoShape",
-      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0"
+      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0, 6.0 18.0"
     },
     "additionalProperty": {
       "@type": "PropertyValue",
@@ -41,6 +38,9 @@
       "name": "WIO Symphony team",
       "url": "https://www.nairobiconvention.org/wio-symphony/"
     }
+  ],
+  "sameAs": [
+    ""
   ],
   "distribution": {
     "contentUrl": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.tif"

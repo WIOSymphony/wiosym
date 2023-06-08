@@ -6,9 +6,6 @@
   "@id": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.json",
   "name": "Mangrove - Stands of dense mangroves - ecosystem component from the WIO Symphony tool",
   "description": "This layer was produced by using a combination of mangrove data from TNC and WWF. A mangrove proportion then were mapped within a WIO grid extend. Known limitations: Metadata missing\n",
-  "sameAs": [
-    ""
-  ],
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
   "citation": "Kågesten G, WIO Symphony team,  2022, Mangrove - ecosystem component from the WIO Symphony tool, https://github.com/WIOSymphony/",
   "version": "v2.0",
@@ -26,7 +23,7 @@
     "@type": "Place",
     "geo": {
       "@type": "GeoShape",
-      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0"
+      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0, 6.0 18.0"
     },
     "additionalProperty": {
       "@type": "PropertyValue",
@@ -41,6 +38,9 @@
       "name": "WIO Symphony team",
       "url": "https://www.nairobiconvention.org/wio-symphony/"
     }
+  ],
+  "sameAs": [
+    ""
   ],
   "distribution": {
     "contentUrl": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.tif"

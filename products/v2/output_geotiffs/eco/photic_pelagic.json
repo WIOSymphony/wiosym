@@ -6,9 +6,6 @@
   "@id": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.json",
   "name": "Photic pelagic - Photic/epipelagic zone - ecosystem component from the WIO Symphony tool",
   "description": "Map of estimated water-column integrated primary productivity from Copernicus Reanalysis data developped using OC-CCI algorithm. Known limitations: Only primary productivity is measured, not biodiversity",
-  "sameAs": [
-    ""
-  ],
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
   "citation": "Queste B, WIO Symphony team,  2022, Photic pelagic - ecosystem component from the WIO Symphony tool, https://github.com/WIOSymphony/",
   "version": "v2.0",
@@ -26,7 +23,7 @@
     "@type": "Place",
     "geo": {
       "@type": "GeoShape",
-      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0"
+      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0, 6.0 18.0"
     },
     "additionalProperty": {
       "@type": "PropertyValue",
@@ -41,6 +38,9 @@
       "name": "WIO Symphony team",
       "url": "https://www.nairobiconvention.org/wio-symphony/"
     }
+  ],
+  "sameAs": [
+    ""
   ],
   "distribution": {
     "contentUrl": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.tif"

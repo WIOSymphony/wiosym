@@ -6,9 +6,6 @@
   "@id": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.json",
   "name": "Midwater pelagic - Mesopelagic zone (photic zone - 1000m) - ecosystem component from the WIO Symphony tool",
   "description": "Proportion of mesopelagic waters (photic zone - seafloor <1000m depth) in relation to full ocean depth based on GEBCO 2022 bathymetry grid and photic depth from Copernicus Known limitations: Depth data is uncertain in most areas and can have some effects on this layer.Another limitation is that the current midwater pelagic habitat layer does not productivity or biodiversity into account, only volume of available ocean space.",
-  "sameAs": [
-    ""
-  ],
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
   "citation": "Kågesten G, Queste B, WIO Symphony team,  2022, Midwater pelagic - ecosystem component from the WIO Symphony tool, https://github.com/WIOSymphony/",
   "version": "v2.0",
@@ -26,7 +23,7 @@
     "@type": "Place",
     "geo": {
       "@type": "GeoShape",
-      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0"
+      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0, 6.0 18.0"
     },
     "additionalProperty": {
       "@type": "PropertyValue",
@@ -41,6 +38,9 @@
       "name": "WIO Symphony team",
       "url": "https://www.nairobiconvention.org/wio-symphony/"
     }
+  ],
+  "sameAs": [
+    ""
   ],
   "distribution": {
     "contentUrl": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.tif"

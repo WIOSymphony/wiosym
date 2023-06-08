@@ -6,9 +6,6 @@
   "@id": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.json",
   "name": "Deep fish squid - Fish below 60m (Halpern et al.2008) - ecosystem component from the WIO Symphony tool",
   "description": "Species distribution models (SDMs) were created for genera within the following taxonomic groups: Decapodiformes (squid), Myctophiformes (lanternfish and blackchins), and Lophiiformes (anglerfish). SDMs were created using ensemble modelling using 25 predictor variables (see code for details) and observation records from Ocean Biodiversity Information System (OBIS). Probability of occurrence maps produced in the SDM were then summed across all genera. The output layer was scaled to between 0 and 100, with 0 representing predicted absence, 1 representing the lowest predicted probability of presence, and 100 representing the highest predicted probability of presence. These probabilities may serve as a proxy for relative taxa abundance and/or biomass. Genera modelled: Sepia, Todaropsis, Diaphus, Lampanyctodes, Lophius, Dibranchus. Known limitations: The species distribution models are based on available records, and therefore likely to contain observation bias. As such, the model is likely to overestimate occurrence in regions with many recorded observations of marine wildlife (e.g. South Africa) and underestimate occurrence in regions with few recorded observations of marine wildlife (e.g. Somalia).",
-  "sameAs": [
-    ""
-  ],
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
   "citation": "Sacre E, WIO Symphony team,  2023, Deep fish squid - ecosystem component from the WIO Symphony tool, https://github.com/WIOSymphony/",
   "version": "v2.0",
@@ -26,7 +23,7 @@
     "@type": "Place",
     "geo": {
       "@type": "GeoShape",
-      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0"
+      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0, 6.0 18.0"
     },
     "additionalProperty": {
       "@type": "PropertyValue",
@@ -41,6 +38,9 @@
       "name": "WIO Symphony team",
       "url": "https://www.nairobiconvention.org/wio-symphony/"
     }
+  ],
+  "sameAs": [
+    ""
   ],
   "distribution": {
     "contentUrl": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.tif"

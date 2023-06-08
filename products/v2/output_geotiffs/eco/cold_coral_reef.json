@@ -6,9 +6,6 @@
   "@id": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.json",
   "name": "Cold coral reef - Cold water coral reefs, such as Lophelia - ecosystem component from the WIO Symphony tool",
   "description": "This layer was produced by combining 10 global models (in press 2023) of different cold-water coral species (Desmophyllum pertusum, Enallopsammia rostrata, Goniocorella dumosa, Oculina varicosa, Solenosmilia variabilis, Paragorgia arborea, Primnoa resedaeformis, Madrepora oculata, Acanella arbuscula, Paramuricea placomus) provided by Dr Tong R and Dr Davies to the WIO Symphony grid, then removing shallow water <40m predictions in tropical regions using gebco 2022 data. Values below the background level (50% quantile value) was set to 0 in the normalisation process Known limitations: These cold water coral models can never determine absolute grid cell level probability, as they miss vital data on substrate type, biological interactions per se, rather they capture where suitable cold water coral habitat are more likely to be found - e.g  areas with a high habitat suitability versus a low. Low and variable resolution of bathymetry data is also a major limitation.\n",
-  "sameAs": [
-    ""
-  ],
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
   "citation": "Kågesten G, Tong R, Davies A, WIO Symphony team,  2023, Cold coral reef - ecosystem component from the WIO Symphony tool, https://github.com/WIOSymphony/",
   "version": "v2.0",
@@ -26,7 +23,7 @@
     "@type": "Place",
     "geo": {
       "@type": "GeoShape",
-      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0"
+      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0, 6.0 18.0"
     },
     "additionalProperty": {
       "@type": "PropertyValue",
@@ -41,6 +38,9 @@
       "name": "WIO Symphony team",
       "url": "https://www.nairobiconvention.org/wio-symphony/"
     }
+  ],
+  "sameAs": [
+    ""
   ],
   "distribution": {
     "contentUrl": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.tif"

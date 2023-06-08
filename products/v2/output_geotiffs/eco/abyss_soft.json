@@ -6,9 +6,6 @@
   "@id": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.json",
   "name": "Abyss soft - Deep sea mud bottom - ecosystem component from the WIO Symphony tool",
   "description": "This layer was produced by using a seafloor substrate model developed by C Jenkins with regional support from S Fennessy, using the dbSEABED database. Sand and mud proportion were combined to create a soft bottom proportion. Then soft bottom were mapped within Abyssal plain depth zone (1000-7500 meter) using gebco 2022 data. Known limitations: Though this data represents best available data, the underlying substrate and bathymetry models are uncertain in most areas of the WIO. Direct measurements (e.g. seabed surveys) are required to increase the quality in detailed impact assessments",
-  "sameAs": [
-    ""
-  ],
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
   "citation": "Kågesten G, Jenkins C, Fennessy S, WIO Symphony team,  2023, Abyss soft - ecosystem component from the WIO Symphony tool, https://github.com/WIOSymphony/",
   "version": "v2.0",
@@ -26,7 +23,7 @@
     "@type": "Place",
     "geo": {
       "@type": "GeoShape",
-      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0"
+      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0, 6.0 18.0"
     },
     "additionalProperty": {
       "@type": "PropertyValue",
@@ -41,6 +38,9 @@
       "name": "WIO Symphony team",
       "url": "https://www.nairobiconvention.org/wio-symphony/"
     }
+  ],
+  "sameAs": [
+    ""
   ],
   "distribution": {
     "contentUrl": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.tif"

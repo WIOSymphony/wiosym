@@ -6,9 +6,6 @@
   "@id": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.json",
   "name": "Sharks - Reef shark, tiger shark, oceanic sharks etc - ecosystem component from the WIO Symphony tool",
   "description": "Species distribution models (SDMs) were created for genera within four major shark orders: Carcharhiniformes (ground sharks), Lamniformes (mackerel sharks), Squaliformes (dogfish sharks), Squatiniformes (angel sharks). SDMs were created using ensemble modelling using 25 predictor variables (see code for details) and observation records from Ocean Biodiversity Information System (OBIS). Probability of occurrence maps produced in the SDM were then summed across all genera, to give an estimate that may serve as a proxy for species richness and/or biomass. Genera modelled: Lamniformes - Alopias (thresher sharks), Isurus (mako sharks), Carcharodon (great white shark); Carcharhiniformes - Galeocerdo (tiger shark), Sphyrna (hammerhead sharks), Carcharhinus (requiem/grey sharks); Squaliformes - Squalus (spurdogs), Etmopterus (lantern sharks); Squatiniformes – Squatina (angelsharks). A specific shark SDM was created for the region from the southern border of Tanzania north to Mogadishu (Somalia) using data from the Kenya Marine and Fisheries Institute (see code for details).\n Known limitations: The species distribution models are based on available records, and therefore likely to contain observation bias. As such, the model is likely to overestimate occurrence in regions with many recorded observations of marine wildlife (e.g. South Africa) and underestimate occurrence in regions with few recorded observations of marine wildlife (e.g. Somalia).",
-  "sameAs": [
-    ""
-  ],
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
   "citation": "Sacre E, WIO Symphony team,  2023, Sharks - ecosystem component from the WIO Symphony tool, https://github.com/WIOSymphony/",
   "version": "v2.0",
@@ -26,7 +23,7 @@
     "@type": "Place",
     "geo": {
       "@type": "GeoShape",
-      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0"
+      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0, 6.0 18.0"
     },
     "additionalProperty": {
       "@type": "PropertyValue",
@@ -41,6 +38,9 @@
       "name": "WIO Symphony team",
       "url": "https://www.nairobiconvention.org/wio-symphony/"
     }
+  ],
+  "sameAs": [
+    ""
   ],
   "distribution": {
     "contentUrl": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.tif"

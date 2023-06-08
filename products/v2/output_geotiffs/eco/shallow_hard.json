@@ -6,9 +6,6 @@
   "@id": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.json",
   "name": "Shallow hard - Rock, limestone (<40 m depth) - ecosystem component from the WIO Symphony tool",
   "description": "This layer was produced by using a seafloor substrate model developed by C Jenkins with regional support from S Fennessy, using the dbSEABED database. Rock and gravel proportion were combined to create a hard bottom layer. Shallow zone was defined as 0-40meter using GEBCO 2022 data, and yearly average SST from Copernicus data was used to model the tropical zone with a linear ramp-up starting at 23 °C (e.g. trop zone = 0) ending at 25.5 °C (e.g. trop zone =1) Known limitations: Though this data represent best available data, the underlying substrate and bathymetry models are uncertain in most areas of the WIO\n",
-  "sameAs": [
-    ""
-  ],
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
   "citation": "Kågesten G, Jenkins C, Fennessy S, WIO Symphony team,  2023, Shallow hard - ecosystem component from the WIO Symphony tool, https://github.com/WIOSymphony/",
   "version": "v2.0",
@@ -26,7 +23,7 @@
     "@type": "Place",
     "geo": {
       "@type": "GeoShape",
-      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0"
+      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0, 6.0 18.0"
     },
     "additionalProperty": {
       "@type": "PropertyValue",
@@ -41,6 +38,9 @@
       "name": "WIO Symphony team",
       "url": "https://www.nairobiconvention.org/wio-symphony/"
     }
+  ],
+  "sameAs": [
+    ""
   ],
   "distribution": {
     "contentUrl": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.tif"

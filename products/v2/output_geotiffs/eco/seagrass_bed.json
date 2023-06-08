@@ -6,9 +6,6 @@
   "@id": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.json",
   "name": "Seagrass bed - Seagrass (e.g. Enhalus, Thalassodendron) in tropical waters - ecosystem component from the WIO Symphony tool",
   "description": "The WIO Symphony seagrass map was made by combining a number of seagrass data sources in the WIO and globally, as well as making a new predictive model for Saya del Mahla banks where sparse observations existed but no map. The maps were ranked by quality and adjusted and combined based on ranking, information from overlapping higher resolution maps, and in some instances Gebco depth model to remove unlikely locations. The combined 1km seagrass map was divided into tropical and temperate maps using a Sea Surface Temperature Copernicus data composite with a continuous gradient between 23-25.5 degC. All processing was done in R v4.1.1.  \nThe major steps included:\n(1)        Mapping Allen Coral Atlas seagrass polygons presence to 250m grid, then calculating proportion of 250m presence pixels within each 1km pixel. In addition, total map footprint proportion were mapped to 1km pixels  \n(2)        Same process as (1) for three additional high-resolution maps (Seagrasses in estuaries in ZAF from Nelson Mandela University, Seagrasses in Chagos and Seychelles from Khaled bin Sultan Living Ocean Foundation)\n(3)         Global Seagrass map from WCMC portal was mapped same as (1), but due to variable spatial resolution and accuracy it was adjusted with a coefficient calculated by comparing the mean cover in Allen Atlas 1km map with WCMC 1km map. In addition, unlikely/deep areas were masked using Gebco bathymetry.\n(4)        Seagrass observations (points) from WCMC portal were buffered with 750m radius and mapped as presence in 250m pixels -> proportion of 1km pixels\n(5)        A BRT machine learning model was developed for Saya Del Mahla Bank, modelling seagrass coverage based on % cover data published by Ramah S et al. The model uncertainty is high, but predicts seagrasses in regions of the banks known to have seagrass (personal conversation Dr. Rawat and others) which are currently not available in any open maps. \n(6)        A Global Maxent model from WCMC portal was mapped same as (1), then adjusted to Allen data and bathymetry (same as 3).\n(7)        All maps were mosaiced together in order of their ranking, using map footprint to mask out lower ranked maps, then the max value was chosen in the remaining overlap. For the overlapping area in Saya del Mahla between WCMC polygon and Modelled map the mean value was used. \n Known limitations: The combination of the many maps represents an effort to put best available information together, still the maps are likely to both overpredict, and underpredict seagrasses in most areas. Especially the deeper seagrasses, and seagrasses in more turbid waters are very poorly mapped. In Chagos seagrasses have been reported to 70 meters depth but we only have the shallow ones in the map. Saya Del Mahla banks have notations to be the largest seagrass beds on the planet but with the poor data available we do not know - the model in the WIO Symphony seagrass map needs much more observation data to be reliable and future efforts should work to unlock archives of existing and future surveys. In all, the full extent of the seagrass ecosystems remains unknown, and planners should note that large important seagrass areas may not yet be in the map.\n",
-  "sameAs": [
-    ""
-  ],
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
   "citation": "Kågesten G, WIO Symphony team,  2022, Seagrass bed - ecosystem component from the WIO Symphony tool, https://github.com/WIOSymphony/",
   "version": "v2.0",
@@ -26,7 +23,7 @@
     "@type": "Place",
     "geo": {
       "@type": "GeoShape",
-      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0"
+      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0, 6.0 18.0"
     },
     "additionalProperty": {
       "@type": "PropertyValue",
@@ -41,6 +38,9 @@
       "name": "WIO Symphony team",
       "url": "https://www.nairobiconvention.org/wio-symphony/"
     }
+  ],
+  "sameAs": [
+    ""
   ],
   "distribution": {
     "contentUrl": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.tif"
