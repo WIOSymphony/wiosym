@@ -3,9 +3,9 @@
     "@vocab": "https://schema.org/"
   },
   "@type": "Dataset",
-  "@id": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.json",
+  "@id": "https://raw.githubusercontent.com/WIOSymphony/wiosym/main/products/v2/output_geotiffs/eco/kelp_forest_temp.json",
   "name": "Kelp forest (temp) - Mixed or rocky bottom with dense kelp algae - ecosystem component from the WIO Symphony tool",
-  "description": "Kelp forests were mapped by combining available kelp polygons in the sanbi databas with a global suitability model on kelp distribution. The global model was adjusted to represent the lower likelyhood of kelp occurance compared with the mapped kelp beds. Known limitations: Metadata missing\n",
+  "description": "Kelp polygons in the sanbi database were combined with a global suitability model on kelp distribution, and adjusted to represent the lower likelihood of kelp occurrence compared with the mapped kelp beds. Known limitations: Metadata missing\n",
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
   "citation": "Kågesten G, WIO Symphony team,  2022, Kelp forest (temp) - ecosystem component from the WIO Symphony tool, https://github.com/WIOSymphony/",
   "version": "v2.0",
@@ -19,6 +19,11 @@
     "Pressures",
     "Kelp forest (temp)"
   ],
+  "distribution": {
+    "@type": "DataDownload",
+    "contentUrl": "https://github.com/WIOSymphony/wiosym/raw/main/products/v2/output_geotiffs/eco/kelp_forest_temp.tif",
+    "encodingFormat": "application/tiff"
+  },
   "spatialCoverage": {
     "@type": "Place",
     "geo": {
@@ -38,11 +43,5 @@
       "name": "WIO Symphony team",
       "url": "https://www.nairobiconvention.org/wio-symphony/"
     }
-  ],
-  "sameAs": [
-    ""
-  ],
-  "distribution": {
-    "contentUrl": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.tif"
-  }
+  ]
 }

@@ -3,9 +3,9 @@
     "@vocab": "https://schema.org/"
   },
   "@type": "Dataset",
-  "@id": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.json",
+  "@id": "https://raw.githubusercontent.com/WIOSymphony/wiosym/main/products/v2/output_geotiffs/eco/seamounts.json",
   "name": "Seamounts - Underwater pinnacles, volcanoes - ecosystem component from the WIO Symphony tool",
-  "description": "This layer was produced by combining two global seamounts dataset, Gevorgian et al 2023 (based on the latest vertical gravity gradient derived from satellite altimeter measurements) and Yesson et al 2019 (based on the global bathymetry SRTM v.11). Both data sets infer seamount presence by using a series of algorithms to look for conical features on the seabed, Yesson 2019 outlines the seamount bases, while Gevirgian 2023 dataset specify the seamount centre and the radius of the bases. Though plenty of overlap existed, the two datasets had slightly different coverage and strengths and were combined to a maximum seamount extent presence at 250m grid resolution, then aggregated to seamount presence proportion at 1km resolution. To give shallow seamounts higher weight in WIO Symphony sensitivity the latest bathymetry model from Gebco (2023) was used to give relatively shallow seamount areas (<1000m depth) maximum value (100), with a linear gradient down to 5000m (value 25). Striking a balance of weighting shallow seamounts higher, but acknowledging that the bathymetry is uncertain and we know little of the life and sensitivity of the deeper seamounts. The resampled bathymetry at 250m was aggregated to provide a weighting value at the 1km scale, and then multiplied with the proportional presence of seamounts raster. Known limitations: The data on seamounts are limited by the resolution and accuracy of global bathymetry. Many smaller seamounts are likely missing in the data. The higher weighting of shallow seamounts is also uncertain, especially for activities that have direct seafloor impact such as deep-sea mining and bottom trawling. The knowledge of these deep sea habitats are very limited.",
+  "description": "Two global seamount datasets were combined, i.e. Yesson et al. 2019 (based on the global bathymetry SRTM v.11) and Gevorgian et al. 2023 (based on the latest vertical gravity gradient derived from satellite altimeter measurements), which both infer seamount presence by using a series of algorithms to look for conical features on the seabed. Yesson et al. 2019 outlines the seamount bases, while Gevorgian et al. 2023 specifies the seamount centre and the radius of the bases. Though plenty of overlap existed, the two datasets had slightly different coverage and strengths and were combined to a maximum seamount extent presence at 250-m grid resolution, then aggregated to seamount presence proportion at 1-km resolution. Subsequently, the latest bathymetry model from Gebco (2023) was used to give relatively shallow seamount areas (< 1000m depth) higher weight in WIO Symphony sensitivity (i.e., maximum value 100), with a linear gradient down to 5000 m (value 25).  The resampled bathymetry at 250 m was aggregated to provide a weighting value at the 1-km scale, and then multiplied with the proportional presence of seamounts raster. Known limitations: The data on seamounts are limited by the resolution and accuracy of global bathymetry. Many smaller seamounts are likely missing in the data. The higher weighting of shallow seamounts is also uncertain, especially for activities that have direct seafloor impact such as deep-sea mining and bottom trawling. The knowledge of the life and sensitivity of these deep sea habitats is very limited.",
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
   "citation": "Kågesten G, Freire F, Hammar L, WIO Symphony team,  2023, Seamounts - ecosystem component from the WIO Symphony tool, https://github.com/WIOSymphony/",
   "version": "v2.0",
@@ -19,6 +19,11 @@
     "Pressures",
     "Seamounts"
   ],
+  "distribution": {
+    "@type": "DataDownload",
+    "contentUrl": "https://github.com/WIOSymphony/wiosym/raw/main/products/v2/output_geotiffs/eco/seamounts.tif",
+    "encodingFormat": "application/tiff"
+  },
   "spatialCoverage": {
     "@type": "Place",
     "geo": {
@@ -38,11 +43,5 @@
       "name": "WIO Symphony team",
       "url": "https://www.nairobiconvention.org/wio-symphony/"
     }
-  ],
-  "sameAs": [
-    ""
-  ],
-  "distribution": {
-    "contentUrl": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.tif"
-  }
+  ]
 }

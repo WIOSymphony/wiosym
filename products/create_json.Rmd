@@ -44,7 +44,8 @@ js$citation <- paste0(layers$data_processor[i],
                       layers$title[i], 
                       " - ecosystem component from the WIO Symphony tool, https://github.com/WIOSymphony/")
 js$version <- paste0(ver,".0")
-js$distribution$contentUrl <- "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.tif"
+js$distribution$contentUrl <- "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.tif" 
+paste0("https://github.com/WIOSymphony/wiosym/raw/main/products/v2/output_geotiffs/eco/cold_coral_reef.tif", ".tif")
 js$provider[[1]]$`@type` <- "Organization"
 js$provider[[1]]$legalName <- "WIO Symphony team"
 js$provider[[1]]$name <- "WIO Symphony team"

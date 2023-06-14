@@ -3,7 +3,7 @@
     "@vocab": "https://schema.org/"
   },
   "@type": "Dataset",
-  "@id": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.json",
+  "@id": "https://raw.githubusercontent.com/WIOSymphony/wiosym/main/products/v2/output_geotiffs/eco/rays_skates.json",
   "name": "Rays skates - Manta ray, eagle ray etc - ecosystem component from the WIO Symphony tool",
   "description": "Species distribution models (SDMs) were created for genera within the following taxonomic groups: Myliobatiformes (stingrays, manta rays, and eagle rays), Rajiformes (skates and guitarfish), Rhinopristiformes (shovelnose rays), and Torpediniformes (electric rays). SDMs were created using ensemble modelling using 25 predictor variables (see code for details) and observation records from Ocean Biodiversity Information System (OBIS). Probability of occurrence maps produced in the SDM were then summed across all genera. The output layer was scaled to between 0 and 100, with 0 representing predicted absence, 1 representing the lowest predicted probability of presence, and 100 representing the highest predicted probability of presence. These probabilities may serve as a proxy for relative taxa abundance and/or biomass. Genera modelled: Myliobatis, Dasyatis, Mobula, Raja, Leucoraja, Acroteriobatus, Rhinobatos, Torpedo, Tetronarce. Known limitations: The species distribution models are based on available records, and therefore likely to contain observation bias. As such, the model is likely to overestimate occurrence in regions with many recorded observations of marine wildlife (e.g. South Africa) and underestimate occurrence in regions with few recorded observations of marine wildlife (e.g. Somalia).",
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
@@ -19,6 +19,11 @@
     "Pressures",
     "Rays skates"
   ],
+  "distribution": {
+    "@type": "DataDownload",
+    "contentUrl": "https://github.com/WIOSymphony/wiosym/raw/main/products/v2/output_geotiffs/eco/rays_skates.tif",
+    "encodingFormat": "application/tiff"
+  },
   "spatialCoverage": {
     "@type": "Place",
     "geo": {
@@ -38,11 +43,5 @@
       "name": "WIO Symphony team",
       "url": "https://www.nairobiconvention.org/wio-symphony/"
     }
-  ],
-  "sameAs": [
-    ""
-  ],
-  "distribution": {
-    "contentUrl": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.tif"
-  }
+  ]
 }

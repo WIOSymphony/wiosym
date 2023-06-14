@@ -3,9 +3,9 @@
     "@vocab": "https://schema.org/"
   },
   "@type": "Dataset",
-  "@id": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.json",
+  "@id": "https://raw.githubusercontent.com/WIOSymphony/wiosym/main/products/v2/output_geotiffs/eco/shelf_hard_temp.json",
   "name": "Shelf hard (temp) - Rocky outcrops and hard bottom shelf (40-200 m depth) - ecosystem component from the WIO Symphony tool",
-  "description": "This layer was produced by using a seafloor substrate model developed by C Jenkins with regional support from S Fennessy, using the dbSEABED database. Rock and gravel proportion were combined to create a hard bottom proportion. The continental shelf zone was defined by 40-200 meter using GEBCO 2022 data, and yearly average SBT (Sea Bottom Temperature) from Copernicus data was used to model the temperate zone with a linear ramp-up starting at 24 °C (e.g. temp zone = 0) ending at 21.5 °C (e.g. temp zone = 1) Known limitations: Though this data represent best available data, the underlying substrate and bathymetry models are uncertain in most areas of the WIO\n",
+  "description": "A seafloor substrate model, developed by C. Jenkins with regional support from S. Fennessy, together with the dbSEABED database. Rock and gravel proportion were combined to create a hard bottom proportion. The continental shelf zone was defined as 40-200 m using GEBCO 2022 data, and yearly average SBT (Sea Bottom Temperature) from Copernicus data was used to model the temperate zone with a linear ramp-up starting at 24 °C (e.g. temp zone = 0) ending at 21.5 °C (e.g. temp zone = 1). Known limitations: The underlying substrate and bathymetry models are uncertain in most areas of the WIO region.",
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
   "citation": "Kågesten G, Jenkins C, Fennessy S, Queste B, WIO Symphony team,  2023, Shelf hard (temp) - ecosystem component from the WIO Symphony tool, https://github.com/WIOSymphony/",
   "version": "v2.0",
@@ -19,6 +19,11 @@
     "Pressures",
     "Shelf hard (temp)"
   ],
+  "distribution": {
+    "@type": "DataDownload",
+    "contentUrl": "https://github.com/WIOSymphony/wiosym/raw/main/products/v2/output_geotiffs/eco/shelf_hard_temp.tif",
+    "encodingFormat": "application/tiff"
+  },
   "spatialCoverage": {
     "@type": "Place",
     "geo": {
@@ -38,11 +43,5 @@
       "name": "WIO Symphony team",
       "url": "https://www.nairobiconvention.org/wio-symphony/"
     }
-  ],
-  "sameAs": [
-    ""
-  ],
-  "distribution": {
-    "contentUrl": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.tif"
-  }
+  ]
 }

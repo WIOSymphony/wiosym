@@ -3,9 +3,9 @@
     "@vocab": "https://schema.org/"
   },
   "@type": "Dataset",
-  "@id": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.json",
-  "name": "Midwater pelagic - Mesopelagic zone (photic zone - 1000m) - ecosystem component from the WIO Symphony tool",
-  "description": "Proportion of mesopelagic waters (photic zone - seafloor <1000m depth) in relation to full ocean depth based on GEBCO 2022 bathymetry grid and photic depth from Copernicus Known limitations: Depth data is uncertain in most areas and can have some effects on this layer.Another limitation is that the current midwater pelagic habitat layer does not productivity or biodiversity into account, only volume of available ocean space.",
+  "@id": "https://raw.githubusercontent.com/WIOSymphony/wiosym/main/products/v2/output_geotiffs/eco/midwater_pelagic.json",
+  "name": "Midwater pelagic - Mesopelagic zone (photic zone to 1000 m) - ecosystem component from the WIO Symphony tool",
+  "description": "Proportion of mesopelagic waters (photic zone to seafloor <1000m depth) in relation to full ocean depth (6000 m) based on GEBCO 2022 bathymetry grid and photic depth from Copernicus. Known limitations: Depth data is uncertain in most areas, which can have some effects on this layer. Another limitation is that the current midwater pelagic habitat layer is only based on volume of available ocean space, not considering productivity or biodiversity.",
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
   "citation": "Kågesten G, Queste B, WIO Symphony team,  2022, Midwater pelagic - ecosystem component from the WIO Symphony tool, https://github.com/WIOSymphony/",
   "version": "v2.0",
@@ -19,6 +19,11 @@
     "Pressures",
     "Midwater pelagic"
   ],
+  "distribution": {
+    "@type": "DataDownload",
+    "contentUrl": "https://github.com/WIOSymphony/wiosym/raw/main/products/v2/output_geotiffs/eco/midwater_pelagic.tif",
+    "encodingFormat": "application/tiff"
+  },
   "spatialCoverage": {
     "@type": "Place",
     "geo": {
@@ -38,11 +43,5 @@
       "name": "WIO Symphony team",
       "url": "https://www.nairobiconvention.org/wio-symphony/"
     }
-  ],
-  "sameAs": [
-    ""
-  ],
-  "distribution": {
-    "contentUrl": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.tif"
-  }
+  ]
 }

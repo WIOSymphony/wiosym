@@ -3,9 +3,9 @@
     "@vocab": "https://schema.org/"
   },
   "@type": "Dataset",
-  "@id": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.json",
+  "@id": "https://raw.githubusercontent.com/WIOSymphony/wiosym/main/products/v2/output_geotiffs/eco/cold_coral_reef.json",
   "name": "Cold coral reef - Cold water coral reefs, such as Lophelia - ecosystem component from the WIO Symphony tool",
-  "description": "This layer was produced by combining 10 global models (in press 2023) of different cold-water coral species (Desmophyllum pertusum, Enallopsammia rostrata, Goniocorella dumosa, Oculina varicosa, Solenosmilia variabilis, Paragorgia arborea, Primnoa resedaeformis, Madrepora oculata, Acanella arbuscula, Paramuricea placomus) provided by Dr Tong R and Dr Davies to the WIO Symphony grid, then removing shallow water <40m predictions in tropical regions using gebco 2022 data. Values below the background level (50% quantile value) was set to 0 in the normalisation process Known limitations: These cold water coral models can never determine absolute grid cell level probability, as they miss vital data on substrate type, biological interactions per se, rather they capture where suitable cold water coral habitat are more likely to be found - e.g  areas with a high habitat suitability versus a low. Low and variable resolution of bathymetry data is also a major limitation.\n",
+  "description": "Ten global models (in press 2023) of different cold-water coral species were combined (Desmophyllum pertusum, Enallopsammia rostrata, Goniocorella dumosa, Oculina varicosa, Solenosmilia variabilis, Paragorgia arborea, Primnoa resedaeformis, Madrepora oculata, Acanella arbuscula, Paramuricea placomus), as provided by Dr. Tong R. and Dr. Davies to the WIO Symphony grid, then removing shallow water (<40 m) predictions in tropical regions using gebco 2022 data. The models depict areas with low vs. high habitat suitability, i.e. the likelihood of finding suitable cold-water coral habitats. Values below the background level (50% quantile value) were set to 0 in the normalisation process. Known limitations: The model simulations can not determine absolute grid- cell level probability of cold-water coral habitats, as vital data on substrate type and biological interactions are missing. Low and variable resolution of bathymetry data is also a major known limitation.",
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
   "citation": "Kågesten G, Tong R, Davies A, WIO Symphony team,  2023, Cold coral reef - ecosystem component from the WIO Symphony tool, https://github.com/WIOSymphony/",
   "version": "v2.0",
@@ -19,6 +19,11 @@
     "Pressures",
     "Cold coral reef"
   ],
+  "distribution": {
+    "@type": "DataDownload",
+    "contentUrl": "https://github.com/WIOSymphony/wiosym/raw/main/products/v2/output_geotiffs/eco/cold_coral_reef.tif",
+    "encodingFormat": "application/tiff"
+  },
   "spatialCoverage": {
     "@type": "Place",
     "geo": {
@@ -38,11 +43,5 @@
       "name": "WIO Symphony team",
       "url": "https://www.nairobiconvention.org/wio-symphony/"
     }
-  ],
-  "sameAs": [
-    ""
-  ],
-  "distribution": {
-    "contentUrl": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.tif"
-  }
+  ]
 }

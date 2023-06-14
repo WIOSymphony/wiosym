@@ -3,9 +3,9 @@
     "@vocab": "https://schema.org/"
   },
   "@type": "Dataset",
-  "@id": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.json",
-  "name": "Coral reef - Hard structure with live coral, gorgonians, sponges etc - ecosystem component from the WIO Symphony tool",
-  "description": "The WIO Symphony shallow coral habitat map was made by combining a number of coral data sources in the WIO and globally, as well as making a new predictive model for Saya del Mahla banks where sparse observations existed but no map. The maps were ranked by quality and adjusted and combined based on ranking, information from overlapping higher resolution maps. All processing was done in R v4.1.1.  \nThe major steps included:\n(1)        Mapping Allen Coral Atlas coral polygons presence to 250m grid, then calculating proportion of 250m presence pixels within each 1km pixel. In addition, total map footprint proportion were mapped to 1km pixels  \n(2)        Same process as (1) for two additional high-resolution maps: Corals in Chagos and Seychelles from Khaled bin Sultan Living Ocean Foundation\n(3)         Global Coral map from WCMC portal was mapped same as (1), but due to variable spatial resolution and accuracy it was adjusted with a coefficient calculated by comparing the mean cover in Allen Atlas 1km map with WCMC 1km map. \n(4)        A 2008 coral map for Madagascar was retrieved from the African Marine Atlas through the Ocean Info HUB project. It was mapped similar to (3), by adjusting coverage to a coefficient by comparing with the higher resolution Allen Coral reef map. \n(5)        A BRT machine learning model was developed for Saya Del Mahla Bank, modelling coral coverage based on % cover data published by Ramah S et al. The model uncertainty is very high, but predicts coral in regions of the banks known to have coral (personal conversation Dr. Rawat and others) which are currently not available in any open maps. \n(6)        All maps were mosaiced together in order of their ranking, using map footprint to mask out lower ranked maps, then the max value was chosen in the remaining overlap. \n Known limitations: Metadata missing\n",
+  "@id": "https://raw.githubusercontent.com/WIOSymphony/wiosym/main/products/v2/output_geotiffs/eco/coral_reef.json",
+  "name": "Coral reef - Hard structure with live coral, gorgonians, sponges etc. - ecosystem component from the WIO Symphony tool",
+  "description": "A number of coral data sources in the WIO region and globally were combined, and a new predictive model was constructed for the Saya del Mahla banks where sparse observations but no map existed. The maps were ranked by quality and adjusted and combined based on ranking, and information from overlapping higher resolution maps. \nThe major steps included:\n(1) Mapping the Allen Coral Atlas coral polygons presence to a 250-m grid, then calculating the proportion of 250-m presence pixels within each 1-km pixel. Further, total map footprint proportions were mapped to 1-km pixels \n(2) Same process as (1) for two additional high-resolution maps: Corals in Chagos and Seychelles from the Khaled bin Sultan Living Ocean Foundation\n(3) The Global Coral map from the WCMC portal was mapped same as (1), but due to variable spatial resolution and accuracy it was adjusted with a coefficient calculated by comparing the mean cover in the Allen Atlas 1-km map with the WCMC 1-km map. \n(4) A 2008 coral map for Madagascar was retrieved from the African Marine Atlas through the Ocean Info HUB project. It was mapped similar to (3), by adjusting coverage to a coefficient by comparing with the higher resolution Allen Coral reef map. \n(5) A BRT machine learning model was developed for the Saya Del Mahla Bank, modelling coral coverage based on % cover data published by Ramah S. et al. The model uncertainty is high, but predicts coral in regions of the banks known to have coral (personal conversation Dr. Rawat and others) which are currently not available in any open maps. \n(6) All maps were mosaiced  together in order of their ranking, using map footprint to mask out lower ranked maps, then choosing the max value in the remaining overlap.\n Known limitations: Metadata missing\n",
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
   "citation": "Kågesten G, WIO Symphony team,  2023, Coral reef - ecosystem component from the WIO Symphony tool, https://github.com/WIOSymphony/",
   "version": "v2.0",
@@ -19,6 +19,11 @@
     "Pressures",
     "Coral reef"
   ],
+  "distribution": {
+    "@type": "DataDownload",
+    "contentUrl": "https://github.com/WIOSymphony/wiosym/raw/main/products/v2/output_geotiffs/eco/coral_reef.tif",
+    "encodingFormat": "application/tiff"
+  },
   "spatialCoverage": {
     "@type": "Place",
     "geo": {
@@ -38,11 +43,5 @@
       "name": "WIO Symphony team",
       "url": "https://www.nairobiconvention.org/wio-symphony/"
     }
-  ],
-  "sameAs": [
-    ""
-  ],
-  "distribution": {
-    "contentUrl": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.tif"
-  }
+  ]
 }

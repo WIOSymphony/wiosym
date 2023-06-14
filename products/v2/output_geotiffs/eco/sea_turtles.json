@@ -3,7 +3,7 @@
     "@vocab": "https://schema.org/"
   },
   "@type": "Dataset",
-  "@id": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.json",
+  "@id": "https://raw.githubusercontent.com/WIOSymphony/wiosym/main/products/v2/output_geotiffs/eco/sea_turtles.json",
   "name": "Sea turtles - Green turtle, leatherback etc - ecosystem component from the WIO Symphony tool",
   "description": "The sea turtle layer combines species distribution models (SDMs) with recorded nesting beaches. SDMs were produced for four species of sea turtle: Loggerhead sea turtle (Caretta caretta), Leatherback sea turtle (Dermochelys coriacea), Green sea turtle (Chelonia mydas), and the Olive ridley sea turtle (Lepidochelys olivacea). SDMs were created using ensemble modelling using 25 predictor variables (see code for details) and observation records from Ocean Biodiversity Information System (OBIS). Probability of occurrence maps produced in the SDM were then summed across all species. The combined SDM was then scaled from 1 to 10. A cost-distance layer was produced based on known nesting beaches, up to a maximum distance of 3 km. The resulting cost-distance was scaled from 10 to 100, such that a value of 100 indicates the pixel is within 1 km of a nesting beach. This layer was then combined with the SDMs, such that pixels within 3 km of nesting beaches were merged with priority. Known limitations: The species distribution models are based on available records, and therefore likely to contain observation bias. As such, the model is likely to overestimate occurrence in regions with many recorded observations of marine wildlife (e.g. South Africa) and underestimate occurrence in regions with few recorded observations of marine wildlife (e.g. Somalia).",
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
@@ -19,6 +19,11 @@
     "Pressures",
     "Sea turtles"
   ],
+  "distribution": {
+    "@type": "DataDownload",
+    "contentUrl": "https://github.com/WIOSymphony/wiosym/raw/main/products/v2/output_geotiffs/eco/sea_turtles.tif",
+    "encodingFormat": "application/tiff"
+  },
   "spatialCoverage": {
     "@type": "Place",
     "geo": {
@@ -38,11 +43,5 @@
       "name": "WIO Symphony team",
       "url": "https://www.nairobiconvention.org/wio-symphony/"
     }
-  ],
-  "sameAs": [
-    ""
-  ],
-  "distribution": {
-    "contentUrl": "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.tif"
-  }
+  ]
 }
