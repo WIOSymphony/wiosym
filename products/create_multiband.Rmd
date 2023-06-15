@@ -94,7 +94,6 @@ for(i in 1:length(layer_files)){
 # PRESSURES - check layer projection, extent, resolution, and export correction
 ```{r}
 layers <- rio::import(paste0("layer_list_", ver, ".xlsx")) |> dplyr::filter(theme == "Pressure")
-#layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
 layer_files <- layers$file_name
 layer_files[is.na(layer_files)] <- "placeholder.tif"
 #layer_files <- layer_files[c(24,25)] # run for only select layers
@@ -133,7 +132,6 @@ for(i in 1:length(layer_files)){
   
   if(any(ind)){
   
-    #temp <- raster(paste0(ver, "/source_layers/", l[ind]))
     temp <- raster(l[ind])
     if(identical(crs(grid), crs(temp)) == F) {temp <- projectRaster(temp, grid)}
     x1 <- identical(extent(grid), extent(temp))
@@ -141,7 +139,6 @@ for(i in 1:length(layer_files)){
     x3 <- identical(res(grid), res(temp))
     cat("\nLayer", i ,"checked - ", layers$title[i], " - ")
     if(x1&x2&x3){cat(layer_files[i], "passed checks")} else{cat(red("WARNING:", layer_files[i], "FAILED checks"))}
-    #if(layer_files[i] == "placeholder.tif"){cat(green(" - NOTE: placeholder tif used for ", layers$title[i]))}
     writeRaster(temp, paste0(ver, "/source_layers_fixed/", layer_files[i]), overwrite = T)
   
   }
