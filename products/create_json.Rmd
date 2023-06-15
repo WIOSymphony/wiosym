@@ -18,10 +18,17 @@ library(rio)
 library(rjson)
 library(jsonlite)
 library(gsheet)
+library(raster)
 
 meta <- rio::import(paste0("layer_list_", ver, ".xlsx"))
 meta$file_name[is.na(meta$file_name)] <- "placeholder.tif"
 ```
+
+```{r}
+grid <- raster("grid/grid_1km_v01.1.tif")
+crs(grid)
+```
+
 
 # Create JSON files for metadata - ECOSYSTEMS
 ```{r}
@@ -33,19 +40,27 @@ js <- read_json(path = "datasetTemplate.json")
 
 for(i in 1:nrow(layers)){
 #for(i in 49:49){
+  
+n <- layers$title[i]
+n <- tolower(n) |> 
+     gsub(pattern = " ", replacement = "_", fixed = T) |> 
+     gsub(pattern = "(", replacement = "_", fixed = T) |> 
+     gsub(pattern = ")", replacement = "_", fixed = T) |> 
+     gsub(pattern = "__", replacement = "_", fixed = T) |>
+     sub(pattern = "_$", replacement = "")
 
 # Name, description, etc.
 js$name <- paste0(layers$title[i], " - ", layers$description[i], " - ecosystem component from the WIO Symphony tool")
 js$description <- paste0(layers$method_summary[i], " Known limitations: ", layers$known_limitations[i])
-js$`@id` <- "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.json"
-js$sameAs[[1]] <- ""
+js$`@id` <- paste0("https://raw.githubusercontent.com/WIOSymphony/wiosym/main/products/v2/output_geotiffs/eco/", n, ".json")
 js$citation <- paste0(layers$data_processor[i], 
                       ", WIO Symphony team,  ", layers$year[i], ", ", 
                       layers$title[i], 
                       " - ecosystem component from the WIO Symphony tool, https://github.com/WIOSymphony/")
 js$version <- paste0(ver,".0")
-js$distribution$contentUrl <- "https://github.com/WIOSymphony/wiosym/tree/main/products/v2/output_geotiffs/eco/dugong.tif" 
-paste0("https://github.com/WIOSymphony/wiosym/raw/main/products/v2/output_geotiffs/eco/cold_coral_reef.tif", ".tif")
+js$distribution$`@type` <- "DataDownload"
+js$distribution$contentUrl <- paste0("https://github.com/WIOSymphony/wiosym/raw/main/products/v2/output_geotiffs/eco/", n, ".tif")
+js$distribution$encodingFormat <- "application/tiff"
 js$provider[[1]]$`@type` <- "Organization"
 js$provider[[1]]$legalName <- "WIO Symphony team"
 js$provider[[1]]$name <- "WIO Symphony team"
@@ -68,15 +83,6 @@ js
 #js <- js[!names(js) %in% c("url", "measurementTechnique")]
 
 # Export JSON
-
-n <- layers$title[i]
-n <- tolower(n) |> 
-     gsub(pattern = " ", replacement = "_", fixed = T) |> 
-     gsub(pattern = "(", replacement = "_", fixed = T) |> 
-     gsub(pattern = ")", replacement = "_", fixed = T) |> 
-     gsub(pattern = "__", replacement = "_", fixed = T) |>
-     sub(pattern = "_$", replacement = "")
-
 write_json(js, path = paste0(ver, "/output_geotiffs/eco/", n, ".json"),
              pretty = TRUE,
              auto_unbox = TRUE)
