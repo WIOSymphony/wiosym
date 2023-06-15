@@ -32,6 +32,12 @@
 !/products/v2/output_geotiffs/pres/*.tif
 !/products/v2/output_geotiffs/eco/*.json
 !/products/v2/output_geotiffs/pres/*.json
+!/products/v2.1/output_images/eco/*.png
+!/products/v2.1/output_images/pres/*.png
+!/products/v2.1/output_geotiffs/eco/*.tif
+!/products/v2.1/output_geotiffs/pres/*.tif
+!/products/v2.1/output_geotiffs/eco/*.json
+!/products/v2.1/output_geotiffs/pres/*.json
 /products/delivery/
 
 # add files that we want...
