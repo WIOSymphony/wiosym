@@ -1,0 +1,47 @@
+{
+  "@context": {
+    "@vocab": "https://schema.org/"
+  },
+  "@type": "Dataset",
+  "@id": "https://raw.githubusercontent.com/WIOSymphony/wiosym/main/products/v2.1/output_geotiffs/pres/artisanal_fishing.json",
+  "name": "Artisanal fishing - Small-scale fisheries using nets, cages, spears - pressure layer from the WIO Symphony tool",
+  "description": "A model that calculates the least cost paths from boat locations to all other ocean pixels was used. The model estimates artisanal fishing pressure based on a kernel density model, which assumes that the probability of a moored boat fishing at a given location declines with distance from the moored boat. Artisanal fishing boat locations and densities were estimates using Google Earth satellite imagery, marking out boats likely to be used for artisanal fishing. Known limitations: The source data for this layer was obtained by manually pin-pointing boats in Google Earth. This was performed by several individuals. A protocol was established for identifying artisinal fishing boats. However, there is a risk that boats were incorrectly identified as artisinal fishing boats, or were missed.",
+  "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
+  "citation": "Sacre E (2022). Artisanal fishing - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "version": "v2.1",
+  "keywords": [
+    "Western Indian Ocean",
+    "WIO Symphony",
+    "Symphony",
+    "Cumulative impact assessment",
+    "Marine spatial planning",
+    "Ecosystems",
+    "Pressures",
+    "Artisanal fishing"
+  ],
+  "distribution": {
+    "@type": "DataDownload",
+    "contentUrl": "https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/artisanal_fishing.tif",
+    "encodingFormat": "application/tiff"
+  },
+  "spatialCoverage": {
+    "@type": "Place",
+    "geo": {
+      "@type": "GeoShape",
+      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0, 6.0 18.0"
+    },
+    "additionalProperty": {
+      "@type": "PropertyValue",
+      "propertyID": "http://dbpedia.org/resource/Spatial_reference_system",
+      "value": "http://www.w3.org/2003/01/geo/wgs84_pos#lat_long"
+    }
+  },
+  "provider": [
+    {
+      "@type": "Organization",
+      "legalName": "WIO Symphony team",
+      "name": "WIO Symphony team",
+      "url": "https://www.nairobiconvention.org/wio-symphony/"
+    }
+  ]
+}

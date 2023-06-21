@@ -1,0 +1,47 @@
+{
+  "@context": {
+    "@vocab": "https://schema.org/"
+  },
+  "@type": "Dataset",
+  "@id": "https://raw.githubusercontent.com/WIOSymphony/wiosym/main/products/v2.1/output_geotiffs/pres/plastic_litter.json",
+  "name": "Plastic litter - Macroplastic pollution from waste (plastic objects >5 mm) - pressure layer from the WIO Symphony tool",
+  "description": "A new global model of plastic pollution in the oceans and coastline, available as 60-km hexagon grids, was adjusted to the WIO Symphony 1-km grid. Data was available for a range of particle sizes, as particle mass or concentration and with predictions from years 2015, 2020 and 2025. For the WIO Symphony model, total concentration of particles larger than 5 mm from the 2020 prediction was used. The data was split up in two ways, the shore prediction, and the pelagic data (divided into 0-5 m (surface), 5-50 m, 50-500 m and 500 m-inf depth layers). The interpolation for each individual layer was made using the centre points of the hexagon grids, applying Inverse Distance Weighting at 10-km spacing, then converting to a 1-km grid using bilinear interpolation. Shoreline plastic: The interpolated plastic shore data model was multiplied with the WIO Symphony shore layer which contains the proportion of shoreline within each pixel, hence assuming more complex shorelines result in a higher pressure from plastic pollution within a 1-km pixel. In addition, a 2-km Gaussian filter was run and combined with this data, assuming plastic has a local spread into the nearby environment. Finally, the data was normalized to 0-100 using the maximum value in the WIO region (99% quantile to exclude outliers). Pelagic plastic: The interpolated concentrations of plastic particles for each depth layer where combined using the maximum value in each 1-km grid cell. The data were then normalized to 0-100 using the global maximum value (99% quantile to exclude outliers). Combined product: The two normalized layers were combined into one using the maximum value in each cell. As a nod to the theory behind the layer created for v01 of WIO Symphony (using extrapolation from the main river sources), areas highlighted as polluted in v01 were included if 10% of the max value was greater than v02 (e.g., max(plastic_v01 * 0.1, plastic v02)). This step mainly added plastic pollution in areas close to large rivers with high plastic concentrations, not always captured in the coarser global 60-km hexagon models. Known limitations: The plastic layer is limited by the resolution and accuracy of a global model. To better represent the coastal area and trace the local sources of plastic pollution, additional data such as high resolution, satellite imagery, land-cover data, census data, and other relevant data sources would be needed.",
+  "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
+  "citation": "Kågesten G, Zerne P, Hammar L, Kaandorp M (2023). Plastic litter - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "version": "v2.1",
+  "keywords": [
+    "Western Indian Ocean",
+    "WIO Symphony",
+    "Symphony",
+    "Cumulative impact assessment",
+    "Marine spatial planning",
+    "Ecosystems",
+    "Pressures",
+    "Plastic litter"
+  ],
+  "distribution": {
+    "@type": "DataDownload",
+    "contentUrl": "https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/plastic_litter.tif",
+    "encodingFormat": "application/tiff"
+  },
+  "spatialCoverage": {
+    "@type": "Place",
+    "geo": {
+      "@type": "GeoShape",
+      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0, 6.0 18.0"
+    },
+    "additionalProperty": {
+      "@type": "PropertyValue",
+      "propertyID": "http://dbpedia.org/resource/Spatial_reference_system",
+      "value": "http://www.w3.org/2003/01/geo/wgs84_pos#lat_long"
+    }
+  },
+  "provider": [
+    {
+      "@type": "Organization",
+      "legalName": "WIO Symphony team",
+      "name": "WIO Symphony team",
+      "url": "https://www.nairobiconvention.org/wio-symphony/"
+    }
+  ]
+}

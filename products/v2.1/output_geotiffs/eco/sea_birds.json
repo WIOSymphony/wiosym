@@ -1,0 +1,47 @@
+{
+  "@context": {
+    "@vocab": "https://schema.org/"
+  },
+  "@type": "Dataset",
+  "@id": "https://raw.githubusercontent.com/WIOSymphony/wiosym/main/products/v2.1/output_geotiffs/eco/sea_birds.json",
+  "name": "Sea birds - Petrels, gulls, albatross, gannet, etc. - ecosystem component from the WIO Symphony tool",
+  "description": "Species distribution models (SDMs) were created for genera within the taxonomic groups Procellariiformes and Charadriiformes, using ensemble modelling with 25 predictor variables and observation records from the Ocean Biodiversity Information System (OBIS). The probability of occurrence maps produced in the SDM were then summed across all genera. The output layer was scaled to between 0 and 100, with 0 representing predicted absence, 1 representing the lowest predicted probability of presence, and 100 representing the highest predicted probability of presence. These probabilities may serve as a proxy for relative taxa abundance and/or biomass. Genera modelled: Diomedea, Phoebetria, Larus and Sterna. Known limitations: The species distribution models are based on available records, and therefore likely to contain observation bias. As such, the model is likely to overestimate occurrence in regions with many recorded observations of marine wildlife (e.g. South Africa) and underestimate occurrence in regions with few recorded observations of marine wildlife (e.g. Somalia).",
+  "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
+  "citation": "Sacre E (2023). Sea birds - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "version": "v2.1",
+  "keywords": [
+    "Western Indian Ocean",
+    "WIO Symphony",
+    "Symphony",
+    "Cumulative impact assessment",
+    "Marine spatial planning",
+    "Ecosystems",
+    "Pressures",
+    "Sea birds"
+  ],
+  "distribution": {
+    "@type": "DataDownload",
+    "contentUrl": "https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/eco/sea_birds.tif",
+    "encodingFormat": "application/tiff"
+  },
+  "spatialCoverage": {
+    "@type": "Place",
+    "geo": {
+      "@type": "GeoShape",
+      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0, 6.0 18.0"
+    },
+    "additionalProperty": {
+      "@type": "PropertyValue",
+      "propertyID": "http://dbpedia.org/resource/Spatial_reference_system",
+      "value": "http://www.w3.org/2003/01/geo/wgs84_pos#lat_long"
+    }
+  },
+  "provider": [
+    {
+      "@type": "Organization",
+      "legalName": "WIO Symphony team",
+      "name": "WIO Symphony team",
+      "url": "https://www.nairobiconvention.org/wio-symphony/"
+    }
+  ]
+}

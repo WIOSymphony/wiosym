@@ -1,0 +1,47 @@
+{
+  "@context": {
+    "@vocab": "https://schema.org/"
+  },
+  "@type": "Dataset",
+  "@id": "https://raw.githubusercontent.com/WIOSymphony/wiosym/main/products/v2.1/output_geotiffs/pres/mariculture.json",
+  "name": "Mariculture - Farming of shellfish and fish - pressure layer from the WIO Symphony tool",
+  "description": "Using data provided by Be Geospatial AB, specific points within distinct coastal features associated with shrimp farming locations and offshore fish farming areas were manually selected. To extract Chl-a concentration values, which serve as an indicator for eutrophication, 10-km buffer zones were applied around the mariculture sites. These values were obtained from GCOM, and subsequently linearly normalized within a 1-100 scale, and mapped onto a reference grid. Known limitations: The chl-a index were mapped under curtain period of time using cut off threshold, this could underestimate or overestimated the actual eurotripication within the region",
+  "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
+  "citation": "Zerne P (2023). Mariculture - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "version": "v2.1",
+  "keywords": [
+    "Western Indian Ocean",
+    "WIO Symphony",
+    "Symphony",
+    "Cumulative impact assessment",
+    "Marine spatial planning",
+    "Ecosystems",
+    "Pressures",
+    "Mariculture"
+  ],
+  "distribution": {
+    "@type": "DataDownload",
+    "contentUrl": "https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/mariculture.tif",
+    "encodingFormat": "application/tiff"
+  },
+  "spatialCoverage": {
+    "@type": "Place",
+    "geo": {
+      "@type": "GeoShape",
+      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0, 6.0 18.0"
+    },
+    "additionalProperty": {
+      "@type": "PropertyValue",
+      "propertyID": "http://dbpedia.org/resource/Spatial_reference_system",
+      "value": "http://www.w3.org/2003/01/geo/wgs84_pos#lat_long"
+    }
+  },
+  "provider": [
+    {
+      "@type": "Organization",
+      "legalName": "WIO Symphony team",
+      "name": "WIO Symphony team",
+      "url": "https://www.nairobiconvention.org/wio-symphony/"
+    }
+  ]
+}

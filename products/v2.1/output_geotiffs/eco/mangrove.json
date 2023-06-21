@@ -1,0 +1,47 @@
+{
+  "@context": {
+    "@vocab": "https://schema.org/"
+  },
+  "@type": "Dataset",
+  "@id": "https://raw.githubusercontent.com/WIOSymphony/wiosym/main/products/v2.1/output_geotiffs/eco/mangrove.json",
+  "name": "Mangrove - Stands of dense mangroves - ecosystem component from the WIO Symphony tool",
+  "description": "Mangrove data from TNC  and WWF were combined to map mangrove presence at 250 m resolution then summed up to proportion within 1km grid within the WIO grid extend. Known limitations: The mangrove map combines data sources mapped at different resolution and at different times. The map does not specifically differ between potential / historical mangrove habitat and present distribution of mangroves. A future update which clearly takes these two perspectives (current state, and historical state) in consideration, as well as an updated high resolution mangrove map based on latest satellite information would help planning.",
+  "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
+  "citation": "Kågesten G (2022). Mangrove - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "version": "v2.1",
+  "keywords": [
+    "Western Indian Ocean",
+    "WIO Symphony",
+    "Symphony",
+    "Cumulative impact assessment",
+    "Marine spatial planning",
+    "Ecosystems",
+    "Pressures",
+    "Mangrove"
+  ],
+  "distribution": {
+    "@type": "DataDownload",
+    "contentUrl": "https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/eco/mangrove.tif",
+    "encodingFormat": "application/tiff"
+  },
+  "spatialCoverage": {
+    "@type": "Place",
+    "geo": {
+      "@type": "GeoShape",
+      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0, 6.0 18.0"
+    },
+    "additionalProperty": {
+      "@type": "PropertyValue",
+      "propertyID": "http://dbpedia.org/resource/Spatial_reference_system",
+      "value": "http://www.w3.org/2003/01/geo/wgs84_pos#lat_long"
+    }
+  },
+  "provider": [
+    {
+      "@type": "Organization",
+      "legalName": "WIO Symphony team",
+      "name": "WIO Symphony team",
+      "url": "https://www.nairobiconvention.org/wio-symphony/"
+    }
+  ]
+}

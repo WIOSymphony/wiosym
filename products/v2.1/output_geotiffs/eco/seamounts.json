@@ -1,0 +1,47 @@
+{
+  "@context": {
+    "@vocab": "https://schema.org/"
+  },
+  "@type": "Dataset",
+  "@id": "https://raw.githubusercontent.com/WIOSymphony/wiosym/main/products/v2.1/output_geotiffs/eco/seamounts.json",
+  "name": "Seamounts - Underwater pinnacles, volcanoes - ecosystem component from the WIO Symphony tool",
+  "description": "Two global seamount datasets were combined, i.e. Yesson et al. 2019 (based on the global bathymetry SRTM v.11) and Gevorgian et al. 2023 (based on the latest vertical gravity gradient derived from satellite altimeter measurements), which both infer seamount presence by using a series of algorithms to look for conical features on the seabed. Yesson et al. 2019 outlines the seamount bases, while Gevorgian et al. 2023 specifies the seamount centre and the radius of the bases. Though plenty of overlap existed, the two datasets had slightly different coverage and strengths and were combined to a maximum seamount extent presence at 250-m grid resolution, then aggregated to seamount presence proportion at 1-km resolution. Subsequently, the latest bathymetry model from Gebco (2023) was used to give relatively shallow seamount areas (< 1000m depth) higher weight in WIO Symphony sensitivity (i.e., maximum value 100), with a linear gradient down to 5000 m (value 25).  The resampled bathymetry at 250 m was aggregated to provide a weighting value at the 1-km scale, and then multiplied with the proportional presence of seamounts raster. Known limitations: The data on seamounts are limited by the resolution and accuracy of global bathymetry. Many smaller seamounts are likely missing in the data. The higher weighting of shallow seamounts is also uncertain, especially for activities that have direct seafloor impact such as deep-sea mining and bottom trawling. The knowledge of the life and sensitivity of these deep sea habitats is very limited.",
+  "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
+  "citation": "Kågesten G, Freire F, Hammar L (2023). Seamounts - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "version": "v2.1",
+  "keywords": [
+    "Western Indian Ocean",
+    "WIO Symphony",
+    "Symphony",
+    "Cumulative impact assessment",
+    "Marine spatial planning",
+    "Ecosystems",
+    "Pressures",
+    "Seamounts"
+  ],
+  "distribution": {
+    "@type": "DataDownload",
+    "contentUrl": "https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/eco/seamounts.tif",
+    "encodingFormat": "application/tiff"
+  },
+  "spatialCoverage": {
+    "@type": "Place",
+    "geo": {
+      "@type": "GeoShape",
+      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0, 6.0 18.0"
+    },
+    "additionalProperty": {
+      "@type": "PropertyValue",
+      "propertyID": "http://dbpedia.org/resource/Spatial_reference_system",
+      "value": "http://www.w3.org/2003/01/geo/wgs84_pos#lat_long"
+    }
+  },
+  "provider": [
+    {
+      "@type": "Organization",
+      "legalName": "WIO Symphony team",
+      "name": "WIO Symphony team",
+      "url": "https://www.nairobiconvention.org/wio-symphony/"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "@context": {
+    "@vocab": "https://schema.org/"
+  },
+  "@type": "Dataset",
+  "@id": "https://raw.githubusercontent.com/WIOSymphony/wiosym/main/products/v2.1/output_geotiffs/pres/oil_gas_industry.json",
+  "name": "Oil gas industry - Oil and gas infrastructure, operational spills, service shipping - pressure layer from the WIO Symphony tool",
+  "description": "A kernel density model of oil and gas platforms and pipelines was used, based on data from MapStand. Platforms were assumed to discharge 45 kgs of hydrocarbons per year in their immediate proximity, based on estimates by the National Research Council (US) Committee on Oil in the Sea (2003, https://pubmed.ncbi.nlm.nih.gov/25057607/). Pipelines were assumed to discharge 46 kgs of hydrocarbons per year in their immediate proximity, based on the same source. Thus, the output layer is scaled from 0-100, with 100 representing 91 kg of hydrocarbon discharge per year, and a value of 1 representing 0.91 kg of discharge per year, scaling linearly. Known limitations: This model does not take into account ocean currents that would likely have a large influence on the dispersal of hydrocarbons.",
+  "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
+  "citation": "Sacre E (2022). Oil gas industry - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "version": "v2.1",
+  "keywords": [
+    "Western Indian Ocean",
+    "WIO Symphony",
+    "Symphony",
+    "Cumulative impact assessment",
+    "Marine spatial planning",
+    "Ecosystems",
+    "Pressures",
+    "Oil gas industry"
+  ],
+  "distribution": {
+    "@type": "DataDownload",
+    "contentUrl": "https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/oil_gas_industry.tif",
+    "encodingFormat": "application/tiff"
+  },
+  "spatialCoverage": {
+    "@type": "Place",
+    "geo": {
+      "@type": "GeoShape",
+      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0, 6.0 18.0"
+    },
+    "additionalProperty": {
+      "@type": "PropertyValue",
+      "propertyID": "http://dbpedia.org/resource/Spatial_reference_system",
+      "value": "http://www.w3.org/2003/01/geo/wgs84_pos#lat_long"
+    }
+  },
+  "provider": [
+    {
+      "@type": "Organization",
+      "legalName": "WIO Symphony team",
+      "name": "WIO Symphony team",
+      "url": "https://www.nairobiconvention.org/wio-symphony/"
+    }
+  ]
+}

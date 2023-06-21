@@ -1,0 +1,47 @@
+{
+  "@context": {
+    "@vocab": "https://schema.org/"
+  },
+  "@type": "Dataset",
+  "@id": "https://raw.githubusercontent.com/WIOSymphony/wiosym/main/products/v2.1/output_geotiffs/pres/air_pollution.json",
+  "name": "Air pollution - Airborne pullutants (NOx ,SOx, etc.) from activities on land or sea - pressure layer from the WIO Symphony tool",
+  "description": "Satellite products of a Sentinel-5P from the European Space Agency were used. The records of a TROPOMI instrument multispectral sensor for measuring atmospheric concentrations of carbon monoxide, nitrogen oxide, and sulphur dioxide from 01/01/2021 - 31/12/2021 were used to calculate yearly average concentrations. The results of these three air pollution indicators were combined, and focal statistics were performed using a summation of 100 pixels cell circle neighborhood. Finally, a log-10 transformation was applied together with a linear normalization to a 1-100 scale. Known limitations: The sulfer dioxide and nitrogen dioxide indexed were used to capture air pollution were based on curtain time period, it also used the cut off threshould that may cause the bias on identifying the actual pollution.",
+  "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
+  "citation": "Zerne P (2022). Air pollution - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "version": "v2.1",
+  "keywords": [
+    "Western Indian Ocean",
+    "WIO Symphony",
+    "Symphony",
+    "Cumulative impact assessment",
+    "Marine spatial planning",
+    "Ecosystems",
+    "Pressures",
+    "Air pollution"
+  ],
+  "distribution": {
+    "@type": "DataDownload",
+    "contentUrl": "https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/air_pollution.tif",
+    "encodingFormat": "application/tiff"
+  },
+  "spatialCoverage": {
+    "@type": "Place",
+    "geo": {
+      "@type": "GeoShape",
+      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0, 6.0 18.0"
+    },
+    "additionalProperty": {
+      "@type": "PropertyValue",
+      "propertyID": "http://dbpedia.org/resource/Spatial_reference_system",
+      "value": "http://www.w3.org/2003/01/geo/wgs84_pos#lat_long"
+    }
+  },
+  "provider": [
+    {
+      "@type": "Organization",
+      "legalName": "WIO Symphony team",
+      "name": "WIO Symphony team",
+      "url": "https://www.nairobiconvention.org/wio-symphony/"
+    }
+  ]
+}

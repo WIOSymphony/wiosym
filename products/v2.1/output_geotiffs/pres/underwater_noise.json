@@ -1,0 +1,47 @@
+{
+  "@context": {
+    "@vocab": "https://schema.org/"
+  },
+  "@type": "Dataset",
+  "@id": "https://raw.githubusercontent.com/WIOSymphony/wiosym/main/products/v2.1/output_geotiffs/pres/underwater_noise.json",
+  "name": "Underwater noise - Continuous noise (engines, cavitation) - pressure layer from the WIO Symphony tool",
+  "description": "Ship noise and exposure time were estimated from global AIS data 2020-2022 provided by HUB Ocean. The spreading of sound was calculated using the mean frequency and noise level for each ship class combined with a custom focal statistics filter which takes spreading of sound at different sound frequencies in account. Known limitations: The spreading of sound in the ocean and the interaction with marine life is very complex and a more detailed map would need a detailed oceanographic model to go along with it, as well as sound data for every vessel, and more. The model makes some simple assumptions to get the spreading of sound and the intensity of its occurrence on the map for planners to see where risk of impact is higher or lower. More detailed studies are needed to understand its impact on marine life.",
+  "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
+  "citation": "Kågesten G (2022). Underwater noise - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "version": "v2.1",
+  "keywords": [
+    "Western Indian Ocean",
+    "WIO Symphony",
+    "Symphony",
+    "Cumulative impact assessment",
+    "Marine spatial planning",
+    "Ecosystems",
+    "Pressures",
+    "Underwater noise"
+  ],
+  "distribution": {
+    "@type": "DataDownload",
+    "contentUrl": "https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/underwater_noise.tif",
+    "encodingFormat": "application/tiff"
+  },
+  "spatialCoverage": {
+    "@type": "Place",
+    "geo": {
+      "@type": "GeoShape",
+      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0, 6.0 18.0"
+    },
+    "additionalProperty": {
+      "@type": "PropertyValue",
+      "propertyID": "http://dbpedia.org/resource/Spatial_reference_system",
+      "value": "http://www.w3.org/2003/01/geo/wgs84_pos#lat_long"
+    }
+  },
+  "provider": [
+    {
+      "@type": "Organization",
+      "legalName": "WIO Symphony team",
+      "name": "WIO Symphony team",
+      "url": "https://www.nairobiconvention.org/wio-symphony/"
+    }
+  ]
+}

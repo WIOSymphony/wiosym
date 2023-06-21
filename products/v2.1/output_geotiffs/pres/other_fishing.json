@@ -1,0 +1,47 @@
+{
+  "@context": {
+    "@vocab": "https://schema.org/"
+  },
+  "@type": "Dataset",
+  "@id": "https://raw.githubusercontent.com/WIOSymphony/wiosym/main/products/v2.1/output_geotiffs/pres/other_fishing.json",
+  "name": "Other fishing - Unreported fishing detected by nighlight satellite - pressure layer from the WIO Symphony tool",
+  "description": "The other fishing layer is based on vessel detections 2017-2020 by Elvidge C et al using NASA VIIRS nightlight data which was then interpolated using focal statistics to provide intensity of vessels observed in each area. The intensity layer was normalised 0-100 and adjusted to normalised data from all known fishing activities, as well as port and fixed lights from oil platforms. The residual which were only captured by the night light vessel detection is what makes up the “Other fishing” layer, assuming it is mainly unreported fishing which is the light emitting night activity taking place there.\n Known limitations: The relationship between boat detections from night lights and fishing activity has been shown in numerous publications, still the link between the fishing pressure and the lights is uncertain. Some boat detections from other activities such as around ports and boat activities around oil platforms are still in the data, but spatial patterns of obvious unreported fishing activities can also be seen.",
+  "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
+  "citation": "Kågesten G, Sacre E (2022). Other fishing - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "version": "v2.1",
+  "keywords": [
+    "Western Indian Ocean",
+    "WIO Symphony",
+    "Symphony",
+    "Cumulative impact assessment",
+    "Marine spatial planning",
+    "Ecosystems",
+    "Pressures",
+    "Other fishing"
+  ],
+  "distribution": {
+    "@type": "DataDownload",
+    "contentUrl": "https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/other_fishing.tif",
+    "encodingFormat": "application/tiff"
+  },
+  "spatialCoverage": {
+    "@type": "Place",
+    "geo": {
+      "@type": "GeoShape",
+      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0, 6.0 18.0"
+    },
+    "additionalProperty": {
+      "@type": "PropertyValue",
+      "propertyID": "http://dbpedia.org/resource/Spatial_reference_system",
+      "value": "http://www.w3.org/2003/01/geo/wgs84_pos#lat_long"
+    }
+  },
+  "provider": [
+    {
+      "@type": "Organization",
+      "legalName": "WIO Symphony team",
+      "name": "WIO Symphony team",
+      "url": "https://www.nairobiconvention.org/wio-symphony/"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "@context": {
+    "@vocab": "https://schema.org/"
+  },
+  "@type": "Dataset",
+  "@id": "https://raw.githubusercontent.com/WIOSymphony/wiosym/main/products/v2.1/output_geotiffs/pres/ghost_fishing.json",
+  "name": "Ghost fishing - Fishing by lost/discarded fishing gear - pressure layer from the WIO Symphony tool",
+  "description": "Gear loss risks were simulated by multiplying the fishing efforts per gear type with published gear loss factors, with subsequent distribution in space using a kernels function. The fishing gear loss factors are based on “proportion of gear lost” from Tables 1 to 3 in Richardson et al. 2019 (“Estimates of fishing gear loss rates at a global scale: A literature review and meta‐analysis”, Fish and Fisheries 20, 1218-1231). For pole and lines, the Richardson et al. 2019 estimate of 0.65 was stated to be an overestimate (Pham et al., 2021, “Abandoned, Lost or Otherwise Discarded Fishing Gear (ALDFG) in Tuna Pole-and-Line Fisheries”). We therefore decided to instead use the longline loss factor also for poles and lines. For dredging, we applied the loss factors of bottom trawling. For nets and lines, we assumed drifting distances of up to 1000 km, see Stelfox et al. 2020 for trajectory simulations (“Minimum drift times infer trajectories of ghost nets found in the Maldives”, Marine Pollution Bulletin 154, 111037). For pots and traps, we assumed that they sink faster than nets and lines, and set drifting distances of up to 300 km (no reference). Known limitations: This layer is based on proximity to fishing activites and does not take into account ocean currents, which are likely to play a role in the distribution of ghost fishing gear.",
+  "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
+  "citation": "Sacre E (2022). Ghost fishing - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "version": "v2.1",
+  "keywords": [
+    "Western Indian Ocean",
+    "WIO Symphony",
+    "Symphony",
+    "Cumulative impact assessment",
+    "Marine spatial planning",
+    "Ecosystems",
+    "Pressures",
+    "Ghost fishing"
+  ],
+  "distribution": {
+    "@type": "DataDownload",
+    "contentUrl": "https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/ghost_fishing.tif",
+    "encodingFormat": "application/tiff"
+  },
+  "spatialCoverage": {
+    "@type": "Place",
+    "geo": {
+      "@type": "GeoShape",
+      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0, 6.0 18.0"
+    },
+    "additionalProperty": {
+      "@type": "PropertyValue",
+      "propertyID": "http://dbpedia.org/resource/Spatial_reference_system",
+      "value": "http://www.w3.org/2003/01/geo/wgs84_pos#lat_long"
+    }
+  },
+  "provider": [
+    {
+      "@type": "Organization",
+      "legalName": "WIO Symphony team",
+      "name": "WIO Symphony team",
+      "url": "https://www.nairobiconvention.org/wio-symphony/"
+    }
+  ]
+}

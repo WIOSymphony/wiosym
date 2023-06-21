@@ -1,0 +1,47 @@
+{
+  "@context": {
+    "@vocab": "https://schema.org/"
+  },
+  "@type": "Dataset",
+  "@id": "https://raw.githubusercontent.com/WIOSymphony/wiosym/main/products/v2.1/output_geotiffs/pres/seismic_surveys.json",
+  "name": "Seismic surveys - Prospecting of seabed resources using impulsive sonars - pressure layer from the WIO Symphony tool",
+  "description": "Using seismic survey data from MapStand, seismic survey lines were converted to raster and given a linear weighting based on the frequency of the seismic survey. The output layer is scaled from 0-100. The dataset contains seismic surveys from the years 1969 to 2019. Thus, a value of 100 represents seismic surveys performed in 2019, a value of 50 represents seismic surveys performed in 1994, and a value of 1 represents seismic surveys performed in 1969. A value of zero indicates no record of seismic surveys occurring in that grid cell within the dataset. Known limitations: This layer assumes that the pressure of a a seismic survey correlates with its recency, although there may be other factors influencing the intensity of the pressures, such as depth or the shape of the seafloor.\n",
+  "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
+  "citation": "Sacre E (NA). Seismic surveys - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "version": "v2.1",
+  "keywords": [
+    "Western Indian Ocean",
+    "WIO Symphony",
+    "Symphony",
+    "Cumulative impact assessment",
+    "Marine spatial planning",
+    "Ecosystems",
+    "Pressures",
+    "Seismic surveys"
+  ],
+  "distribution": {
+    "@type": "DataDownload",
+    "contentUrl": "https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/seismic_surveys.tif",
+    "encodingFormat": "application/tiff"
+  },
+  "spatialCoverage": {
+    "@type": "Place",
+    "geo": {
+      "@type": "GeoShape",
+      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0, 6.0 18.0"
+    },
+    "additionalProperty": {
+      "@type": "PropertyValue",
+      "propertyID": "http://dbpedia.org/resource/Spatial_reference_system",
+      "value": "http://www.w3.org/2003/01/geo/wgs84_pos#lat_long"
+    }
+  },
+  "provider": [
+    {
+      "@type": "Organization",
+      "legalName": "WIO Symphony team",
+      "name": "WIO Symphony team",
+      "url": "https://www.nairobiconvention.org/wio-symphony/"
+    }
+  ]
+}

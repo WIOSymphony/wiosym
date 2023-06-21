@@ -1,0 +1,47 @@
+{
+  "@context": {
+    "@vocab": "https://schema.org/"
+  },
+  "@type": "Dataset",
+  "@id": "https://raw.githubusercontent.com/WIOSymphony/wiosym/main/products/v2.1/output_geotiffs/pres/industrial_pollution.json",
+  "name": "Industrial pollution - Operational discharge of industrial waste or cooling water - pressure layer from the WIO Symphony tool",
+  "description": "A turbidity proxy based on yearly average total suspended matter (TSM), derived from MODIS satellite data, was used together with Chlorophyll-a concentrations derived from the Global Change Observation Mission (GCOM-C) for 01/01/2020 to 31/12/2020. 50- km buffer zones were applied to power plant locations based on WRI (Primary fuel types: Nuclear, Coal, Biomass, Oil, Gas, Geothermal and Waste). These buffered areas were used as a reference mask to extract the turbidity index to map water pollution near the power plant locations. Known limitations: The TSM index were mapped under curtain period of time using cut off threshold, this could underestimate or  overestimated the actual turbidity within the region, the buffer zones also can underestimate the actual pollution that may occur outside the buffer zone.",
+  "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
+  "citation": "Zerne P (2022). Industrial pollution - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "version": "v2.1",
+  "keywords": [
+    "Western Indian Ocean",
+    "WIO Symphony",
+    "Symphony",
+    "Cumulative impact assessment",
+    "Marine spatial planning",
+    "Ecosystems",
+    "Pressures",
+    "Industrial pollution"
+  ],
+  "distribution": {
+    "@type": "DataDownload",
+    "contentUrl": "https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/industrial_pollution.tif",
+    "encodingFormat": "application/tiff"
+  },
+  "spatialCoverage": {
+    "@type": "Place",
+    "geo": {
+      "@type": "GeoShape",
+      "polygon": "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0, 6.0 18.0"
+    },
+    "additionalProperty": {
+      "@type": "PropertyValue",
+      "propertyID": "http://dbpedia.org/resource/Spatial_reference_system",
+      "value": "http://www.w3.org/2003/01/geo/wgs84_pos#lat_long"
+    }
+  },
+  "provider": [
+    {
+      "@type": "Organization",
+      "legalName": "WIO Symphony team",
+      "name": "WIO Symphony team",
+      "url": "https://www.nairobiconvention.org/wio-symphony/"
+    }
+  ]
+}
