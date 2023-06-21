@@ -1,0 +1,43 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Specify version
+```{r}
+ver <- "v2.1"
+```
+
+```{r, warning=FALSE}
+library(dplyr)
+library(tidyr)
+library(rio)
+library(gsheet)
+```
+
+```{r}
+layers <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing") |> dplyr::filter(theme == "Ecosystem")
+
+meta <- read.csv("ecocomponents_template.csv", sep = ";")
+
+for(i in 1:nrow(layers)){
+  cit <- paste0(layers$data_processor[i],
+              " (", layers$year[i], "). ",
+              layers$title[i], 
+              " - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/")
+  
+  down <- paste0("https://github.com/WIOSymphony/wiosym/raw/main/products/", ver, "/output_geotiffs/eco/", layers$layer_file_name[i], ".tif")
+  
+  meta$Method.Summary[i] <- paste0(layers$method_summary[i], 
+                            " Maximum value representation: ", layers$`Max value (100) representation`[i], ". ",
+                            "GeoTIFF download: ", down, ". ",
+                            "Citation: ", cit, ". "
+                            
+                             )
+  
+  meta$Limitations.for.Symphony <- layers$known_limitations
+  meta$Value.Range <- paste0("0 - ", layers$max_value)
+  
+}
+
+```
