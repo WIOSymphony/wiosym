@@ -6,6 +6,7 @@ output: html_notebook
 # Specify version
 ```{r}
 ver <- "v2.1"
+dir.create(paste0("reg/", ver), recursive = T)
 ```
 
 ```{r, warning=FALSE}
@@ -40,4 +41,35 @@ for(i in 1:nrow(layers)){
   
 }
 
+names(meta) <- gsub(x = names(meta), pattern = "\\.", replacement = " ")
+write.csv2(meta, paste0("reg/", ver, "/ecosystems_metadata_", ver, ".csv"), row.names = FALSE, quote = FALSE)
+```
+
+```{r}
+layers <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing") |> dplyr::filter(theme == "Pressure")
+
+meta <- read.csv("pressures_template.csv", sep = ";")
+
+for(i in 1:nrow(layers)){
+  cit <- paste0(layers$data_processor[i],
+              " (", layers$year[i], "). ",
+              layers$title[i], 
+              " - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/")
+  
+  down <- paste0("https://github.com/WIOSymphony/wiosym/raw/main/products/", ver, "/output_geotiffs/eco/", layers$layer_file_name[i], ".tif")
+  
+  meta$Method.Summary[i] <- paste0(layers$method_summary[i], 
+                            " Maximum value representation: ", layers$`Max value (100) representation`[i], ". ",
+                            "GeoTIFF download: ", down, ". ",
+                            "Citation: ", cit, ". "
+                            
+                             )
+  
+  meta$Limitations.for.Symphony <- layers$known_limitations
+  meta$Value.Range <- paste0("0 - ", layers$max_value)
+  
+}
+
+names(meta) <- gsub(x = names(meta), pattern = "\\.", replacement = " ")
+write.csv2(meta, paste0("reg/", ver, "/pressures_metadata_", ver, ".csv"), row.names = FALSE, quote = FALSE)
 ```
