@@ -33,11 +33,13 @@ for(i in 1:nrow(layers)){
                             " Maximum value representation: ", layers$`Max value (100) representation`[i], ". ",
                             "GeoTIFF download: ", down, ". ",
                             "Citation: ", cit, ". "
-                            
                              )
+  meta$Limitations.for.Symphony[i] <- layers$known_limitations[i]
+  meta$Value.Range[i] <- paste0("0 - ", layers$max_value[i])
   
-  meta$Limitations.for.Symphony <- layers$known_limitations
-  meta$Value.Range <- paste0("0 - ", layers$max_value)
+  meta$Method.Summary[i] <- gsub("[\r\n]", "", meta$Method.Summary[i])
+  meta$Limitations.for.Symphony[i] <- gsub("[\r\n]", "", meta$Limitations.for.Symphony[i])
+  meta$Value.Range[i] <- gsub("[\r\n]", "", meta$Value.Range[i])
   
 }
 
@@ -63,9 +65,12 @@ for(i in 1:nrow(layers)){
                             "GeoTIFF download: ", down, ". ",
                             "Citation: ", cit, ". "
                              )
+  meta$Limitations.for.Symphony[i] <- layers$known_limitations[i]
+  meta$Value.Range[i] <- paste0("0 - ", layers$max_value[i])
   
-  meta$Limitations.for.Symphony <- layers$known_limitations
-  meta$Value.Range <- paste0("0 - ", layers$max_value)
+  meta$Method.Summary[i] <- gsub("[\r\n]", "", meta$Method.Summary[i])
+  meta$Limitations.for.Symphony[i] <- gsub("[\r\n]", "", meta$Limitations.for.Symphony[i])
+  meta$Value.Range[i] <- gsub("[\r\n]", "", meta$Value.Range[i])
   
 }
 
