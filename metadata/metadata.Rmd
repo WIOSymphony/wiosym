@@ -62,7 +62,6 @@ for(i in 1:nrow(layers)){
                             " Maximum value representation: ", layers$`Max value (100) representation`[i], ". ",
                             "GeoTIFF download: ", down, ". ",
                             "Citation: ", cit, ". "
-                            
                              )
   
   meta$Limitations.for.Symphony <- layers$known_limitations
