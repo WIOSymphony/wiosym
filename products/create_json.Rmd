@@ -5,7 +5,7 @@ output: html_notebook
 
 # Specify version
 ```{r}
-ver <- "v2"
+ver <- "v2.1"
 
 dir.create(paste0(ver, "/output_geotiffs/eco"), recursive = T)
 dir.create(paste0(ver, "/output_geotiffs/pres"), recursive = T)

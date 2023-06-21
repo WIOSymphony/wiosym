@@ -26,7 +26,7 @@ library(crayon)
 library(mapview)
 library(RColorBrewer)
 library(rgdal)
-library(terra)
+#library(terra)
 
 # Import grid
 grid <- raster("grid/grid_1km_v01.1.tif")
@@ -59,7 +59,7 @@ for(i in 1:length(layer_files)){
     x3 <- identical(res(grid), res(temp))
     cat("\nLayer", i ,"checked - ", layers$title[i], " - ")
     if(x1&x2&x3){cat(layer_files[i], "passed checks")} else{cat(red("WARNING:", layer_files[i], "FAILED checks"))}
-    cat(red("WARNING: the specified file ", layers$file_name, " could not be found, using a placeholder tif instead"))
+    cat(red("WARNING: the specified file ", layers$file_name[i], " could not be found, using a placeholder tif instead"))
     writeRaster(temp, paste0(ver, "/source_layers_fixed/", layer_files[i]), overwrite = T)
   } else
   
@@ -113,7 +113,7 @@ for(i in 1:length(layer_files)){
     x3 <- identical(res(grid), res(temp))
     cat("\nLayer", i ,"checked - ", layers$title[i], " - ")
     if(x1&x2&x3){cat(layer_files[i], "passed checks")} else{cat(red("WARNING:", layer_files[i], "FAILED checks"))}
-    cat(red("WARNING: the specified file ", layers$file_name, " could not be found, using a placeholder tif instead"))
+    cat(red("WARNING: the specified file ", layers$file_name[i], " could not be found, using a placeholder tif instead"))
     writeRaster(temp, paste0(ver, "/source_layers_fixed/", layer_files[i]), overwrite = T)
   } else
   
@@ -145,42 +145,43 @@ for(i in 1:length(layer_files)){
 }
 ```
 
-
 # Reproject all rasters
 ```{r}
 # Import grid
-grid <- raster("grid/grid_1km_v01.1.tif")
-grid_proj <- projectRaster(grid, crs = CRS("+proj=longlat +datum=WGS84 +no_defs"), method = "ngb")
+grid <- terra::rast("grid/grid_1km_v01.1.tif")
+grid_proj <- terra::rast("grid/grid_1km_v01.1_proj.tif")
 l <- list.files(paste0(ver,"/source_layers_fixed"))
 #l <- l[c(1,50)] # run for only select layers
 
 for(i in 1:length(l)){
-  temp <- raster(paste0(ver, "/source_layers_fixed/", l[i]))
-  temp <- projectRaster(from = temp, to = grid_proj)
-  writeRaster(temp, paste0(ver, "/source_layers_reproject/", l[i]), overwrite = T)
+  temp <- terra::rast(paste0(ver, "/source_layers_fixed/", l[i]))
+  temp <- terra::project(temp, grid_proj)
+  terra::writeRaster(temp, paste0(ver, "/source_layers_reproject/", l[i]), overwrite = T)
   cat("\nIteration", i, "done")
 }
 ```
 
 # ECOSYSTEMT COMPONENTS - create images
 ```{r}
-place <- raster("grid/grid_1km_v01.1.tif") * 0
+grid <- terra::rast("grid/grid_1km_v01.1.tif")
+place <- terra::rast("grid/grid_1km_v01.1.tif") * 0
 layers <- rio::import(paste0("layer_list_", ver, ".xlsx")) |> dplyr::filter(theme == "Ecosystem")
 #layers <- filter(layers, title == "Deep pelagic" | title == "Midwater pelagic") # run for only select layers
 layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
 layer_files <- layers$file_name
 
 for(i in 1:length(layers$title)){
-  temp <- raster(paste0(ver, "/source_layers_fixed/", layers$file_name[i]))
+  if(layer_files[i] == "placeholder.tif") {next}
+  temp <- terra::rast(paste0(ver, "/source_layers_fixed/", layers$file_name[i]))
   temp[temp == 0] <- NA #???
   temp[] <- scales::rescale(temp[], to = c(1, layers$max_value[i]))
-  if(layers$file_name[i] == "placeholder.tif"){temp <- place}
+  #if(layers$file_name[i] == "placeholder.tif"){temp <- place}
   temp[is.na(temp)] <- 0
   #temp <- round(temp, digits = 0)
   temp[is.na(grid)] <- NA
   png(paste0(ver, "/output_images/eco/", layers$title[i], ".png"), width = ncol(temp), height = nrow(temp))
   pal <- colorRampPalette(rev(c('#d53e4f','#f46d43','#fdae61','#fee08b','#ffffbf','#e6f598','#abdda4','#66c2a5','#3288bd')))
-  plot(temp, maxpixels = ncell(temp), main = "", axes = FALSE, ylim=extent(temp)[3:4], 
+  terra::plot(temp, maxcell = ncell(temp), main = "", axes = FALSE, ylim=terra::ext(temp)@ptr[["vector"]][3:4], 
        breaks = seq(0,100,1), col = pal(101), legend = F, box = F, colNA = "gray92")
   dev.off()
   cat("\nIteration", i, "done")
@@ -189,23 +190,25 @@ for(i in 1:length(layers$title)){
 
 # PRESSURES - create images
 ```{r}
-place <- raster("grid/grid_1km_v01.1.tif") * 0
+grid <- terra::rast("grid/grid_1km_v01.1.tif")
+place <- terra::rast("grid/grid_1km_v01.1.tif") * 0
 layers <- rio::import(paste0("layer_list_", ver, ".xlsx")) |> dplyr::filter(theme == "Pressure")
 #layers <- filter(layers, title == "Deep pelagic" | title == "Midwater pelagic") # run for only select layers
 layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
 layer_files <- layers$file_name
 
 for(i in 1:length(layers$title)){
-  temp <- raster(paste0(ver, "/source_layers_fixed/", layers$file_name[i]))
+  if(layer_files[i] == "placeholder.tif") {next}
+  temp <- terra::rast(paste0(ver, "/source_layers_fixed/", layers$file_name[i]))
   temp[temp == 0] <- NA #???
   temp[] <- scales::rescale(temp[], to = c(1, layers$max_value[i]))
-  if(layers$file_name[i] == "placeholder.tif"){temp <- place}
+  #if(layers$file_name[i] == "placeholder.tif"){temp <- place}
   temp[is.na(temp)] <- 0
   #temp <- round(temp, digits = 0)
   temp[is.na(grid)] <- NA
   png(paste0(ver, "/output_images/pres/", layers$title[i], ".png"), width = ncol(temp), height = nrow(temp))
   pal <- colorRampPalette(rev(c('#d53e4f','#f46d43','#fdae61','#fee08b','#ffffbf','#e6f598','#abdda4','#66c2a5','#3288bd')))
-  plot(temp, maxpixels = ncell(temp), main = "", axes = FALSE, ylim=extent(temp)[3:4], 
+  terra::plot(temp, maxcell = ncell(temp), main = "", axes = FALSE, ylim=terra::ext(temp)@ptr[["vector"]][3:4], 
        breaks = seq(0,100,1), col = pal(101), legend = F, box = F, colNA = "gray92")
   dev.off()
   cat("\nIteration", i, "done")
@@ -214,36 +217,38 @@ for(i in 1:length(layers$title)){
 
 # ECOSYSTEM COMPONENTS - produce metadata
 ```{r}
-meta <- read.csv("metadata_template.csv", sep = ";")
-layers <- rio::import("layer_list.xlsx") |> dplyr::filter(theme == "Ecosystem")
-meta[1:nrow(layers),] <- NA
-
-meta$Bandnumber <- 1:nrow(layers)
-meta$Title <- layers$title
-meta$Symphony.Category <- "Ecosystem"
-meta$Symphony.Theme <- layers$subtheme
-
-names(meta) <- gsub(x = names(meta), pattern = "\\.", replacement = " ")
-write.csv2(meta, "output_multiband/ecosystems_metadata.csv", row.names = FALSE, quote = FALSE)
+# meta <- read.csv("metadata_template.csv", sep = ";")
+# layers <- rio::import("layer_list.xlsx") |> dplyr::filter(theme == "Ecosystem")
+# meta[1:nrow(layers),] <- NA
+# 
+# meta$Bandnumber <- 1:nrow(layers)
+# meta$Title <- layers$title
+# meta$Symphony.Category <- "Ecosystem"
+# meta$Symphony.Theme <- layers$subtheme
+# 
+# names(meta) <- gsub(x = names(meta), pattern = "\\.", replacement = " ")
+# write.csv2(meta, "output_multiband/ecosystems_metadata.csv", row.names = FALSE, quote = FALSE)
 ```
 
 # PRESSURES - produce metadata
 ```{r}
-meta <- read.csv("metadata_template.csv", sep = ";")
-layers <- rio::import("layer_list.xlsx") |> dplyr::filter(theme == "Pressure")
-meta[1:nrow(layers),] <- NA
-
-meta$Bandnumber <- 1:nrow(layers)
-meta$Title <- layers$title
-meta$Symphony.Category <- "Pressure"
-meta$Symphony.Theme <- layers$subtheme
-
-names(meta) <- gsub(x = names(meta), pattern = "\\.", replacement = " ")
-write.csv2(meta, "output_multiband/pressures_metadata.csv", row.names = FALSE, quote = FALSE)
+# meta <- read.csv("metadata_template.csv", sep = ";")
+# layers <- rio::import("layer_list.xlsx") |> dplyr::filter(theme == "Pressure")
+# meta[1:nrow(layers),] <- NA
+# 
+# meta$Bandnumber <- 1:nrow(layers)
+# meta$Title <- layers$title
+# meta$Symphony.Category <- "Pressure"
+# meta$Symphony.Theme <- layers$subtheme
+# 
+# names(meta) <- gsub(x = names(meta), pattern = "\\.", replacement = " ")
+# write.csv2(meta, "output_multiband/pressures_metadata.csv", row.names = FALSE, quote = FALSE)
 ```
 
 # ECOSYSTEM COMPONENTS - create multiband tif
 ```{r}
+grid <- raster("grid/grid_1km_v01.1.tif")
+grid_proj <- raster("grid/grid_1km_v01.1_proj.tif")
 place <- grid_proj * 0
 layers <- rio::import(paste0("layer_list_", ver, ".xlsx"))  |> dplyr::filter(theme == "Ecosystem")
 layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
@@ -270,6 +275,8 @@ writeRaster(eco, paste0(ver, "/output_multiband/ecosystems_", ver, ".tif"), band
 
 # PRESSURES - create multiband tif
 ```{r}
+grid <- raster("grid/grid_1km_v01.1.tif")
+grid_proj <- raster("grid/grid_1km_v01.1_proj.tif")
 place <- grid_proj * 0
 layers <- rio::import(paste0("layer_list_", ver, ".xlsx"))  |> dplyr::filter(theme == "Pressure")
 layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
@@ -295,14 +302,16 @@ writeRaster(eco, paste0(ver,"/output_multiband/pressures_", ver, ".tif"), bandor
 ```
 
 # ECOSYSTEM COMPONENTS - Export individual layers in small file size for GitHub
-```{r}
-place <- grid * 0
+```{r, message = FALSE}
+grid <- raster("grid/grid_1km_v01.1.tif")
+grid_proj <- raster("grid/grid_1km_v01.1_proj.tif")
+place <- grid_proj * 0
 layers <- rio::import(paste0("layer_list_", ver, ".xlsx"))  |> dplyr::filter(theme == "Ecosystem")
 layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
 layer_files <- layers$file_name
 
 for(i in 1:length(layer_files)){
-  temp <- raster(paste0(ver, "/source_layers_fixed/", layer_files[i]))
+  temp <- raster(paste0(ver, "/source_layers_reproject/", layer_files[i]))
   temp[temp == 0] <- NA
   if(layer_files[i] == "placeholder.tif"){temp <- place}
   if(layer_files[i] != "placeholder.tif"){temp[] <- scales::rescale(temp[], to = c(1, layers$max_value[i]))}
@@ -310,13 +319,7 @@ for(i in 1:length(layer_files)){
   temp[is.na(grid_proj)] <- NA
   temp <- round(temp, digits = 0)
   temp <- as.integer(temp)
-  n <- layers$title[i]
-  n <- tolower(n) |> 
-       gsub(pattern = " ", replacement = "_", fixed = T) |> 
-       gsub(pattern = "(", replacement = "_", fixed = T) |> 
-       gsub(pattern = ")", replacement = "_", fixed = T) |> 
-       gsub(pattern = "__", replacement = "_", fixed = T) |>
-       sub(pattern = "_$", replacement = "")
+  n <- layers$layer_file_name[i]
   if(layer_files[i] != "placeholder.tif"){
     writeRaster(temp, paste0(ver, "/output_geotiffs/eco/", n, ".tif"), datatype = 'INT2U', COMPRESS=LZW,overwrite = T)
     }
@@ -355,4 +358,6 @@ for(i in 1:length(layer_files)){
 }
 
 ```
+
+
 
