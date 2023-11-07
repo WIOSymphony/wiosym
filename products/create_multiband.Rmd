@@ -323,3 +323,25 @@ for(i in 1:length(layer_files)){
 writeRaster(eco, paste0(ver, "/output_multiband/pressures_", ver, ".tif"), bandorder='BIL', datatype = 'INT2U', COMPRESS=LZW, overwrite=TRUE)
 ```
 
+# Convert stacks to 8-bit
+```{r}
+library(terra)
+dir.create(paste0(ver, "/output_multiband_compress"), recursive = T)
+
+# Ecosystems
+eco <- terra::rast(paste0(ver, "/output_multiband/ecosystems_", ver, ".tif"))
+terra::writeRaster(eco, 
+                   filename = paste0(ver, "/output_multiband_compress/ecosystems_", ver, ".tif"), 
+                   datatype = "INT2U", gdal=c("COMPRESS=ZSTD",
+                                              "PREDICTOR=2"))
+
+# Pressures
+pres <- terra::rast(paste0(ver, "/output_multiband/pressures_", ver, ".tif"))
+terra::writeRaster(pres, 
+                   filename = paste0(ver, "/output_multiband_compress/pressures_", ver, ".tif"), 
+                   datatype = "INT2U", gdal=c("COMPRESS=ZSTD",
+                                              "PREDICTOR=2"))
+```
+
+
+
