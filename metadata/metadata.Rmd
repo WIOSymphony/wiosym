@@ -44,7 +44,7 @@ for(i in 1:nrow(layers)){
 }
 
 names(meta) <- gsub(x = names(meta), pattern = "\\.", replacement = " ")
-write.csv2(meta, paste0("reg/", ver, "/ecosystems_metadata_", ver, ".csv"), row.names = FALSE, quote = FALSE)
+#write.csv2(meta, paste0("reg/", ver, "/ecosystems_metadata_", ver, ".csv"), row.names = FALSE, quote = FALSE)
 ```
 
 ```{r}
