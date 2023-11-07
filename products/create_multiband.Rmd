@@ -323,7 +323,7 @@ for(i in 1:length(layer_files)){
 writeRaster(eco, paste0(ver, "/output_multiband/pressures_", ver, ".tif"), bandorder='BIL', datatype = 'INT2U', COMPRESS=LZW, overwrite=TRUE)
 ```
 
-# Convert stacks to 8-bit
+# Compress raster stacks for adding to GitHub
 ```{r}
 library(terra)
 dir.create(paste0(ver, "/output_multiband_compress"), recursive = T)
