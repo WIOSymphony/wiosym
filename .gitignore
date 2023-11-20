@@ -23,6 +23,9 @@
 # block all files
 *.*
 
+# allow upload of latest layer list (metadata)
+!/products/layer_list_v2.1.xlsx
+
 # allow upload of products
 !/products/v1.0/
 !/products/v1.0/output_images/*/*.png
