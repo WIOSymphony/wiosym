@@ -11,6 +11,9 @@
 !process/
 /process/*/*/*/*
 
+!matrix/
+/matrix/*/*/*/*
+
 !metadata/
 /metadata/*/*/*/*
 
