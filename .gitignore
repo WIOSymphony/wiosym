@@ -12,7 +12,7 @@
 /process/*/*/*/*
 
 !matrix/
-/matrix/*/*/*/*
+/matrix/*.csv
 
 !metadata/
 /metadata/*/*/*/*
