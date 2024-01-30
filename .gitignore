@@ -1,6 +1,9 @@
 # exclude everything except selected directorys and files
 /*
 
+# block all files
+*.*
+
 # add directorys and specify how many subdirectorys to include (number of /*)
 !data_raw/
 /data_raw/*/*/*/*/*/*/*
@@ -12,7 +15,7 @@
 /process/*/*/*/*
 
 !matrix/
-/matrix/*.csv
+!/matrix/*.csv
 
 !metadata/
 /metadata/*/*/*/*
@@ -22,9 +25,6 @@
 
 !shiny_data_upload/
 # gitignore file in shiny_data_upload folder ensures all files are included
-
-# block all files
-*.*
 
 # allow upload of latest layer list (metadata)
 !/products/layer_list_v2.1.xlsx
