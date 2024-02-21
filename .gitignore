@@ -43,6 +43,9 @@
 !/products/v2.1/output_multiband_compress/*.tif
 !/metadata/reg/**
 
+# allow upload of specific files
+!/metadata/sitemap.xml
+
 # add files that we want...
 
 !*.r
