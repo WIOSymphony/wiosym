@@ -1,0 +1,38 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r, include=FALSE}
+library(dplyr)
+library(tidyr)
+library(rio)
+library(gsheet)
+```
+
+# Import all 
+```{r}
+sourceloc <- "../data/"
+metaloc <- "../data_raw/"
+#meta <- list.files(path = "./data/", pattern = "_sourcesym.txt", recursive = T)
+meta <- list.files(path = sourceloc, pattern = "_sourcesym.txt", recursive = T)
+meta.short <- basename(meta)
+
+layers <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing")
+```
+
+```{r}
+v1 <- meta.short
+v2 <- layers$sourcesym
+
+meta <- meta[which(v1 %in% v2)]
+```
+
+```{r}
+#for(i in 1:length(meta)){
+for(i in 1:8){
+  f <- paste0(sourceloc, meta[i])
+  f <- read.table(f, header = T)
+  cat("\nIt", i, f$id)
+}
+```
