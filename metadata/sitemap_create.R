@@ -19,10 +19,5 @@ for(i in 1:length(l)){
 }
 
 doc <- as_xml_document(root)
-#xml_declaration <- "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-#xml_doc_content <- paste0(xml_declaration, as.character(doc))
 
-writeLines(xml_doc_content, "sitemap.xml")
-
-
-
+write_xml(doc, "sitemap.xml")

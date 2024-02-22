@@ -7,7 +7,7 @@
   "name": "Thermal vents - Formations built around active hydrothermal vents - ecosystem component from the WIO Symphony tool",
   "description": "A hydrothermal vents dataset was used, as provided by The InterRidge Global Database of Active Submarine Hydrothermal Vent Fields, World data center PANGAEA. The database intends to provide a comprehensive list of active submarine hydrothermal vent fields, for use in academic research, education, and marine policy, and is primarily based on information from the open literature . The vector data defining the hydrothermal vent areas were cropped to the WIO Symphony area and then rasterized to the 1-km grid. Known limitations: Data on deep sea habitats is generally very limited. It is likely that many areas with hydrothermal vents are missing from this map.",
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
-  "citation": "Freire F (2022). Thermal vents - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "creditText": "Freire F (2022). Thermal vents - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
   "version": "v2.1",
   "keywords": [
     "Western Indian Ocean",

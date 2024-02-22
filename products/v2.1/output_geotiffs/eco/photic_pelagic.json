@@ -7,7 +7,7 @@
   "name": "Photic pelagic - Photic/epipelagic zone - ecosystem component from the WIO Symphony tool",
   "description": "Map of estimated water-column integrated primary productivity from Copernicus Reanalysis data, developed using OC-CCI algorithm. Known limitations: Biodiversity is not considered.",
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
-  "citation": "Queste B (2022). Photic pelagic - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "creditText": "Queste B (2022). Photic pelagic - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
   "version": "v2.1",
   "keywords": [
     "Western Indian Ocean",

@@ -7,7 +7,7 @@
   "name": "Mangrove - Stands of dense mangroves - ecosystem component from the WIO Symphony tool",
   "description": "Mangrove data from TNC  and WWF were combined to map mangrove presence at 250 m resolution then summed up to proportion within 1km grid within the WIO grid extend. Known limitations: The mangrove map combines data sources mapped at different resolution and at different times. The map does not specifically differ between potential / historical mangrove habitat and present distribution of mangroves. A future update which clearly takes these two perspectives (current state, and historical state) in consideration, as well as an updated high resolution mangrove map based on latest satellite information would help planning.",
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
-  "citation": "Kågesten G (2022). Mangrove - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "creditText": "Kågesten G (2022). Mangrove - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
   "version": "v2.1",
   "keywords": [
     "Western Indian Ocean",

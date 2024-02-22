@@ -7,7 +7,7 @@
   "name": "Shallow hard (temp) - Shallow rock or gravel bottom (<40 m depth) - ecosystem component from the WIO Symphony tool",
   "description": "A seafloor substrate model, developed by C. Jenkins with regional support from S. Fennessy, was applied, together with the dbSEABED database. Rock and gravel proportion were combined to create a hard bottom layer. Shallow zone was defined as 0-40 m using GEBCO 2022 data, and yearly average SST (Sea Surface Temperature) from Copernicus data was used to model the temperate zone with a linear ramp-up starting at 25.5 °C (e.g. temp zone = 0) ending at 23 °C (e.g. temp zone =1) . Known limitations: The underlying substrate and bathymetry models are uncertain in most areas of the WIO region.",
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
-  "citation": "Kågesten G, Jenkins C, Fennessy S, Queste B (2023). Shallow hard (temp) - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "creditText": "Kågesten G, Jenkins C, Fennessy S, Queste B (2023). Shallow hard (temp) - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
   "version": "v2.1",
   "keywords": [
     "Western Indian Ocean",

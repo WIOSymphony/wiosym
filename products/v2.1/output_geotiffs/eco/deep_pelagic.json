@@ -7,7 +7,7 @@
   "name": "Deep pelagic - Midnight / Bathy- & abyssalpelagic zone (>1000 m to full ocean depth ) - ecosystem component from the WIO Symphony tool",
   "description": "Proportion of deep water volume deeper then 1000 m to seafloor in relation to full ocean depth (0 m - 6000 m) based on GEBCO 2022 bathymetry grid. Known limitations: Depth data is uncertain in most areas, however, these uncertainties only have small proportional effect on this layer. Another limitation is that the current deep pelagic habitat layer is only based on volume of available ocean space, not considering productivity or biodiversity.",
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
-  "citation": "Kagesten G, Queste B (2022). Deep pelagic - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "creditText": "Kagesten G, Queste B (2022). Deep pelagic - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
   "version": "v2.1",
   "keywords": [
     "Western Indian Ocean",

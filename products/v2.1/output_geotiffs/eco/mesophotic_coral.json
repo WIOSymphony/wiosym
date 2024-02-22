@@ -7,7 +7,7 @@
   "name": "Mesophotic coral - Mesophotic coral reefs - ecosystem component from the WIO Symphony tool",
   "description": "No model available due to lack of data. Known limitations: Lack of data, pressures impacting mesophotic coral will not show on the maps.",
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
-  "citation": "NA (NA). Mesophotic coral - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "creditText": "NA (NA). Mesophotic coral - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
   "version": "v2.1",
   "keywords": [
     "Western Indian Ocean",

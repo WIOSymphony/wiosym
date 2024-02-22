@@ -7,7 +7,7 @@
   "name": "Salt marsh - Vegetated intertidal flats, e.g. grasses, herbs, low shrubs - ecosystem component from the WIO Symphony tool",
   "description": "The salt marsh were created from tidal areas were extracted from a 30-m resolution global model (“The global distribution and trajectory of tidal flats”, 2019) based on Landsat data from 2002-2016. Presence of tidal flats were extracted into a 250-m raster, then masked >20 m depth using GEBCO depth data mapped to a 250-m grid on the African West coast (thus removing suspected artefacts in the remote sensing). The 250-m raster data was aggregated to a 1-km grid, generating a proportional value for each 1-km pixel. Finally, it was divided into tropical areas by using the yearly average SST (Sea Surface Temperature) from Copernicus data to model the temperate/tropical zone with a linear ramp-up starting at 25.5 °C (e.g. temp = 0, trop = 1), ending at 23 °C (e.g. temp =1, trop = 0),then extracted the proxy using vegetation pixels from NDVI values and removed out mangrove  pixels. Known limitations: The salt marsh pixel wered assumes using NDVI values and  were removed out mangroves pixels and masked out within tidal flat areas, however it may contain other vegetations within this layer\n",
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
-  "citation": "Zerne P, Kågesten G (2022). Salt marsh - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "creditText": "Zerne P, Kågesten G (2022). Salt marsh - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
   "version": "v2.1",
   "keywords": [
     "Western Indian Ocean",

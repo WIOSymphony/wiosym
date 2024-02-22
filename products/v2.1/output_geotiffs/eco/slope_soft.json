@@ -7,7 +7,7 @@
   "name": "Slope soft - Sand or mud along continental slope - ecosystem component from the WIO Symphony tool",
   "description": "A seafloor substrate model, developed by C. Jenkins with regional support from S. Fennessy, was applied, together with the dbSEABED database. Sand and mud proportion were combined to create a soft bottom proportion. Then the soft bottoms were mapped within the continental slope zone (200-1000 m) using gebco 2022 data. Known limitations: The underlying substrate and bathymetry models are uncertain in most areas of the WIO. Direct measurements (e.g. seabed surveys) are required to increase the quality.",
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
-  "citation": "Kågesten G, Jenkins C, Fennessy S (2023). Slope soft - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "creditText": "Kågesten G, Jenkins C, Fennessy S (2023). Slope soft - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
   "version": "v2.1",
   "keywords": [
     "Western Indian Ocean",

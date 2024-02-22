@@ -7,7 +7,7 @@
   "name": "Abyss hard - Deep sea rock surfaces - ecosystem component from the WIO Symphony tool",
   "description": "A seafloor substrate model, developed by C. Jenkins with regional support from S. Fennessy, was applied, together with the dbSEABED database. Rock - gravel models were combined to create a hard bottom proportion. Then hard bottoms were mapped within Abyssal plain depth zone (1000-7500 m) using gebco 2022 data. Known limitations: The underlying substrate and bathymetry models are uncertain in most areas of the WIO. Direct measurements (e.g. seabed surveys) are required to increase the quality.",
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
-  "citation": "Kågesten G, Jenkins C, Fennessy S (2023). Abyss hard - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "creditText": "Kågesten G, Jenkins C, Fennessy S (2023). Abyss hard - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
   "version": "v2.1",
   "keywords": [
     "Western Indian Ocean",

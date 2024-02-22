@@ -7,7 +7,7 @@
   "name": "Upwelling pelagic - Nutrient-rich surface water, upwelling regions, eddies - ecosystem component from the WIO Symphony tool",
   "description": "Map of upwelling regions calculated using a derivative of the IBI Coastal Upwelling Index, as measured by the presence of intensity of longitudinal temperature minima. Known limitations: Upwelling index depends on longitudinal sea surface temperature anomalies alone. \n",
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
-  "citation": "Queste B (2022). Upwelling pelagic - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "creditText": "Queste B (2022). Upwelling pelagic - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
   "version": "v2.1",
   "keywords": [
     "Western Indian Ocean",

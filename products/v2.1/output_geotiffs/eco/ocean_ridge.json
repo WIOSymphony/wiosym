@@ -7,7 +7,7 @@
   "name": "Ocean ridge - Submerged ridges of hard bottom raising from seafloor - ecosystem component from the WIO Symphony tool",
   "description": "A geomorphic features dataset from Blue Habitats was used, which is mainly based on the Shuttle Radar Topography Mapping (SRTM30_PLUS) 30-arc second database from 2009. The polygons of mid-ocean ridges were rasterized and cropped to the project area. Known limitations: The bathymetry that these data are based on is from 2009  and of varying quality.\n",
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
-  "citation": "Freire F, Kågesten G (2022). Ocean ridge - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "creditText": "Freire F, Kågesten G (2022). Ocean ridge - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
   "version": "v2.1",
   "keywords": [
     "Western Indian Ocean",

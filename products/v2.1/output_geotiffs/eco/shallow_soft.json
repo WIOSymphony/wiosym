@@ -7,7 +7,7 @@
   "name": "Shallow soft - Mud or sand bottom (<40 m depth) - ecosystem component from the WIO Symphony tool",
   "description": "A seafloor substrate model, developed by C. Jenkins with regional support from S. Fennessy, was used, together with the dbSEABED database. Sand-mud proportions were combined to create a soft bottom layer. The shallow zone was defined as 0-40 m using GEBCO 2022 data, and yearly average SST (Sea Surface Temperature) from Copernicus data was used to model the tropical zone with a linear ramp-up starting at 23 °C (e.g. trop zone = 0) ending at 25.5 °C (e.g. trop zone =1). Known limitations: The underlying substrate and bathymetry models are uncertain in most areas of the WIO region.",
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
-  "citation": "Kågesten G, Jenkins C, Fennessy S (2023). Shallow soft - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "creditText": "Kågesten G, Jenkins C, Fennessy S (2023). Shallow soft - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
   "version": "v2.1",
   "keywords": [
     "Western Indian Ocean",

@@ -7,7 +7,7 @@
   "name": "Shore - Beach of sand, rock or gravel (including intertidal zone) - ecosystem component from the WIO Symphony tool",
   "description": "Presence of shoreline was derived at 50-m resolution from the 30-m resolution SRTM data. The proportion of 50-m shoreline pixels within each 1-km cell were calculated and mapped into the reference grid. Finally, the layer was divided into tropical and temperate areas by using the yearly average SST (Sea Surface Temperature) from Copernicus data to model the temperate/tropical zone with a linear ramp-up starting at 25.5 °C (e.g. temp = 0, trop = 1) ending at 23 °C (e.g. temp =1, trop = 0). Known limitations: The maps of shoreline habitats are quite accurate (based on validation with detailed shoreline from remote sensing), but are limited by the simplistic way to define shoreline habitats, e.g. by the total length of the shoreline in every gridcell. Future studies might want to add information of the type of shoreline.",
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
-  "citation": "Kågesten G, Queste B (2022). Shore - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "creditText": "Kågesten G, Queste B (2022). Shore - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
   "version": "v2.1",
   "keywords": [
     "Western Indian Ocean",

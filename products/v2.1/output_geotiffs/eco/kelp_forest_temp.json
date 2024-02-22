@@ -7,7 +7,7 @@
   "name": "Kelp forest (temp) - Mixed or rocky bottom with dense kelp algae - ecosystem component from the WIO Symphony tool",
   "description": "Kelp polygons in the SANBI database were combined with a global suitability model on kelp distribution. The global model was adjusted with factor 0.1 to represent the lower likelihood of kelp occurrence compared with the mapped kelp beds. Known limitations: The South African “SANBI dataset” does not cover Namibia and Angola. Deeper kelp beds are likely underrepresented since not easily mapped from remote sensing. The global model of kelp has limited accuracy at the local level.",
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
-  "citation": "Kågesten G (2022). Kelp forest (temp) - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "creditText": "Kågesten G (2022). Kelp forest (temp) - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
   "version": "v2.1",
   "keywords": [
     "Western Indian Ocean",

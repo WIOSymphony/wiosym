@@ -7,7 +7,7 @@
   "name": "Midwater pelagic - Mesopelagic zone (photic zone to 1000 m) - ecosystem component from the WIO Symphony tool",
   "description": "Proportion of mesopelagic waters (photic zone to seafloor shallower then 1000m depth) in relation to full ocean depth (0 m - 6000 m) based on GEBCO 2022 bathymetry grid and photic depth from Copernicus. Known limitations: Depth data is uncertain in most areas, which can have some effects on this layer. Another limitation is that the current midwater pelagic habitat layer is only based on volume of available ocean space, not considering productivity or biodiversity.",
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
-  "citation": "Kågesten G, Queste B (2022). Midwater pelagic - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "creditText": "Kågesten G, Queste B (2022). Midwater pelagic - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
   "version": "v2.1",
   "keywords": [
     "Western Indian Ocean",

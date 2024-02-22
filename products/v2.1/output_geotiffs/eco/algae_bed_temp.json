@@ -7,7 +7,7 @@
   "name": "Algae bed (temp) - Canopy-forming macroalgae (e.g. Sargassum) - ecosystem component from the WIO Symphony tool",
   "description": "Global models, showing potential distribution of benthic and intertidal macroalgae (Rhodophyta and Phaeophyceae) inferred with mechanistic and correlative niche modelling by Duarte 2021, were used. The models were combined and resampled to the 1-km WIO Symphony grid followed by mapping as tropical / temperate macroalgae by using the yearly average SST (sea surface temperature) from Copernicus data to model the temperate / tropical zone with a linear ramp-up starting at 25.5°C (e.g. temp = 0, trop = 1), ending at 23°C (e.g. temp =1, trop = 0). Known limitations: The macroalgae models depict areas with a high vs. low habitat suitability, but cannot determine absolute grid-cell level probability since vital environmental data and sufficient observational data are lacking . This is a global model and the relevance to WIO region local scales will vary greatly depending on underlying data availability and quality.",
   "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
-  "citation": "Kågesten G (2023). Algae bed (temp) - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
+  "creditText": "Kågesten G (2023). Algae bed (temp) - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/",
   "version": "v2.1",
   "keywords": [
     "Western Indian Ocean",
