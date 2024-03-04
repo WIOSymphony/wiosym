@@ -18,6 +18,15 @@ for(i in 1:length(l)){
   xml_add_child(url_node, "lastmod", t)
 }
 
+# Add WIO Symphony tool json
+turl <- "https://raw.githubusercontent.com/WIOSymphony/wiosym/main/metadata/WIO_Symphony.json"
+t <- file.info("WIO_Symphony.json")$mtime
+t <- as.Date(t)
+t <- paste0(t)
+url_node <- xml_add_child(root, "url")
+xml_add_child(url_node, "loc", turl)
+xml_add_child(url_node, "lastmod", t)
+
 doc <- as_xml_document(root)
 
 write_xml(doc, "sitemap.xml")
