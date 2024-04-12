@@ -16,13 +16,31 @@ ver <- "2.1"
 layers <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing")
 layers <- filter(layers, theme == "Ecosystem")
 n <- layers$layer_file_name
-raw <- paste0("https://github.com/WIOSymphony/wiosym/raw/main/products/", ver, "/output_geotiffs/eco/", n, ".tif")
+raw <- paste0("https://raw.githubusercontent.com/WIOSymphony/wiosym/main/products/", ver, "/output_geotiffs/eco/", n, ".tif")
 layers$raw_link <- raw
 
 layers <- select(layers, title, theme, raw_link)
 colnames(layers) <- c("Layer", "Theme", "Download link")
 ```
 
-```{r}
+```{r, echo = FALSE}
+kable(layers)
+```
+
+# Pressures
+https://raw.githubusercontent.com/
+```{r, include = FALSE}
+layers <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing")
+layers <- filter(layers, theme == "Pressures")
+n <- layers$layer_file_name
+#raw <- paste0("https://github.com/WIOSymphony/wiosym/raw/main/products/", ver, "/output_geotiffs/pres/", n, ".tif")
+raw <- paste0("https://raw.githubusercontent.com/WIOSymphony/wiosym/main/products/", ver, "/output_geotiffs/pres/", n, ".tif")
+layers$raw_link <- raw
+
+layers <- select(layers, title, theme, raw_link)
+colnames(layers) <- c("Layer", "Theme", "Download link")
+```
+
+```{r, echo = FALSE}
 kable(layers)
 ```
