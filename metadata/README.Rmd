@@ -10,35 +10,40 @@ library(knitr)
 ver <- "2.1"
 ```
 
+```{r, include = FALSE}
+layers <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing")
+eco <- filter(layers, theme == "Ecosystem")
+pres <- filter(layers, theme == "Pressures")
+```
 
 # Ecosystem components
 ```{r, include = FALSE}
-layers <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing")
-layers <- filter(layers, theme == "Ecosystem")
-n <- layers$layer_file_name
+eco <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing")
+eco <- filter(eco, theme == "Ecosystem")
+n <- eco$layer_file_name
 raw <- paste0("[Download]", "(https://github.com/WIOSymphony/wiosym/raw/main/products/v", ver, "/output_geotiffs/eco/", n, ".tif)")
-layers$raw_link <- raw
+eco$raw_link <- raw
 
-layers <- select(layers, title, theme, raw_link)
-colnames(layers) <- c("Layer", "Theme", "Download link")
+eco <- select(eco, title, theme, raw_link)
+colnames(eco) <- c("Layer", "Theme", "Download link")
 ```
 
 ```{r, echo = FALSE}
-kable(layers)
+kable(eco)
 ```
 
 # Pressures
 ```{r, include = FALSE}
-layers <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing")
-layers <- filter(layers, theme == "Pressures")
-n <- layers$layer_file_name
+pres <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing")
+pres <- filter(pres, theme == "Pressures")
+n <- pres$layer_file_name
 raw <- paste0("[Download]", "(https://github.com/WIOSymphony/wiosym/raw/main/products/v", ver, "/output_geotiffs/pres/", n, ".tif)")
-layers$raw_link <- raw
+pres$raw_link <- raw
 
-layers <- select(layers, title, theme, raw_link)
-colnames(layers) <- c("Layer", "Theme", "Download link")
+pres <- select(pres, title, theme, raw_link)
+colnames(pres) <- c("Layer", "Theme", "Download link")
 ```
 
 ```{r, echo = FALSE}
-kable(layers)
+kable(pres)
 ```
