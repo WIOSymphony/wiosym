@@ -59,4 +59,5 @@
 !.gitignore
 !data_collection_coordinates.txt
 !wiosym.Rproj
+!README.md
 .Rproj.user
