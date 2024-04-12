@@ -13,13 +13,11 @@ ver <- "2.1"
 ```{r, include = FALSE}
 layers <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing")
 eco <- filter(layers, theme == "Ecosystem")
-pres <- filter(layers, theme == "Pressures")
+pres <- filter(layers, theme == "Pressure")
 ```
 
 # Ecosystem components
 ```{r, include = FALSE}
-eco <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing")
-eco <- filter(eco, theme == "Ecosystem")
 n <- eco$layer_file_name
 raw <- paste0("[Download]", "(https://github.com/WIOSymphony/wiosym/raw/main/products/v", ver, "/output_geotiffs/eco/", n, ".tif)")
 eco$raw_link <- raw
@@ -34,8 +32,6 @@ kable(eco)
 
 # Pressures
 ```{r, include = FALSE}
-pres <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing")
-pres <- filter(pres, theme == "Pressures")
 n <- pres$layer_file_name
 raw <- paste0("[Download]", "(https://github.com/WIOSymphony/wiosym/raw/main/products/v", ver, "/output_geotiffs/pres/", n, ".tif)")
 pres$raw_link <- raw
