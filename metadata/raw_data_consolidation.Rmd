@@ -19,6 +19,7 @@ meta <- list.files(path = sourceloc, pattern = "_sourcesym.txt", recursive = T)
 meta.short <- basename(meta)
 
 layers <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing")
+layers <- filter(layers, is.na(file_name) == FALSE)
 ```
 
 ```{r}
@@ -29,10 +30,19 @@ meta <- meta[which(v1 %in% v2)]
 ```
 
 ```{r}
+l <- list.files("../data_raw", recursive = T, full.names = T)
+```
+
+```{r}
 #for(i in 1:length(meta)){
-for(i in 1:8){
+for(i in 8:8){
   f <- paste0(sourceloc, meta[i])
   f <- read.table(f, header = T)
   cat("\nIt", i, f$id)
 }
 ```
+
+```{r}
+df <- read.delim(l[grep(f$id[1], l)])
+```
+

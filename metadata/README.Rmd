@@ -22,9 +22,10 @@ pres <- filter(layers, theme == "Pressure")
 n <- eco$layer_file_name
 raw <- paste0("[Download]", "(https://github.com/WIOSymphony/wiosym/raw/main/products/v", ver, "/output_geotiffs/eco/", n, ".tif)")
 eco$raw_link <- raw
+eco$source <- "Source 1 name [URL](www.google.com), Source 2 name [URL](www.google.com), etc"
 
-eco <- select(eco, title, theme, raw_link)
-colnames(eco) <- c("Layer", "Theme", "Download link")
+eco <- select(eco, title, theme, raw_link, source)
+colnames(eco) <- c("Layer", "Theme", "Download link", "Data source(s)")
 ```
 
 ```{r, echo = FALSE}
@@ -36,9 +37,10 @@ kable(eco)
 n <- pres$layer_file_name
 raw <- paste0("[Download]", "(https://github.com/WIOSymphony/wiosym/raw/main/products/v", ver, "/output_geotiffs/pres/", n, ".tif)")
 pres$raw_link <- raw
+pres$source <- "Source 1 name [URL](www.google.com), Source 2 name [URL](www.google.com), etc"
 
-pres <- select(pres, title, theme, raw_link)
-colnames(pres) <- c("Layer", "Theme", "Download link")
+pres <- select(pres, title, theme, raw_link, source)
+colnames(pres) <- c("Layer", "Theme", "Download link", "Data source(s)")
 ```
 
 ```{r, echo = FALSE}
