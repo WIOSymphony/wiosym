@@ -12,6 +12,7 @@ ver <- "2.1"
 
 ```{r, include = FALSE}
 layers <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing")
+layers <- filter(layers, is.na(file_name) == FALSE)
 eco <- filter(layers, theme == "Ecosystem")
 pres <- filter(layers, theme == "Pressure")
 ```
