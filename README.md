@@ -58,5 +58,53 @@
 
 # Pressures
 
-| Layer | Theme | Download link |
-|:------|:------|:--------------|
+| Layer                | Theme    | Download link                                                                                                          |
+|:---------------------|:---------|:-----------------------------------------------------------------------------------------------------------------------|
+| Algae farming        | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/algae_farming.tif)        |
+| Mariculture          | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/mariculture.tif)          |
+| Invasive species     | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/invasive_species.tif)     |
+| Ocean acidification  | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/ocean_acidification.tif)  |
+| NA                   | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/sea_level_rise.tif)       |
+| Storm surges         | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/storm_surges.tif)         |
+| Temperature rise     | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/temperature_rise.tif)     |
+| Dredging             | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/dredging.tif)             |
+| Dumping              | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/dumping.tif)              |
+| Hydrology change     | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/hydrology_change.tif)     |
+| Industrial pollution | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/industrial_pollution.tif) |
+| Land reclamation     | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/land_reclamation.tif)     |
+| Light pollution      | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/light_pollution.tif)      |
+| Piers and docks      | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/piers_and_docks.tif)      |
+| Ports                | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/ports.tif)                |
+| Nutrient input       | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/nutrient_input.tif)       |
+| Artisanal fishing    | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/artisanal_fishing.tif)    |
+| Crustacean pots      | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/crustacean_pots.tif)      |
+| Demersal gillnet     | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/demersal_gillnet.tif)     |
+| Demersal trawl       | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/demersal_trawl.tif)       |
+| Floating longline    | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/floating_longline.tif)    |
+| Other fishing        | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/other_fishing.tif)        |
+| Pelagic gillnet      | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/pelagic_gillnet.tif)      |
+| Pelagic seine        | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/pelagic_seine.tif)        |
+| Pelagic trawl        | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/pelagic_trawl.tif)        |
+| Sport fishing        | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/sport_fishing.tif)        |
+| Weighted longline    | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/weighted_longline.tif)    |
+| Ghost fishing        | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/ghost_fishing.tif)        |
+| Plastic litter       | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/plastic_litter.tif)       |
+| Seabed mining        | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/seabed_mining.tif)        |
+| Impulsive noise      | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/impulsive_noise.tif)      |
+| Infrastructure       | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/infrastructure.tif)       |
+| Oil gas industry     | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/oil_gas_industry.tif)     |
+| Renewable energy     | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/renewable_energy.tif)     |
+| NA                   | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/submarine_cables.tif)     |
+| Air pollution        | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/air_pollution.tif)        |
+| Inorganic toxins     | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/inorganic_toxins.tif)     |
+| Oilspill risk        | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/oilspill_risk.tif)        |
+| Organic toxins       | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/organic_toxins.tif)       |
+| Boating              | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/boating.tif)              |
+| Coastal tourism      | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/coastal_tourism.tif)      |
+| Diving               | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/diving.tif)               |
+| Shark control        | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/shark_control.tif)        |
+| Ship pollution       | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/ship_pollution.tif)       |
+| Ship strike          | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/ship_strike.tif)          |
+| Underwater noise     | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/underwater_noise.tif)     |
+| Research sampling    | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/research_sampling.tif)    |
+| Seismic surveys      | Pressure | [Download](https://github.com/WIOSymphony/wiosym/raw/main/products/v2.1/output_geotiffs/pres/seismic_surveys.tif)      |
