@@ -15,12 +15,27 @@ library(gsheet)
 sourceloc <- "../data/"
 metaloc <- "../data_raw/"
 #meta <- list.files(path = "./data/", pattern = "_sourcesym.txt", recursive = T)
-meta <- list.files(path = sourceloc, pattern = "_sourcesym.txt", recursive = T)
-meta.short <- basename(meta)
+source.long <- list.files(path = sourceloc, pattern = "_sourcesym.txt", recursive = T, full.names = T)
+source.short <- basename(source.long)
 
 layers <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing")
 layers <- filter(layers, is.na(file_name) == FALSE)
 ```
+
+```{r}
+df <- data.frame("short_name" = as.character(1:nrow(layers)), "sourcesym" = NA)
+
+for(i in 1:nrow(layers)){
+  v1 <- layers$sourcesym[i]
+  v2 <- meta.short
+  m <- meta[which(v2 %in% v1)]
+  
+  df$short_name[i] <- layers$short_name[i]
+  df$sourcesym[i] <- m
+}
+```
+
+*****************
 
 ```{r}
 v1 <- meta.short
@@ -31,6 +46,7 @@ meta <- meta[which(v1 %in% v2)]
 
 ```{r}
 l <- list.files("../data_raw", recursive = T, full.names = T)
+df <- data.frame("short_name" = NA)
 ```
 
 ```{r}
@@ -43,6 +59,21 @@ for(i in 8:8){
 ```
 
 ```{r}
-df <- read.delim(l[grep(f$id[1], l)])
+df <- read.delim(l[grep(f$id[2], l)])
+```
+
+*********************
+
+```{r}
+df <- data.frame("short_name" = as.character(1:nrow(layers)), "sourcesym" = NA)
+
+for(i in 1:nrow(layers)){
+  v1 <- layers$sourcesym[i]
+  v2 <- meta.short
+  m <- meta[which(v2 %in% v1)]
+  
+  df$short_name[i] <- layers$short_name[i]
+  df$sourcesym[i] <- m
+}
 ```
 

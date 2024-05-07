@@ -13,7 +13,7 @@
 
 ## Install packages
 ```{r, include = FALSE}
-library(sf) 
+library(sf)
 library(raster)
 library(fasterize)
 library(tidyr)
