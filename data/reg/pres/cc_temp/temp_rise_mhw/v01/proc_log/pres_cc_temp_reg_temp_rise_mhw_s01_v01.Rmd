@@ -70,10 +70,63 @@ source1_metasym <- read.table(paste0(source1_dir, source1_id, "_metasym.txt"), s
 # Install processing specific packages
 ```{r, include = FALSE}
 library(terra)
-library(httr)
-library(rvest)
 library(ncdf4)
 ```
+
+```{r}
+yr <- 2023
+l <- list.files(paste0(work1_path, "/mhw_noaa/", yr), full.names = T)
+fp <- l[1] 
+#r <- rast(fp)["heatwave_category"]
+n <- nc_open(fp)
+lon <- ncdf4::ncvar_get(n, n$var[["lon"]])
+lat <- ncdf4::ncvar_get(n, n$var[["lat"]])
+d <- ncdf4::ncvar_get(n, n$var[["heatwave_category"]])
+nc_close(n)
+
+r <- rast(t(d[, ncol(d):1]), ext=c(range(lon), range(lat)), crs="+proj=lonlat")
+r[r == -1] <- NA
+plot(r)
+```
+# WARNING: This will take a long time to run
+```{r}
+yr <- 2021
+l <- list.files(paste0(work1_path, "/mhw_noaa/", yr), full.names = T)
+#l <- l[1:10]
+nit <- 0
+
+for(i in 1:length(l)){
+
+  fp <- l[i] 
+  #r <- rast(fp)["heatwave_category"]
+  n <- nc_open(fp)
+  lon <- ncdf4::ncvar_get(n, n$var[["lon"]])
+  lat <- ncdf4::ncvar_get(n, n$var[["lat"]])
+  d <- ncdf4::ncvar_get(n, n$var[["heatwave_category"]])
+  nc_close(n)
+  
+  r <- rast(t(d[, ncol(d):1]), ext=c(range(lon), range(lat)), crs="+proj=lonlat")
+  r[r == -1] <- 0
+  #r[is.na(r)] <- 0
+  
+  if(nit == 0){mhw <- r}
+  else{mhw <- mhw + r}
+  nit <- nit+1
+  cat("-", nit)
+}
+
+mhw <- mhw/length(l) # Calculate average MHW category
+writeRaster(mhw, paste0(work1_path, "/mean_mhw/mean_mhw_cat_", yr, ".tif"), overwrite = T)
+plot(mhw)
+```
+```{r}
+l <- list.files(paste0(work1_path, "/mean_mhw/"))
+r <- rast(l)
+r <- app(r, fun = 'mean')
+```
+
+
+**********************
 
 ```{r}
 r <- rast("./data_raw/glo/pres/cc_temp/lit/es2405071405188839/nmme_mhw_forecast_probability_1991_2020.nc")
@@ -92,11 +145,7 @@ r <- project(r, grid_1km, method = 'cubic')
 plot(r)
 ```
 
-```{r}
-yr <- 2023
-l <- list.files(paste0(work1_path, "/mhw_noaa/", yr), full.names = T)
-r <- rast(l[1])
-```
+
 
 ```{r}
 setwd("C:/GitHub/WIOSymphony/wiosym/data/reg/pres/cc_temp/temp_rise_mhw/v01/proc/mhw_noaa/2023/")

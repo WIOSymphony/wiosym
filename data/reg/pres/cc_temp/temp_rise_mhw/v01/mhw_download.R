@@ -19,22 +19,25 @@ script_path <- "./process/r"
 (dest1_path_file1 <-paste0(dest1_path, "/", subtheme1, "_", name1, "_", version, d_version, ".tif"))
 
 # Repeat for each year - data available from 1985
-yr <- 2021
-dir.create(paste0(work1_path, "/mhw_noaa/", yr))
-url <- paste0("https://www.star.nesdis.noaa.gov/pub/sod/mecb/crw/data/marine_heatwave/v1.0.1/category/nc/", yr, "/")
-page <- GET(url)
-html_content <- content(page, "text")
+for(i in 2000:2020){
 
-links <- read_html(html_content) %>%
-  html_nodes("a") %>%
-  html_attr("href") %>%
-  na.omit()  # Remove NAs
-
-nc_links <- links[grepl("\\.nc$", links)]
-nc_links <- paste0(url, nc_links)
-
-for(link in nc_links){
-  fn <- basename(link)
-  fp <- paste0(work1_path, "/mhw_noaa/", yr, "/", fn)
-  download.file(url = link, destfile = fp)
+  yr <- i
+  dir.create(paste0(work1_path, "/mhw_noaa/", yr))
+  url <- paste0("https://www.star.nesdis.noaa.gov/pub/sod/mecb/crw/data/marine_heatwave/v1.0.1/category/nc/", yr, "/")
+  page <- GET(url)
+  html_content <- content(page, "text")
+  
+  links <- read_html(html_content) %>%
+    html_nodes("a") %>%
+    html_attr("href") %>%
+    na.omit()  # Remove NAs
+  
+  nc_links <- links[grepl("\\.nc$", links)]
+  nc_links <- paste0(url, nc_links)
+  
+  for(link in nc_links){
+    fn <- basename(link)
+    fp <- paste0(work1_path, "/mhw_noaa/", yr, "/", fn)
+    download.file(url = link, destfile = fp, mode = 'wb')
+}
 }
