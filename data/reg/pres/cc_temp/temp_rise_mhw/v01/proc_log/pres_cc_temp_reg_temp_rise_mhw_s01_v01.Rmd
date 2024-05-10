@@ -1,0 +1,124 @@
+# =========================================================================================================
+# Script by Edmond Sacre, SLU
+# =========================================================================================================
+
+# PREPARATIONS
+```{r, include = FALSE}
+# Install / load packages
+#x <- c("sf", "raster", "tidyr", "dplyr")
+#install.packages(x, dependencies=TRUE)
+```
+
+## Install packages
+```{r, include = FALSE}
+library(tidyr)
+library(dplyr)
+library(terra)
+```
+
+## View folders/themes
+```{r}
+#folders_raw <- read.table("./shiny_data_upload/folders.txt", sep = "\t", header = TRUE)
+#folders_data <- read.table("./process/templates/folders_data.txt", sep = "\t", header = TRUE)
+#folders <- folders_raw %>% add_row(folders_data)
+```
+
+## Define versions/directories
+```{r}
+version = "v01"
+d_version = ".0"
+location = "reg"   #check
+theme1 <- "pres"   #check
+subtheme1 <- "cc_temp"   #check
+name1 <- "temp_rise_mhw"   #check
+name2 <- "" #check
+(dest1_path <- paste("./data", location, theme1, subtheme1, name1, version, sep="/"))
+(work1_path <- paste(dest1_path, "proc", sep="/"))
+(proc1_path <- paste(dest1_path, "proc_log", sep="/"))
+script_path <- "./process/r"
+(script_path_windows <- paste(getwd(), "/process/r", sep=""))
+(script_name <- paste(theme1, "_", subtheme1,"_", location, "_", name1,"_s01_",version, ".Rmd", sep=""))
+(dest1_path_file1 <-paste0(dest1_path, "/", subtheme1, "_", name1, "_", version, d_version, ".tif"))
+```
+
+## Create directories
+```{r}
+dir.create(dest1_path, recursive = TRUE)
+dir.create(work1_path, recursive = TRUE)
+dir.create(proc1_path, recursive = TRUE)
+```
+
+## Read in WIOSym standard grid
+```{r}
+grid_1km <- rast("./data/reg/grid/grid/v01/grid_1km_v01.1.tif")
+```
+
+## Define sources
+```{r}
+num_sources <- 1  # write the number of sources you will use in this script (to be used later for exporting metadata)
+  
+source1_dir <-  "./data_raw/glo/pres/cc_temp/lit/es2405071405188839/"    #check
+source1_id <- "es2405071405188839"    #check
+source1_metasym <- read.table(paste0(source1_dir, source1_id, "_metasym.txt"), sep = "\t")
+#source1_metasym # check that metasym file is populated, and fix if not - before finalising the processing
+```
+
+*****************************************************************
+*****************************************************************
+# PROCESSING
+
+# Install processing specific packages
+```{r, include = FALSE}
+library(terra)
+library(httr)
+library(rvest)
+library(ncdf4)
+```
+
+```{r}
+r <- rast("./data_raw/glo/pres/cc_temp/lit/es2405071405188839/nmme_mhw_forecast_probability_1991_2020.nc")
+r <- r[[1:12]]
+r <- app(r, fun = 'mean')
+plot(r)
+```
+
+```{r}
+crs(r) <- "+proj=longlat"
+#r[is.na(r)] <- 0
+suppressWarnings(
+r <- project(r, grid_1km, method = 'cubic')
+)
+
+plot(r)
+```
+
+```{r}
+yr <- 2023
+l <- list.files(paste0(work1_path, "/mhw_noaa/", yr), full.names = T)
+r <- rast(l[1])
+```
+
+```{r}
+setwd("C:/GitHub/WIOSymphony/wiosym/data/reg/pres/cc_temp/temp_rise_mhw/v01/proc/mhw_noaa/2023/")
+getwd()
+l <- list.files()
+f <- l[1]
+r <- rast("noaa-crw_mhw_v1.0.1_category_20230101.nc")
+```
+
+
+```{r}
+l <- list.files(paste0(work1_path, "/mhw_noaa/", yr), full.names = T)
+fp <- l[5]
+r <- nc_open(fp)
+```
+
+```{r}
+library(raster)
+l <- list.files(paste0(work1_path, "/mhw_noaa/", yr), full.names = T)
+fp <- l[5]
+
+r <- brick(fp, ncdf = T)+0
+```
+
+

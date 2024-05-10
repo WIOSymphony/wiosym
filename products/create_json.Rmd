@@ -1,0 +1,125 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Specify version
+```{r}
+ver <- "v2.1"
+
+dir.create(paste0(ver, "/output_geotiffs/eco"), recursive = T)
+dir.create(paste0(ver, "/output_geotiffs/pres"), recursive = T)
+```
+
+```{r, warning=FALSE}
+library(dplyr)
+library(tidyr)
+library(rio)
+library(rjson)
+library(jsonlite)
+library(gsheet)
+library(raster)
+
+meta <- rio::import(paste0("layer_list_", ver, ".xlsx"))
+meta$file_name[is.na(meta$file_name)] <- "placeholder.tif"
+
+grid <- raster("grid/grid_1km_v01.1.tif")
+crs(grid)
+```
+
+
+# Create JSON files for metadata - ECOSYSTEMS
+```{r}
+layers <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing") |> dplyr::filter(theme == "Ecosystem")
+layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
+
+js <- read_json(path = "datasetTemplate.json")
+
+for(i in 1:nrow(layers)){
+  
+n <- layers$layer_file_name[i]
+
+# Name, description, etc.
+js$name <- paste0(layers$title[i], " - ", layers$description[i], " - ecosystem component from the WIO Symphony tool")
+js$description <- paste0(layers$method_summary[i], " Known limitations: ", layers$known_limitations[i])
+js$`@id` <- paste0("https://raw.githubusercontent.com/WIOSymphony/wiosym/main/products/", ver, "/output_geotiffs/eco/", n, ".json")
+js$citation <- paste0(layers$data_processor[i]," (", layers$year[i], "). ", layers$title[i], 
+              " - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/")
+js$version <- paste0(ver)
+js$distribution$`@type` <- "DataDownload"
+js$distribution$contentUrl <- paste0("https://github.com/WIOSymphony/wiosym/raw/main/products/", ver, "/output_geotiffs/eco/", n, ".tif")
+js$distribution$encodingFormat <- "application/tiff"
+js$provider[[1]]$`@type` <- "Organization"
+js$provider[[1]]$legalName <- "WIO Symphony team"
+js$provider[[1]]$name <- "WIO Symphony team"
+js$provider[[1]]$url <- "https://www.nairobiconvention.org/wio-symphony/"
+js$spatialCoverage[[2]]$polygon <-  "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0, 6.0 18.0"
+
+
+# Keywords
+js$keywords[[1]] <- "Western Indian Ocean"
+js$keywords[[2]] <- "WIO Symphony"
+js$keywords[[3]] <- "Symphony"
+js$keywords[[4]] <- "Cumulative impact assessment"
+js$keywords[[5]] <- "Marine spatial planning"
+js$keywords[[6]] <- "Ecosystems"
+js$keywords[[7]] <- "Pressures"
+js$keywords[[8]] <- layers$title[i]
+js
+
+# Export JSON
+write_json(js, path = paste0(ver, "/output_geotiffs/eco/", n, ".json"),
+             pretty = TRUE,
+             auto_unbox = TRUE)
+
+}
+```
+
+# Create JSON files for metadata - PRESSURES
+```{r}
+layers <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing") |> dplyr::filter(theme == "Pressure")
+layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
+
+js <- read_json(path = "datasetTemplate.json")
+
+for(i in 1:nrow(layers)){
+  
+n <- layers$layer_file_name[i]
+
+# Name, description, etc.
+js$name <- paste0(layers$title[i], " - ", layers$description[i], " - pressure layer from the WIO Symphony tool")
+js$description <- paste0(layers$method_summary[i], " Known limitations: ", layers$known_limitations[i])
+js$`@id` <- paste0("https://raw.githubusercontent.com/WIOSymphony/wiosym/main/products/", ver, "/output_geotiffs/pres/", n, ".json")
+js$citation <- paste0(layers$data_processor[i]," (", layers$year[i], "). ", layers$title[i], 
+              " - ecosystem component from the WIO Symphony tool. URL: https://github.com/WIOSymphony/")
+js$version <- paste0(ver)
+js$distribution$`@type` <- "DataDownload"
+js$distribution$contentUrl <- paste0("https://github.com/WIOSymphony/wiosym/raw/main/products/", ver, "/output_geotiffs/pres/", n, ".tif")
+js$distribution$encodingFormat <- "application/tiff"
+js$provider[[1]]$`@type` <- "Organization"
+js$provider[[1]]$legalName <- "WIO Symphony team"
+js$provider[[1]]$name <- "WIO Symphony team"
+js$provider[[1]]$url <- "https://www.nairobiconvention.org/wio-symphony/"
+js$spatialCoverage[[2]]$polygon <-  "6.0 18.0, 6.0 -42.0, 80.0 -42.0, 80.0 18.0, 6.0 18.0"
+
+
+# Keywords
+js$keywords[[1]] <- "Western Indian Ocean"
+js$keywords[[2]] <- "WIO Symphony"
+js$keywords[[3]] <- "Symphony"
+js$keywords[[4]] <- "Cumulative impact assessment"
+js$keywords[[5]] <- "Marine spatial planning"
+js$keywords[[6]] <- "Ecosystems"
+js$keywords[[7]] <- "Pressures"
+js$keywords[[8]] <- layers$title[i]
+js
+
+# Export JSON
+write_json(js, path = paste0(ver, "/output_geotiffs/pres/", n, ".json"),
+             pretty = TRUE,
+             auto_unbox = TRUE)
+
+}
+```
+
+
