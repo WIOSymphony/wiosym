@@ -1,5 +1,11 @@
 # =========================================================================================================
 # Script by Edmond Sacre, SLU
+# This script creates a map of marine heatwaves as defined by NOAA, which categorizes marine heatwaves
+# into categories 1 through 5. To produce this layer, we used data from the years 1985 through 2023.
+# A heatwave is defined as exceeding the 90th percentile of values in a give grid cell. The classification
+# is then assigned based on the degree to which the temperature exceed this threshold. We build upon this 
+# by identifying the duration of the MHW (the average number of days above the threshold), the intensity
+# (the average category) and the frequency (the number of days per year above this threshold).
 # =========================================================================================================
 
 # PREPARATIONS
@@ -51,16 +57,19 @@ dir.create(proc1_path, recursive = TRUE)
 ## Read in WIOSym standard grid
 ```{r}
 grid_1km <- rast("./data/reg/grid/grid/v01/grid_1km_v01.1.tif")
+grid_proj <- rast("./products/grid/grid_1km_v01.1_epsg4326.tif")
 ```
 
 ## Define sources
 ```{r}
 num_sources <- 1  # write the number of sources you will use in this script (to be used later for exporting metadata)
   
-source1_dir <-  "./data_raw/glo/pres/cc_temp/lit/es2405071405188839/"    #check
-source1_id <- "es2405071405188839"    #check
+source1_dir <-  "./data_raw/glo/pres/cc_temp/noaa/es2405150813488330/"    #check
+source1_id <- "es2405150813488330"    #check
 source1_metasym <- read.table(paste0(source1_dir, source1_id, "_metasym.txt"), sep = "\t")
 #source1_metasym # check that metasym file is populated, and fix if not - before finalising the processing
+
+source_list <- c(source1_id) # for multiple sources, should look like - c(source1_id, source2_id, source3_id) etc.
 ```
 
 *****************************************************************
@@ -73,101 +82,253 @@ library(terra)
 library(ncdf4)
 ```
 
-```{r}
-yr <- 2023
-l <- list.files(paste0(work1_path, "/mhw_noaa/", yr), full.names = T)
-fp <- l[1] 
-#r <- rast(fp)["heatwave_category"]
-n <- nc_open(fp)
-lon <- ncdf4::ncvar_get(n, n$var[["lon"]])
-lat <- ncdf4::ncvar_get(n, n$var[["lat"]])
-d <- ncdf4::ncvar_get(n, n$var[["heatwave_category"]])
-nc_close(n)
-
-r <- rast(t(d[, ncol(d):1]), ext=c(range(lon), range(lat)), crs="+proj=lonlat")
-r[r == -1] <- NA
-plot(r)
-```
+# You will first need to run the "mhw_download" script to download all of the NetCDF files
 # WARNING: This will take a long time to run
+# Mean and sum MHW category per year
 ```{r}
-yr <- 2021
-l <- list.files(paste0(work1_path, "/mhw_noaa/", yr), full.names = T)
-#l <- l[1:10]
-nit <- 0
-
-for(i in 1:length(l)){
-
-  fp <- l[i] 
-  #r <- rast(fp)["heatwave_category"]
-  n <- nc_open(fp)
-  lon <- ncdf4::ncvar_get(n, n$var[["lon"]])
-  lat <- ncdf4::ncvar_get(n, n$var[["lat"]])
-  d <- ncdf4::ncvar_get(n, n$var[["heatwave_category"]])
-  nc_close(n)
+for(j in 1985:2023){
   
-  r <- rast(t(d[, ncol(d):1]), ext=c(range(lon), range(lat)), crs="+proj=lonlat")
-  r[r == -1] <- 0
-  #r[is.na(r)] <- 0
+  yr <- j
+  l <- list.files(paste0(work1_path, "/mhw_noaa/", yr), full.names = T)
+  #l <- l[1:10]
+  nit <- 0
   
-  if(nit == 0){mhw <- r}
-  else{mhw <- mhw + r}
-  nit <- nit+1
-  cat("-", nit)
+  for(i in 1:length(l)){
+  
+    fp <- l[i] 
+    #r <- rast(fp)["heatwave_category"]
+    n <- nc_open(fp)
+    lon <- ncdf4::ncvar_get(n, n$var[["lon"]])
+    lat <- ncdf4::ncvar_get(n, n$var[["lat"]])
+    d <- ncdf4::ncvar_get(n, n$var[["heatwave_category"]])
+    nc_close(n)
+    
+    r <- rast(t(d[, ncol(d):1]), ext=c(range(lon), range(lat)), crs="+proj=lonlat")
+    r[r == -1] <- 0
+    #r[is.na(r)] <- 0
+    
+    if(nit == 0){mhw <- r}
+    else{mhw <- mhw + r}
+    nit <- nit+1
+    #cat("-", nit)
+  }
+  
+  mhw_mean <- mhw/length(l) # Calculate average MHW category
+  mhw_sum <- mhw
+  writeRaster(mhw_mean, paste0(work1_path, "/mhw_mean/mhw_mean_cat_", yr, ".tif"), overwrite = T)
+  writeRaster(mhw_sum, paste0(work1_path, "/mhw_sum/mhw_sum_cat_", yr, ".tif"), overwrite = T)
+  plot(mhw_sum)
+  cat("-", j)
+  
+}
+```
+
+# Number of days each year with heatwave, i.e. above 90th percentile
+```{r}
+for(j in 1985:2023){
+  yr <- j
+  l <- list.files(paste0(work1_path, "/mhw_noaa/", yr), full.names = T)
+  #l <- l[1:10]
+  nit <- 0
+  
+  for(i in 1:length(l)){
+  
+    fp <- l[i] 
+    #r <- rast(fp)["heatwave_category"]
+    n <- nc_open(fp)
+    lon <- ncdf4::ncvar_get(n, n$var[["lon"]])
+    lat <- ncdf4::ncvar_get(n, n$var[["lat"]])
+    d <- ncdf4::ncvar_get(n, n$var[["heatwave_category"]])
+    nc_close(n)
+    
+    r <- rast(t(d[, ncol(d):1]), ext=c(range(lon), range(lat)), crs="+proj=lonlat")
+    r[r == -1] <- 0
+    r[r > 1] <- 1 # Convert all above 90th percentile to 1
+    
+    if(nit == 0){mhw <- r}
+    else{mhw <- mhw + r}
+    nit <- nit+1
+  }
+  
+  writeRaster(mhw, paste0(work1_path, "/mhw_days/mhw_days_cat_", yr, ".tif"), overwrite = T)
+  #plot(mhw)
+  cat("-", j)
+
+}
+```
+
+# No. of days above category 3
+```{r}
+for(j in 1985:2023){
+  yr <- j
+  l <- list.files(paste0(work1_path, "/mhw_noaa/", yr), full.names = T)
+  #l <- l[1:10]
+  nit <- 0
+  
+  for(i in 1:length(l)){
+  
+    fp <- l[i] 
+    #r <- rast(fp)["heatwave_category"]
+    n <- nc_open(fp)
+    lon <- ncdf4::ncvar_get(n, n$var[["lon"]])
+    lat <- ncdf4::ncvar_get(n, n$var[["lat"]])
+    d <- ncdf4::ncvar_get(n, n$var[["heatwave_category"]])
+    nc_close(n)
+    
+    r <- rast(t(d[, ncol(d):1]), ext=c(range(lon), range(lat)), crs="+proj=lonlat")
+    r[r == -1] <- 0
+    r[r < 3] <- 0 # Convert all above in cat 3 and above to 1
+    r[r >= 3] <- 1
+    
+    if(nit == 0){mhw <- r}
+    else{mhw <- mhw + r}
+    nit <- nit+1
+  }
+  
+  writeRaster(mhw, paste0(work1_path, "/mhw_days_cat3plus/mhw_days_cat3plus_", yr, ".tif"), overwrite = T)
+  #plot(mhw)
+  cat("-", j)
+
+}
+```
+
+# MHW duration - this will take quite a long time - approx 10 mins per year
+```{r}
+dur <- function(x){
+  x[is.na(x)] <- 0
+  x[x > 1] <- 1
+  x <- rle(x)
+  if(length(x$lengths[x$values == 1]) == 0){m <- 0}
+  else(m <- mean(x$lengths[x$values == 1]))
+  return(m)
 }
 
-mhw <- mhw/length(l) # Calculate average MHW category
-writeRaster(mhw, paste0(work1_path, "/mean_mhw/mean_mhw_cat_", yr, ".tif"), overwrite = T)
-plot(mhw)
+for(j in 1985:2023){
+
+  yr <- j
+  l <- list.files(paste0(work1_path, "/mhw_noaa/", yr), full.names = T)
+  #l <- l[1:20]
+  nit <- 0
+  
+  for(i in 1:length(l)){
+  
+    fp <- l[i] 
+    #r <- rast(fp)["heatwave_category"]
+    n <- nc_open(fp)
+    lon <- ncdf4::ncvar_get(n, n$var[["lon"]])
+    lat <- ncdf4::ncvar_get(n, n$var[["lat"]])
+    d <- ncdf4::ncvar_get(n, n$var[["heatwave_category"]])
+    nc_close(n)
+    
+    r <- rast(t(d[, ncol(d):1]), ext=c(range(lon), range(lat)), crs="+proj=lonlat")
+    r[r == -1] <- 0
+    r <- crop(r, ext(8, 78, -40, 16))
+    #r <- crop(r, ext(45, 50, -15, -10))
+    
+    n <- basename(fp)
+    st <- nchar(n)-6
+    sp <- nchar(n)-3
+    n <- substr(n, st, sp)
+    names(r) <- n
+    
+    if(nit == 0){mhw <- r}
+    else{mhw <- c(mhw, r)}
+    nit <- nit+1
+  }
+  
+  base <- (mhw[[1]]*0)+1
+  temp <- app(mhw, fun = dur, cores = 6)
+  mhw_dur <- temp*base
+  writeRaster(mhw_dur, paste0(work1_path, "/mhw_duration/mhw_mean_duration_", yr, ".tif"), overwrite = T)
+  cat("-", j)
+
+}
 ```
+
+# MHW final map of intensity*duration*frequency
+# Here we take the mean across all years from 1985 to 2023
 ```{r}
-l <- list.files(paste0(work1_path, "/mean_mhw/"))
+# MHW frequency
+l <- list.files(paste0(work1_path, "/mhw_days/"), full.names = T)
 r <- rast(l)
 r <- app(r, fun = 'mean')
-```
+r <- crop(r, ext(8, 78, -40, 16))
+r <- terra::project(r, grid_1km, method = "cubic")
+mhw_days <- r
 
-
-**********************
-
-```{r}
-r <- rast("./data_raw/glo/pres/cc_temp/lit/es2405071405188839/nmme_mhw_forecast_probability_1991_2020.nc")
-r <- r[[1:12]]
+# MHW intensity
+l <- list.files(paste0(work1_path, "/mhw_mean/"), full.names = T)
+r <- rast(l)
 r <- app(r, fun = 'mean')
-plot(r)
+r <- crop(r, ext(8, 78, -40, 16))
+r <- terra::project(r, grid_1km, method = "cubic")
+mhw_intens <- r
+
+# MHW duration
+l <- list.files(paste0(work1_path, "/mhw_duration/"), full.names = T)
+r <- rast(l)
+r <- app(r, fun = 'mean')
+r <- crop(r, ext(8, 78, -40, 16))
+r <- terra::project(r, grid_1km, method = "cubic")
+mhw_dur <- r
+
+mhw <- mhw_days*mhw_intens*mhw_dur
+#q <- quantile(terra::values(mhw, na.rm = T), probs = 0.50) # Add quantile cutoff? Default to no cutoff
+#mhw[mhw < q] <- 0
+plot(mhw)
 ```
 
 ```{r}
-crs(r) <- "+proj=longlat"
-#r[is.na(r)] <- 0
-suppressWarnings(
-r <- project(r, grid_1km, method = 'cubic')
-)
-
-plot(r)
+product1 <- mhw
 ```
 
+*****************************************************************
+*****************************************************************
 
+# EXPORT
+
+## Specify output directory and product file name
+```{r}
+(dest1_path_file1 <-paste0(dest1_path, "/", subtheme1, "_", name1, "_", version, d_version, ".tif"))
+```
+
+## Export image of product raster(s)
+```{r}
+(img_path <- paste0(dest1_path, "/", subtheme1, "_", name1, "_cutoff_", version, d_version, ".png"))
+grid_1km_raster <- raster::raster(grid_1km)
+prod1_scale <- raster::raster(product1)
+prod1_scale[prod1_scale == 0] <- NA
+prod1_scale[] <- scales::rescale(prod1_scale[], to = c(1, 100))
+prod1_scale[is.na(prod1_scale)] <- 0
+prod1_scale[is.na(grid_1km_raster)] <- NA
+
+
+png(img_path, width = ncol(prod1_scale), height = nrow(prod1_scale))
+pal <- colorRampPalette(rev(c('#d53e4f','#f46d43','#fdae61','#fee08b','#ffffbf','#e6f598','#abdda4','#66c2a5','#3288bd')))
+plot(prod1_scale, maxpixels = ncell(prod1_scale), main = "", axes = FALSE, ylim=raster::extent(prod1_scale)[3:4], 
+     breaks = seq(0,100,1), col = pal(101), legend = F, box = F, colNA = "gray92")
+dev.off()
+```
+
+## Export metadata
+```{r}
+sourcesym <- data.frame(matrix(data = NA, nrow = num_sources, ncol = 1))
+colnames(sourcesym) <- "id"
+
+for(i in 1:num_sources){
+  sourcesym[i,1] <- source_list[i]
+}
+
+sourcesym
+```
 
 ```{r}
-setwd("C:/GitHub/WIOSymphony/wiosym/data/reg/pres/cc_temp/temp_rise_mhw/v01/proc/mhw_noaa/2023/")
-getwd()
-l <- list.files()
-f <- l[1]
-r <- rast("noaa-crw_mhw_v1.0.1_category_20230101.nc")
+sourcesym_path <- paste0(dest1_path_file1, "_sourcesym.txt")
+write.table(sourcesym, sourcesym_path, row.names = F, sep = "\t")
 ```
 
-
+## Export product
 ```{r}
-l <- list.files(paste0(work1_path, "/mhw_noaa/", yr), full.names = T)
-fp <- l[5]
-r <- nc_open(fp)
+writeRaster(product1, dest1_path_file1, gdal = c("COMPRESS=LZW"), overwrite=TRUE)
 ```
-
-```{r}
-library(raster)
-l <- list.files(paste0(work1_path, "/mhw_noaa/", yr), full.names = T)
-fp <- l[5]
-
-r <- brick(fp, ncdf = T)+0
-```
-
 

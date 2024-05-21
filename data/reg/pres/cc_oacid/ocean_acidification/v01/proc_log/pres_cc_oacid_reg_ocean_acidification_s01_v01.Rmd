@@ -1,0 +1,211 @@
+# =========================================================================================================
+# Script by Edmond Sacre, SLU
+# =========================================================================================================
+
+# PREPARATIONS
+```{r, include = FALSE}
+# Install / load packages
+#x <- c("sf", "raster", "tidyr", "dplyr")
+#install.packages(x, dependencies=TRUE)
+```
+
+## Install packages
+```{r, include = FALSE}
+library(tidyr)
+library(dplyr)
+library(terra)
+```
+
+## View folders/themes
+```{r}
+#folders_raw <- read.table("./shiny_data_upload/folders.txt", sep = "\t", header = TRUE)
+#folders_data <- read.table("./process/templates/folders_data.txt", sep = "\t", header = TRUE)
+#folders <- folders_raw %>% add_row(folders_data)
+```
+
+## Define versions/directories
+```{r}
+version = "v01"
+d_version = ".0"
+location = "reg"   #check
+theme1 <- "pres"   #check
+subtheme1 <- "cc_oacid"   #check
+name1 <- "ocean_acidification"   #check
+name2 <- "" #check
+(dest1_path <- paste("./data", location, theme1, subtheme1, name1, version, sep="/"))
+(work1_path <- paste(dest1_path, "proc", sep="/"))
+(proc1_path <- paste(dest1_path, "proc_log", sep="/"))
+script_path <- "./process/r"
+(script_path_windows <- paste(getwd(), "/process/r", sep=""))
+(script_name <- paste(theme1, "_", subtheme1,"_", location, "_", name1,"_s01_",version, ".Rmd", sep=""))
+(dest1_path_file1 <-paste0(dest1_path, "/", subtheme1, "_", name1, "_", version, d_version, ".tif"))
+```
+
+## Create directories
+```{r}
+dir.create(dest1_path, recursive = TRUE)
+dir.create(work1_path, recursive = TRUE)
+dir.create(proc1_path, recursive = TRUE)
+```
+
+## Read in WIOSym standard grid
+```{r}
+grid_1km <- rast("./data/reg/grid/grid/v01/grid_1km_v01.1.tif")
+grid_proj <- rast("./products/grid/grid_1km_v01.1_epsg4326.tif")
+```
+
+## Define sources
+```{r}
+num_sources <- 1  # write the number of sources you will use in this script (to be used later for exporting metadata)
+  
+source1_dir <-  "./data_raw/glo/pres/cc_oacid/cmems/es2405150740325843/"    #check
+source1_id <- "es2405150740325843"    #check
+source1_metasym <- read.table(paste0(source1_dir, source1_id, "_metasym.txt"), sep = "\t")
+#source1_metasym # check that metasym file is populated, and fix if not - before finalising the processing
+
+source_list <- c(source1_id) # for multiple sources, should look like - c(source1_id, source2_id, source3_id) etc.
+```
+
+*****************************************************************
+*****************************************************************
+# PROCESSING
+
+# Install processing specific packages
+```{r, include = FALSE}
+library(terra)
+library(ncdf4)
+```
+
+# pH trend
+```{r}
+fp <- paste0(source1_dir, "global_omi_health_carbon_ph_trend_1985_P20230930.nc")
+ph_trend <- rast(fp)[["ph_trend"]]
+plot(ph_trend)
+
+fp <- paste0(source1_dir, "dataset-carbon-rep-monthly_1715761782373.nc")
+ph_1985 <- rast(fp)
+ph_1985 <- project(ph_1985, ph_trend, method = "near")
+plot(ph_1985)
+```
+
+# Convert pH changes to percentage (as pH is on a log scale) change in acidity
+```{r}
+ph_perc <- function(ph_initial, ph_final) {
+  h_initial <- 10^(-ph_initial)
+  h_final <- 10^(-ph_final)
+  ratio <- h_final / h_initial
+  perc <- (ratio - 1) * 100
+  return(perc)
+}
+
+ph_before <- ph_1985
+ph_after <- (ph_1985 + (ph_trend*38))
+plot(ph_after)
+
+v1 <- terra::values(ph_before)
+v2 <- terra::values(ph_after)
+
+v <- ph_perc(v1, v2)
+
+ph_change <- ph_after
+ph_change[] <- v
+ph_change <- ph_change/38
+ph_change <- crop(ph_change, ext(8, 78, -40, 16))
+#ph_change <- project(ph_change, grid_1km, method = "cubic")
+plot(ph_change)
+```
+
+```{r}
+fp <- paste0(dest1_path, "/resint.R")
+source(fp)
+
+ph_proj <- resint(ph_change, grid_1km, nit = 100, win_size = 2000, method = "cubic")
+plot(ph_proj)
+```
+# To compare the interpolated/extrapolate projection and resolution upscaling
+```{r}
+writeRaster(ph_change, paste0(dest1_path, "/ph_change.tif"), overwrite = T)
+writeRaster(ph_proj, paste0(dest1_path, "/ph_proj.tif"), overwrite = T)
+```
+
+# Transform data based on quantile cutoff to accentuate extreme areas
+```{r}
+ph <- ph_proj
+q <- quantile(terra::values(ph, na.rm = T), probs = 0.80) # Add quantile cutoff? Default to no cutoff
+ph[ph < q] <- 0
+ph_quant <- ph
+plot(ph_quant)
+```
+
+# Transform data based on exponential curve to accentuate extreme areas
+```{r}
+ph <- ph_proj
+ph <- exp(ph)^60
+ph <- ph/terra::minmax(ph)[2]
+ph_exp <- ph
+plot(ph_exp)
+```
+
+# To compare the interpolated/extrapolate projection and resolution upscaling
+```{r}
+writeRaster(ph_change, paste0(dest1_path, "/ph_change.tif"), overwrite = T)
+writeRaster(ph_proj, paste0(dest1_path, "/ph_proj.tif"), overwrite = T)
+writeRaster(ph_quant, paste0(dest1_path, "/ph_quantile.tif"), overwrite = T)
+writeRaster(ph_exp, paste0(dest1_path, "/ph_quantile.tif"), overwrite = T)
+```
+
+# Select which layer to use as final product
+```{r}
+product1 <- ph_quant
+```
+
+*****************************************************************
+*****************************************************************
+# EXPORT
+
+## Specify output directory and product file name
+```{r}
+(dest1_path_file1 <-paste0(dest1_path, "/", subtheme1, "_", name1, "_", version, d_version, ".tif"))
+```
+
+## Export image of product raster(s)
+```{r}
+(img_path <- paste0(dest1_path, "/", subtheme1, "_", name1, "_cutoff_", version, d_version, ".png"))
+grid_1km_raster <- raster::raster(grid_1km)
+prod1_scale <- raster::raster(product1)
+prod1_scale[prod1_scale == 0] <- NA
+prod1_scale[] <- scales::rescale(prod1_scale[], to = c(1, 100))
+prod1_scale[is.na(prod1_scale)] <- 0
+prod1_scale[is.na(grid_1km_raster)] <- NA
+
+
+png(img_path, width = ncol(prod1_scale), height = nrow(prod1_scale))
+pal <- colorRampPalette(rev(c('#d53e4f','#f46d43','#fdae61','#fee08b','#ffffbf','#e6f598','#abdda4','#66c2a5','#3288bd')))
+plot(prod1_scale, maxpixels = ncell(prod1_scale), main = "", axes = FALSE, ylim=raster::extent(prod1_scale)[3:4], 
+     breaks = seq(0,100,1), col = pal(101), legend = F, box = F, colNA = "gray92")
+dev.off()
+```
+
+## Export metadata
+```{r}
+sourcesym <- data.frame(matrix(data = NA, nrow = num_sources, ncol = 1))
+colnames(sourcesym) <- "id"
+
+for(i in 1:num_sources){
+  sourcesym[i,1] <- source_list[i]
+}
+
+sourcesym
+```
+
+```{r}
+sourcesym_path <- paste0(dest1_path_file1, "_sourcesym.txt")
+write.table(sourcesym, sourcesym_path, row.names = F, sep = "\t")
+```
+
+## Export product
+```{r}
+writeRaster(product1, dest1_path_file1, gdal = c("COMPRESS=LZW"), overwrite=TRUE)
+```
+
+

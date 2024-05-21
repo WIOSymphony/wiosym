@@ -19,7 +19,7 @@ script_path <- "./process/r"
 (dest1_path_file1 <-paste0(dest1_path, "/", subtheme1, "_", name1, "_", version, d_version, ".tif"))
 
 # Repeat for each year - data available from 1985
-for(i in 2000:2020){
+for(i in 1994:1999){
 
   yr <- i
   dir.create(paste0(work1_path, "/mhw_noaa/", yr))
