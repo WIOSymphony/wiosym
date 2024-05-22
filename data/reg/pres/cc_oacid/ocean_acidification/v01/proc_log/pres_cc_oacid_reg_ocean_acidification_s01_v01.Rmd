@@ -119,19 +119,19 @@ plot(ph_change)
 fp <- paste0(dest1_path, "/resint.R")
 source(fp)
 
-ph_proj <- resint(ph_change, grid_1km, nit = 100, win_size = 2000, method = "cubic")
+ph_proj <- resint(ph_change, grid_1km, nit = 100, win_size = 5000, method = "cubicspline")
 plot(ph_proj)
 ```
 # To compare the interpolated/extrapolate projection and resolution upscaling
 ```{r}
-writeRaster(ph_change, paste0(dest1_path, "/ph_change.tif"), overwrite = T)
-writeRaster(ph_proj, paste0(dest1_path, "/ph_proj.tif"), overwrite = T)
+#writeRaster(ph_change, paste0(dest1_path, "/ph_change.tif"), overwrite = T)
+#writeRaster(ph_proj, paste0(dest1_path, "/ph_proj.tif"), overwrite = T)
 ```
 
 # Transform data based on quantile cutoff to accentuate extreme areas
 ```{r}
 ph <- ph_proj
-q <- quantile(terra::values(ph, na.rm = T), probs = 0.80) # Add quantile cutoff? Default to no cutoff
+q <- quantile(terra::values(ph, na.rm = T), probs = 0.75) # Add quantile cutoff? Default to no cutoff
 ph[ph < q] <- 0
 ph_quant <- ph
 plot(ph_quant)
@@ -148,10 +148,10 @@ plot(ph_exp)
 
 # To compare the interpolated/extrapolate projection and resolution upscaling
 ```{r}
-writeRaster(ph_change, paste0(dest1_path, "/ph_change.tif"), overwrite = T)
-writeRaster(ph_proj, paste0(dest1_path, "/ph_proj.tif"), overwrite = T)
-writeRaster(ph_quant, paste0(dest1_path, "/ph_quantile.tif"), overwrite = T)
-writeRaster(ph_exp, paste0(dest1_path, "/ph_quantile.tif"), overwrite = T)
+#writeRaster(ph_change, paste0(dest1_path, "/ph_change.tif"), overwrite = T)
+#writeRaster(ph_proj, paste0(dest1_path, "/ph_proj.tif"), overwrite = T)
+#writeRaster(ph_quant, paste0(dest1_path, "/ph_quantile.tif"), overwrite = T)
+#writeRaster(ph_exp, paste0(dest1_path, "/ph_quantile.tif"), overwrite = T)
 ```
 
 # Select which layer to use as final product
@@ -170,7 +170,7 @@ product1 <- ph_quant
 
 ## Export image of product raster(s)
 ```{r}
-(img_path <- paste0(dest1_path, "/", subtheme1, "_", name1, "_cutoff_", version, d_version, ".png"))
+(img_path <- paste0(dest1_path, "/", subtheme1, "_", name1, "_", version, d_version, ".png"))
 grid_1km_raster <- raster::raster(grid_1km)
 prod1_scale <- raster::raster(product1)
 prod1_scale[prod1_scale == 0] <- NA

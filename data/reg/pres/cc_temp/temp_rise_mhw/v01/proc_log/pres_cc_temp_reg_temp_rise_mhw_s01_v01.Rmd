@@ -294,7 +294,7 @@ product1 <- mhw
 
 ## Export image of product raster(s)
 ```{r}
-(img_path <- paste0(dest1_path, "/", subtheme1, "_", name1, "_cutoff_", version, d_version, ".png"))
+(img_path <- paste0(dest1_path, "/", subtheme1, "_", name1, "_", version, d_version, ".png"))
 grid_1km_raster <- raster::raster(grid_1km)
 prod1_scale <- raster::raster(product1)
 prod1_scale[prod1_scale == 0] <- NA
