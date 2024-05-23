@@ -277,7 +277,7 @@ mhw <- mhw_days*mhw_intens*mhw_dur
 #mhw[mhw < q] <- 0
 plot(mhw)
 ```
-
+# Max value = 299 mean MHW days per year * mean MHW category per year * mean MHW duration days per year
 ```{r}
 product1 <- mhw
 ```
