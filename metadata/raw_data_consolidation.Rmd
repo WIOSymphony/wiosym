@@ -1,6 +1,5 @@
 ---
 title: "R Notebook"
-output: html_notebook
 ---
 
 ```{r, include=FALSE}
@@ -12,13 +11,15 @@ library(gsheet)
 
 # Import all 
 ```{r}
+ver <- "v2.2"
 sourceloc <- "../data/"
 metaloc <- "../data_raw/"
 #meta <- list.files(path = "./data/", pattern = "_sourcesym.txt", recursive = T)
 source.long <- list.files(path = sourceloc, pattern = "_sourcesym.txt", recursive = T, full.names = T)
 source.short <- basename(source.long)
 
-layers <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing")
+#layers <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing")
+layers <- rio::import(paste0("layers_metadata/", ver, "/layers_metadata_", ver, ".xlsx"))
 layers <- filter(layers, is.na(file_name) == FALSE)
 ```
 
@@ -27,11 +28,24 @@ df <- data.frame("short_name" = as.character(1:nrow(layers)), "sourcesym" = NA)
 
 for(i in 1:nrow(layers)){
   v1 <- layers$sourcesym[i]
-  v2 <- meta.short
-  m <- meta[which(v2 %in% v1)]
+  v2 <- source.short
+  m <- source.long[which(v2 %in% v1)]
   
   df$short_name[i] <- layers$short_name[i]
   df$sourcesym[i] <- m
+}
+```
+
+```{r}
+l <- vector(mode = "list", length = 5)
+```
+
+```{r}
+for(i in 1:nrow(df)){
+#for(i in 8:8){
+  f <- paste0(sourceloc, df$sourcesym[i])
+  f <- read.table(f, header = T)
+  cat("\nIt", i, f$id)
 }
 ```
 
@@ -49,14 +63,7 @@ l <- list.files("../data_raw", recursive = T, full.names = T)
 df <- data.frame("short_name" = NA)
 ```
 
-```{r}
-#for(i in 1:length(meta)){
-for(i in 8:8){
-  f <- paste0(sourceloc, meta[i])
-  f <- read.table(f, header = T)
-  cat("\nIt", i, f$id)
-}
-```
+
 
 ```{r}
 df <- read.delim(l[grep(f$id[2], l)])
