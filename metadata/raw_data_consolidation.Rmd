@@ -18,6 +18,9 @@ metaloc <- "../data_raw/"
 source.long <- list.files(path = sourceloc, pattern = "_sourcesym.txt", recursive = T, full.names = T)
 source.short <- basename(source.long)
 
+meta.long <- list.files(path = metaloc, pattern = "_metasym.txt", recursive = T, full.names = T)
+meta.short <- basename(meta.long)
+
 #layers <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing")
 layers <- rio::import(paste0("layers_metadata/", ver, "/layers_metadata_", ver, ".xlsx"))
 layers <- filter(layers, is.na(file_name) == FALSE)
@@ -37,12 +40,40 @@ for(i in 1:nrow(layers)){
 ```
 
 ```{r}
-l <- vector(mode = "list", length = 5)
+l <- vector(mode = "list", length = nrow(df))
+for(i in 1:nrow(df)){
+  f <- paste0(sourceloc, df$sourcesym[i])
+  f <- read.table(f, header = T)
+  l[[i]] <- f$id
+  #cat("\nIt", i, f$id)
+}
+
 ```
 
 ```{r}
-for(i in 1:nrow(df)){
-#for(i in 8:8){
+
+for(i in 1:length(l)){
+  for(j in 1:length(l[[i]])){
+    p <- paste0(l[[i]][j], "_metasym.txt")
+  }
+  
+}
+```
+
+```{r}
+p <- paste0(l[[1]][1], "_metasym.txt")
+f <- list.files(path = metaloc, pattern = p, recursive = T, full.names = T)
+f <- read.table(f, header = F)
+
+f <- setNames(data.frame(t(f[,-1])), f[,1])
+```
+
+
+**********************************
+
+```{r}
+#for(i in 1:nrow(df)){
+for(i in 1:17){
   f <- paste0(sourceloc, df$sourcesym[i])
   f <- read.table(f, header = T)
   cat("\nIt", i, f$id)
