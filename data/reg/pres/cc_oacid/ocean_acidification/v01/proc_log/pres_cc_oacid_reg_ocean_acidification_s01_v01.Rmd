@@ -1,5 +1,11 @@
 # =========================================================================================================
 # Script by Edmond Sacre, SLU
+# This layer was created using Copernicus Marine Service on ocean pH trends. The map represents the average 
+# yearly percentage increase in acidity. Because the pH scale is on a log scale, percentage differences in acidity
+# were calculated by takin the log of the pH difference. The layer was resampled to a higher resolution using a 
+# cubic spline interpolation. Finally, because ocean is acidification is a widespread phenomenon, we transformed 
+# the data to accentuate extremely high acidification areas. We used a fairly stark power transformation 
+# of (x*10)^30, where x is the percentage increase in acidity. 
 # =========================================================================================================
 
 # PREPARATIONS
