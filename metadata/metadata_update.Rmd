@@ -3,7 +3,6 @@ title: "R Notebook"
 ---
 
 # Run this script to update the metadata when updating the layer stack
-
 ```{r, include=FALSE}
 library(dplyr)
 library(tidyr)
@@ -88,17 +87,31 @@ for(i in 1:length(l)){
 }
 ```
 
+# Add github links
+```{r}
+layers$script_link <- paste0("https://github.com/WIOSymphony/wiosym/blob/main", 
+                              layers$internal_work_path, 
+                              "/proc_log/", 
+                              layers$script_name)
+
+layers$layer_download <- NA
+n <- layers$short_name[which(layers$theme == "Ecosystem")]
+layers$layer_download[which(layers$theme == "Ecosystem")] <- paste0("https://github.com/WIOSymphony/wiosym/raw/main/products/", 
+                                                                    ver, "/output_geotiffs/eco/", n, ".tif")
+n <- layers$short_name[which(layers$theme == "Pressure")]
+layers$layer_download[which(layers$theme == "Pressure")] <- paste0("https://github.com/WIOSymphony/wiosym/raw/main/products/", 
+                                                                    ver, "/output_geotiffs/pres/", n, ".tif")
+```
+
 # Overwrite version metadata
 ```{r}
 old <- rio::import(paste0("layers_metadata/", ver, "/layers_metadata_", ver, ".xlsx"))
 new <- layers
 
-old <- subset(old, select=-c(source_citation, source_url))
-new <- select(new, short_name, source_citation, source_url)
+old <- subset(old, select=-c(source_citation, source_url, script_link))
+new <- select(new, short_name, source_citation, source_url, script_link, layer_download)
 new <- left_join(old, new, by = "short_name")
-```
 
-```{r}
 char_matrix <- as.matrix(new)
 char_matrix <- iconv(char_matrix, from = "UTF-8", to = "UTF-8", sub = "")
 remove_replacement_char <- function(x) {
@@ -110,6 +123,8 @@ clean_matrix <- apply(char_matrix, 2, function(column) {
 
 # Convert the cleaned matrix back to a data frame
 new <- as.data.frame(clean_matrix, stringsAsFactors = FALSE)
+new$band <- as.numeric(new$band)
+new$max_value <- as.numeric(new$max_value)
 
 fp <- paste0("../products/layers_metadata_", ver, ".xlsx")
 rio::export(new, fp)
