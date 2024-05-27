@@ -2,6 +2,8 @@
 title: "R Notebook"
 ---
 
+# Run this script to update the metadata when updating the layer stack
+
 ```{r, include=FALSE}
 library(dplyr)
 library(tidyr)
@@ -9,7 +11,6 @@ library(rio)
 library(gsheet)
 ```
 
-# Import all 
 ```{r}
 ver <- "v2.2"
 sourceloc <- "../data/"
@@ -21,7 +22,6 @@ source.short <- basename(source.long)
 meta.long <- list.files(path = metaloc, pattern = "_metasym.txt", recursive = T, full.names = T)
 meta.short <- basename(meta.long)
 
-#layers <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing")
 layers <- rio::import(paste0("layers_metadata/", ver, "/layers_metadata_", ver, ".xlsx"))
 layers <- filter(layers, is.na(file_name) == FALSE)
 ```
@@ -51,7 +51,7 @@ for(i in 1:nrow(df)){
 ```
 
 ```{r}
-layers$cits <- NA
+layers$source_citation <- NA
 
 for(i in 1:length(l)){
   cits <- NULL
@@ -65,7 +65,7 @@ for(i in 1:length(l)){
   }
   
   cits <- paste(cits, collapse = "; ")
-  layers$cits[i] <- cits
+  layers$source_citation[i] <- cits
 }
 ```
 
@@ -88,5 +88,35 @@ for(i in 1:length(l)){
 }
 ```
 
+# Overwrite version metadata
+```{r}
+old <- rio::import(paste0("layers_metadata/", ver, "/layers_metadata_", ver, ".xlsx"))
+new <- layers
+
+old <- subset(old, select=-c(source_citation, source_url))
+new <- select(new, short_name, source_citation, source_url)
+new <- left_join(old, new, by = "short_name")
+```
+
+```{r}
+char_matrix <- as.matrix(new)
+char_matrix <- iconv(char_matrix, from = "UTF-8", to = "UTF-8", sub = "")
+remove_replacement_char <- function(x) {
+  gsub("�", "", x)
+}
+clean_matrix <- apply(char_matrix, 2, function(column) {
+  sapply(column, remove_replacement_char)
+})
+
+# Convert the cleaned matrix back to a data frame
+new <- as.data.frame(clean_matrix, stringsAsFactors = FALSE)
+
+fp <- paste0("../products/layers_metadata_", ver, ".xlsx")
+rio::export(new, fp)
+#fp <- paste0("../products/layers_metadata_", ver, ".csv")
+#write.csv(new, fp, fileEncoding = 'UTF-8')
+#fp <- paste0("../products/layers_metadata_", ver, ".RDS")
+#saveRDS(new, fp)
+```
 
 
