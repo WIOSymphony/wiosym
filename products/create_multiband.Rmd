@@ -5,7 +5,7 @@ output: html_notebook
 
 # Specify version
 ```{r}
-ver <- "v2.1"
+ver <- "v2.2"
 dir.create(paste0(ver, "/source_layers"), recursive = T)
 dir.create(paste0(ver, "/source_layers_fixed"), recursive = T)
 dir.create(paste0(ver, "/source_layers_reproject"), recursive = T)
@@ -25,7 +25,7 @@ library(scales)
 library(crayon)
 library(mapview)
 library(RColorBrewer)
-library(rgdal)
+#library(rgdal)
 #library(terra)
 
 # Import grid
@@ -33,13 +33,13 @@ grid <- raster("grid/grid_1km_v01.1.tif")
 grid_proj <- raster("grid/grid_1km_v01.1_proj.tif")
 #grid_proj <- projectRaster(grid, crs = CRS("+proj=longlat +datum=WGS84 +no_defs"), method = "ngb")
 
-meta <- rio::import(paste0("layer_list_", ver, ".xlsx"))
+meta <- rio::import(paste0("layers_metadata_", ver, ".xlsx"))
 meta$file_name[is.na(meta$file_name)] <- "placeholder.tif"
 ```
 
 # ECOSYSTEMT COMPONENTS - check layer projection, extent, resolution, and export correction
 ```{r}
-layers <- rio::import(paste0("layer_list_", ver, ".xlsx")) |> dplyr::filter(theme == "Ecosystem")
+layers <- rio::import(paste0("layers_metadata_", ver, ".xlsx")) |> dplyr::filter(theme == "Ecosystem")
 layer_files <- layers$file_name
 layer_files[is.na(layer_files)] <- "placeholder.tif"
 #layer_files <- layer_files[c(24,25)] # run for only select layers
@@ -93,7 +93,7 @@ for(i in 1:length(layer_files)){
 
 # PRESSURES - check layer projection, extent, resolution, and export correction
 ```{r}
-layers <- rio::import(paste0("layer_list_", ver, ".xlsx")) |> dplyr::filter(theme == "Pressure")
+layers <- rio::import(paste0("layers_metadata_", ver, ".xlsx")) |> dplyr::filter(theme == "Pressure")
 layer_files <- layers$file_name
 layer_files[is.na(layer_files)] <- "placeholder.tif"
 #layer_files <- layer_files[c(24,25)] # run for only select layers
@@ -163,16 +163,16 @@ for(i in 1:length(l)){
 
 # ECOSYSTEMT COMPONENTS - create images
 ```{r}
-grid <- terra::rast("grid/grid_1km_v01.1.tif")
-place <- terra::rast("grid/grid_1km_v01.1.tif") * 0
-layers <- rio::import(paste0("layer_list_", ver, ".xlsx")) |> dplyr::filter(theme == "Ecosystem")
+grid <- raster::raster("grid/grid_1km_v01.1.tif")
+place <- raster::raster("grid/grid_1km_v01.1.tif") * 0
+layers <- rio::import(paste0("layers_metadata_", ver, ".xlsx")) |> dplyr::filter(theme == "Ecosystem")
 #layers <- filter(layers, title == "Deep pelagic" | title == "Midwater pelagic") # run for only select layers
 layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
 layer_files <- layers$file_name
 
 for(i in 1:length(layers$title)){
   if(layer_files[i] == "placeholder.tif") {next}
-  temp <- terra::rast(paste0(ver, "/source_layers_fixed/", layers$file_name[i]))
+  temp <- raster::raster(paste0(ver, "/source_layers_fixed/", layers$file_name[i]))
   temp[temp == 0] <- NA #???
   temp[] <- scales::rescale(temp[], to = c(1, layers$max_value[i]))
   #if(layers$file_name[i] == "placeholder.tif"){temp <- place}
@@ -181,7 +181,7 @@ for(i in 1:length(layers$title)){
   temp[is.na(grid)] <- NA
   png(paste0(ver, "/output_images/eco/", layers$title[i], ".png"), width = ncol(temp), height = nrow(temp))
   pal <- colorRampPalette(rev(c('#d53e4f','#f46d43','#fdae61','#fee08b','#ffffbf','#e6f598','#abdda4','#66c2a5','#3288bd')))
-  terra::plot(temp, maxcell = ncell(temp), main = "", axes = FALSE, ylim=terra::ext(temp)@ptr[["vector"]][3:4], 
+  raster::plot(temp, maxpixels = ncell(temp), main = "", axes = FALSE, ylim=raster::extent(temp)[3:4], 
        breaks = seq(0,100,1), col = pal(101), legend = F, box = F, colNA = "gray92")
   dev.off()
   cat("\nIteration", i, "done")
@@ -190,25 +190,25 @@ for(i in 1:length(layers$title)){
 
 # PRESSURES - create images
 ```{r}
-grid <- terra::rast("grid/grid_1km_v01.1.tif")
-place <- terra::rast("grid/grid_1km_v01.1.tif") * 0
-layers <- rio::import(paste0("layer_list_", ver, ".xlsx")) |> dplyr::filter(theme == "Pressure")
+grid <- raster::raster("grid/grid_1km_v01.1.tif")
+place <- raster::raster("grid/grid_1km_v01.1.tif") * 0
+layers <- rio::import(paste0("layers_metadata_", ver, ".xlsx")) |> dplyr::filter(theme == "Pressure")
 #layers <- filter(layers, title == "Deep pelagic" | title == "Midwater pelagic") # run for only select layers
 layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
 layer_files <- layers$file_name
 
 for(i in 1:length(layers$title)){
   if(layer_files[i] == "placeholder.tif") {next}
-  temp <- terra::rast(paste0(ver, "/source_layers_fixed/", layers$file_name[i]))
+  temp <- raster::raster(paste0(ver, "/source_layers_fixed/", layers$file_name[i]))
   temp[temp == 0] <- NA #???
   temp[] <- scales::rescale(temp[], to = c(1, layers$max_value[i]))
   #if(layers$file_name[i] == "placeholder.tif"){temp <- place}
   temp[is.na(temp)] <- 0
   #temp <- round(temp, digits = 0)
   temp[is.na(grid)] <- NA
-  png(paste0(ver, "/output_images/pres/", layers$title[i], ".png"), width = ncol(temp), height = nrow(temp))
+  png(paste0(ver, "/output_images/eco/", layers$title[i], ".png"), width = ncol(temp), height = nrow(temp))
   pal <- colorRampPalette(rev(c('#d53e4f','#f46d43','#fdae61','#fee08b','#ffffbf','#e6f598','#abdda4','#66c2a5','#3288bd')))
-  terra::plot(temp, maxcell = ncell(temp), main = "", axes = FALSE, ylim=terra::ext(temp)@ptr[["vector"]][3:4], 
+  raster::plot(temp, maxpixels = ncell(temp), main = "", axes = FALSE, ylim=raster::extent(temp)[3:4], 
        breaks = seq(0,100,1), col = pal(101), legend = F, box = F, colNA = "gray92")
   dev.off()
   cat("\nIteration", i, "done")
@@ -217,10 +217,10 @@ for(i in 1:length(layers$title)){
 
 # ECOSYSTEM COMPONENTS - Export individual layers in small file size for GitHub
 ```{r, message = FALSE}
-grid <- raster("grid/grid_1km_v01.1.tif")
-grid_proj <- raster("grid/grid_1km_v01.1_proj.tif")
+grid <- raster::raster("grid/grid_1km_v01.1.tif")
+grid_proj <- raster::raster("grid/grid_1km_v01.1_proj.tif")
 place <- grid_proj * 0
-layers <- rio::import(paste0("layer_list_", ver, ".xlsx"))  |> dplyr::filter(theme == "Ecosystem")
+layers <- rio::import(paste0("layers_metadata_", ver, ".xlsx")) |> dplyr::filter(theme == "Ecosystem")
 layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
 layer_files <- layers$file_name
 
@@ -243,10 +243,10 @@ for(i in 1:length(layer_files)){
 
 # PRESSURES - Export individual layers in small file size for GitHub
 ```{r}
-grid <- raster("grid/grid_1km_v01.1.tif")
-grid_proj <- raster("grid/grid_1km_v01.1_proj.tif")
+grid <- raster::raster("grid/grid_1km_v01.1.tif")
+grid_proj <- raster::raster("grid/grid_1km_v01.1_proj.tif")
 place <- grid_proj * 0
-layers <- rio::import(paste0("layer_list_", ver, ".xlsx"))  |> dplyr::filter(theme == "Pressure")
+layers <- rio::import(paste0("layers_metadata_", ver, ".xlsx")) |> dplyr::filter(theme == "Pressure")
 layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
 layer_files <- layers$file_name
 
@@ -269,10 +269,10 @@ for(i in 1:length(layer_files)){
 
 # ECOSYSTEM COMPONENTS - create multiband tif
 ```{r}
-grid <- raster("grid/grid_1km_v01.1.tif")
-grid_proj <- raster("grid/grid_1km_v01.1_proj.tif")
+grid <- raster::raster("grid/grid_1km_v01.1.tif")
+grid_proj <- raster::raster("grid/grid_1km_v01.1_proj.tif")
 place <- grid_proj * 0
-layers <- rio::import(paste0("layer_list_", ver, ".xlsx"))  |> dplyr::filter(theme == "Ecosystem")
+layers <- rio::import(paste0("layers_metadata_", ver, ".xlsx")) |> dplyr::filter(theme == "Ecosystem")
 layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
 layer_files <- layers$file_name
 
@@ -297,10 +297,10 @@ writeRaster(eco, paste0(ver, "/output_multiband/ecosystems_", ver, ".tif"), band
 
 # PRESSURES - create multiband tif
 ```{r}
-grid <- raster("grid/grid_1km_v01.1.tif")
-grid_proj <- raster("grid/grid_1km_v01.1_proj.tif")
+grid <- raster::raster("grid/grid_1km_v01.1.tif")
+grid_proj <- raster::raster("grid/grid_1km_v01.1_proj.tif")
 place <- grid_proj * 0
-layers <- rio::import(paste0("layer_list_", ver, ".xlsx"))  |> dplyr::filter(theme == "Pressure")
+layers <- rio::import(paste0("layers_metadata_", ver, ".xlsx")) |> dplyr::filter(theme == "Pressure")
 layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
 layer_files <- layers$file_name
 
