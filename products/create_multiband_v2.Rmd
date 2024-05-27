@@ -1,0 +1,343 @@
+---
+title: "R Notebook"
+---
+
+# Specify version
+```{r}
+ver <- "v2.2"
+dir.create(paste0(ver, "/source_layers"), recursive = T)
+dir.create(paste0(ver, "/source_layers_fixed"), recursive = T)
+dir.create(paste0(ver, "/source_layers_reproject"), recursive = T)
+dir.create(paste0(ver, "/output_images/eco"), recursive = T)
+dir.create(paste0(ver, "/output_images/pres"), recursive = T)
+dir.create(paste0(ver, "/output_multiband"), recursive = T)
+dir.create(paste0(ver, "/output_geotiffs/eco"), recursive = T)
+dir.create(paste0(ver, "/output_geotiffs/pres"), recursive = T)
+```
+
+```{r, warning=FALSE}
+library(raster)
+library(dplyr)
+library(tidyr)
+library(rio)
+library(scales)
+library(crayon)
+library(mapview)
+library(RColorBrewer)
+#library(rgdal)
+#library(terra)
+
+# Import grid
+grid <- raster("grid/grid_1km_v01.1.tif")
+grid_proj <- raster("grid/grid_1km_v01.1_proj.tif")
+#grid_proj <- projectRaster(grid, crs = CRS("+proj=longlat +datum=WGS84 +no_defs"), method = "ngb")
+
+meta <- rio::import(paste0("layers_metadata_", ver, ".xlsx"))
+meta$file_name[is.na(meta$file_name)] <- "placeholder.tif"
+```
+
+# ECOSYSTEMT COMPONENTS - check layer projection, extent, resolution, and export correction
+```{r}
+layers <- rio::import(paste0("layers_metadata_", ver, ".xlsx")) |> dplyr::filter(theme == "Ecosystem")
+layer_files <- layers$file_name
+layer_files[is.na(layer_files)] <- "placeholder.tif"
+#layer_files <- layer_files[c(24,25)] # run for only select layers
+l <- list.files(paste0(ver, "/source_layers"), recursive = T, full.names = T)
+
+for(i in 1:length(layer_files)){
+  
+  ind <- grepl(layer_files[i], l)
+  
+  if(!any(ind)){
+    layer_files[i] <- "placeholder.tif"
+    ind <- grepl(layer_files[i], l)
+    temp <- raster(l[ind])
+    if(identical(crs(grid), crs(temp)) == F) {temp <- projectRaster(temp, grid)}
+    x1 <- identical(extent(grid), extent(temp))
+    x2 <- identical(crs(grid), crs(temp))
+    x3 <- identical(res(grid), res(temp))
+    cat("\nLayer", i ,"checked - ", layers$title[i], " - ")
+    if(x1&x2&x3){cat(layer_files[i], "passed checks")} else{cat(red("WARNING:", layer_files[i], "FAILED checks"))}
+    cat(red("WARNING: the specified file ", layers$file_name[i], " could not be found, using a placeholder tif instead"))
+    writeRaster(temp, paste0(ver, "/source_layers_fixed/", layer_files[i]), overwrite = T)
+  } else
+  
+  if(is.na(layers$file_name[i])){
+    temp <- raster(l[ind])
+    if(identical(crs(grid), crs(temp)) == F) {temp <- projectRaster(temp, grid)}
+    x1 <- identical(extent(grid), extent(temp))
+    x2 <- identical(crs(grid), crs(temp))
+    x3 <- identical(res(grid), res(temp))
+    cat("\nLayer", i ,"checked - ", layers$title[i], " - ")
+    if(x1&x2&x3){cat(layer_files[i], "passed checks")} else{cat(red("WARNING:", layer_files[i], "FAILED checks"))}
+    cat(cyan(" - WARNING: no file name was specified, placeholder tif used for ", layers$title[i]))
+    writeRaster(temp, paste0(ver, "/source_layers_fixed/", layer_files[i]), overwrite = T)
+    
+  } else
+  
+  if(any(ind)){
+  
+    temp <- raster(l[ind])
+    if(identical(crs(grid), crs(temp)) == F) {temp <- projectRaster(temp, grid)}
+    x1 <- identical(extent(grid), extent(temp))
+    x2 <- identical(crs(grid), crs(temp))
+    x3 <- identical(res(grid), res(temp))
+    cat("\nLayer", i ,"checked - ", layers$title[i], " - ")
+    if(x1&x2&x3){cat(layer_files[i], "passed checks")} else{cat(red("WARNING:", layer_files[i], "FAILED checks"))}
+    writeRaster(temp, paste0(ver, "/source_layers_fixed/", layer_files[i]), overwrite = T)
+  
+  }
+}
+```
+
+# PRESSURES - check layer projection, extent, resolution, and export correction
+```{r}
+layers <- rio::import(paste0("layers_metadata_", ver, ".xlsx")) |> dplyr::filter(theme == "Pressure")
+layer_files <- layers$file_name
+layer_files[is.na(layer_files)] <- "placeholder.tif"
+#layer_files <- layer_files[c(24,25)] # run for only select layers
+l <- list.files(paste0(ver, "/source_layers"), recursive = T, full.names = T)
+
+for(i in 1:length(layer_files)){
+  
+  ind <- grepl(layer_files[i], l)
+  
+  if(!any(ind)){
+    layer_files[i] <- "placeholder.tif"
+    ind <- grepl(layer_files[i], l)
+    temp <- raster(l[ind])
+    if(identical(crs(grid), crs(temp)) == F) {temp <- projectRaster(temp, grid)}
+    x1 <- identical(extent(grid), extent(temp))
+    x2 <- identical(crs(grid), crs(temp))
+    x3 <- identical(res(grid), res(temp))
+    cat("\nLayer", i ,"checked - ", layers$title[i], " - ")
+    if(x1&x2&x3){cat(layer_files[i], "passed checks")} else{cat(red("WARNING:", layer_files[i], "FAILED checks"))}
+    cat(red("WARNING: the specified file ", layers$file_name[i], " could not be found, using a placeholder tif instead"))
+    writeRaster(temp, paste0(ver, "/source_layers_fixed/", layer_files[i]), overwrite = T)
+  } else
+  
+  if(is.na(layers$file_name[i])){
+    temp <- raster(l[ind])
+    if(identical(crs(grid), crs(temp)) == F) {temp <- projectRaster(temp, grid)}
+    x1 <- identical(extent(grid), extent(temp))
+    x2 <- identical(crs(grid), crs(temp))
+    x3 <- identical(res(grid), res(temp))
+    cat("\nLayer", i ,"checked - ", layers$title[i], " - ")
+    if(x1&x2&x3){cat(layer_files[i], "passed checks")} else{cat(red("WARNING:", layer_files[i], "FAILED checks"))}
+    cat(cyan(" - WARNING: no file name was specified, placeholder tif used for ", layers$title[i]))
+    writeRaster(temp, paste0(ver, "/source_layers_fixed/", layer_files[i]), overwrite = T)
+    
+  } else
+  
+  if(any(ind)){
+  
+    temp <- raster(l[ind])
+    if(identical(crs(grid), crs(temp)) == F) {temp <- projectRaster(temp, grid)}
+    x1 <- identical(extent(grid), extent(temp))
+    x2 <- identical(crs(grid), crs(temp))
+    x3 <- identical(res(grid), res(temp))
+    cat("\nLayer", i ,"checked - ", layers$title[i], " - ")
+    if(x1&x2&x3){cat(layer_files[i], "passed checks")} else{cat(red("WARNING:", layer_files[i], "FAILED checks"))}
+    writeRaster(temp, paste0(ver, "/source_layers_fixed/", layer_files[i]), overwrite = T)
+  
+  }
+}
+```
+
+# Reproject all rasters
+```{r}
+# Import grid
+grid <- terra::rast("grid/grid_1km_v01.1.tif")
+grid_proj <- terra::rast("grid/grid_1km_v01.1_proj.tif")
+l <- list.files(paste0(ver,"/source_layers_fixed"))
+#l <- l[c(1,50)] # run for only select layers
+
+for(i in 1:length(l)){
+  temp <- terra::rast(paste0(ver, "/source_layers_fixed/", l[i]))
+  temp <- terra::project(temp, grid_proj)
+  terra::writeRaster(temp, paste0(ver, "/source_layers_reproject/", l[i]), overwrite = T)
+  cat("\nIteration", i, "done")
+}
+```
+
+# ECOSYSTEMT COMPONENTS - create images
+```{r}
+grid <- raster::raster("grid/grid_1km_v01.1.tif")
+place <- raster::raster("grid/grid_1km_v01.1.tif") * 0
+layers <- rio::import(paste0("layers_metadata_", ver, ".xlsx")) |> dplyr::filter(theme == "Ecosystem")
+#layers <- filter(layers, title == "Deep pelagic" | title == "Midwater pelagic") # run for only select layers
+layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
+layer_files <- layers$file_name
+
+for(i in 1:length(layers$title)){
+  if(layer_files[i] == "placeholder.tif") {next}
+  temp <- raster::raster(paste0(ver, "/source_layers_fixed/", layers$file_name[i]))
+  temp[temp == 0] <- NA #???
+  temp[] <- scales::rescale(temp[], to = c(1, layers$max_value[i]))
+  #if(layers$file_name[i] == "placeholder.tif"){temp <- place}
+  temp[is.na(temp)] <- 0
+  #temp <- round(temp, digits = 0)
+  temp[is.na(grid)] <- NA
+  png(paste0(ver, "/output_images/eco/", layers$title[i], ".png"), width = ncol(temp), height = nrow(temp))
+  pal <- colorRampPalette(rev(c('#d53e4f','#f46d43','#fdae61','#fee08b','#ffffbf','#e6f598','#abdda4','#66c2a5','#3288bd')))
+  raster::plot(temp, maxpixels = ncell(temp), main = "", axes = FALSE, ylim=raster::extent(temp)[3:4], 
+       breaks = seq(0,100,1), col = pal(101), legend = F, box = F, colNA = "gray92")
+  dev.off()
+  cat("\nIteration", i, "done")
+}
+```
+
+# PRESSURES - create images
+```{r}
+grid <- raster::raster("grid/grid_1km_v01.1.tif")
+place <- raster::raster("grid/grid_1km_v01.1.tif") * 0
+layers <- rio::import(paste0("layers_metadata_", ver, ".xlsx")) |> dplyr::filter(theme == "Pressure")
+#layers <- filter(layers, title == "Deep pelagic" | title == "Midwater pelagic") # run for only select layers
+layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
+layer_files <- layers$file_name
+
+for(i in 1:length(layers$title)){
+  if(layer_files[i] == "placeholder.tif") {next}
+  temp <- raster::raster(paste0(ver, "/source_layers_fixed/", layers$file_name[i]))
+  temp[temp == 0] <- NA #???
+  temp[] <- scales::rescale(temp[], to = c(1, layers$max_value[i]))
+  #if(layers$file_name[i] == "placeholder.tif"){temp <- place}
+  temp[is.na(temp)] <- 0
+  #temp <- round(temp, digits = 0)
+  temp[is.na(grid)] <- NA
+  png(paste0(ver, "/output_images/eco/", layers$title[i], ".png"), width = ncol(temp), height = nrow(temp))
+  pal <- colorRampPalette(rev(c('#d53e4f','#f46d43','#fdae61','#fee08b','#ffffbf','#e6f598','#abdda4','#66c2a5','#3288bd')))
+  raster::plot(temp, maxpixels = ncell(temp), main = "", axes = FALSE, ylim=raster::extent(temp)[3:4], 
+       breaks = seq(0,100,1), col = pal(101), legend = F, box = F, colNA = "gray92")
+  dev.off()
+  cat("\nIteration", i, "done")
+}
+```
+
+# ECOSYSTEM COMPONENTS - Export individual layers in small file size for GitHub
+```{r, message = FALSE}
+grid <- raster::raster("grid/grid_1km_v01.1.tif")
+grid_proj <- raster::raster("grid/grid_1km_v01.1_proj.tif")
+place <- grid_proj * 0
+layers <- rio::import(paste0("layers_metadata_", ver, ".xlsx")) |> dplyr::filter(theme == "Ecosystem")
+layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
+layer_files <- layers$file_name
+
+for(i in 1:length(layer_files)){
+  temp <- raster(paste0(ver, "/source_layers_reproject/", layer_files[i]))
+  temp[temp == 0] <- NA
+  if(layer_files[i] == "placeholder.tif"){temp <- place}
+  if(layer_files[i] != "placeholder.tif"){temp[] <- scales::rescale(temp[], to = c(1, layers$max_value[i]))}
+  temp[is.na(temp)] <- 0
+  temp[is.na(grid_proj)] <- NA
+  temp <- round(temp, digits = 0)
+  temp <- as.integer(temp)
+  n <- layers$layer_file_name[i]
+  if(layer_files[i] != "placeholder.tif"){
+    writeRaster(temp, paste0(ver, "/output_geotiffs/eco/", n, ".tif"), datatype = 'INT2U', COMPRESS=LZW,overwrite = T)
+    }
+  cat("\nIteration", i, "complete - Title:", layers$title[i], "- TIFF name:", layers$file_name[i])
+}
+```
+
+# PRESSURES - Export individual layers in small file size for GitHub
+```{r}
+grid <- raster::raster("grid/grid_1km_v01.1.tif")
+grid_proj <- raster::raster("grid/grid_1km_v01.1_proj.tif")
+place <- grid_proj * 0
+layers <- rio::import(paste0("layers_metadata_", ver, ".xlsx")) |> dplyr::filter(theme == "Pressure")
+layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
+layer_files <- layers$file_name
+
+for(i in 1:length(layer_files)){
+  temp <- raster(paste0(ver, "/source_layers_reproject/", layer_files[i]))
+  temp[temp == 0] <- NA
+  if(layer_files[i] == "placeholder.tif"){temp <- place}
+  if(layer_files[i] != "placeholder.tif"){temp[] <- scales::rescale(temp[], to = c(1, layers$max_value[i]))}
+  temp[is.na(temp)] <- 0
+  temp[is.na(grid_proj)] <- NA
+  temp <- round(temp, digits = 0)
+  temp <- as.integer(temp)
+  n <- layers$layer_file_name[i]
+  if(layer_files[i] != "placeholder.tif"){
+    writeRaster(temp, paste0(ver, "/output_geotiffs/pres/", n, ".tif"), datatype = 'INT2U', COMPRESS=LZW,overwrite = T)
+    }
+  cat("\nIteration", i, "complete - Title:", layers$title[i], "- TIFF name:", layers$file_name[i])
+}
+```
+
+# ECOSYSTEM COMPONENTS - create multiband tif
+```{r}
+grid <- raster::raster("grid/grid_1km_v01.1.tif")
+grid_proj <- raster::raster("grid/grid_1km_v01.1_proj.tif")
+place <- grid_proj * 0
+layers <- rio::import(paste0("layers_metadata_", ver, ".xlsx")) |> dplyr::filter(theme == "Ecosystem")
+layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
+layer_files <- layers$file_name
+
+eco <- raster::stack()
+
+for(i in 1:length(layer_files)){
+  if(layer_files[i] == "placeholder.tif"){temp <- place}
+  if(layer_files[i] != "placeholder.tif"){temp <- raster(paste0(ver, "/output_geotiffs/eco/", layers$layer_file_name[i], ".tif"))}
+  
+  #temp[is.na(temp)] <- 0 # Add zeros before rescaling?
+  temp[temp == 0] <- NA
+  temp[is.na(temp)] <- 0
+  #temp[is.na(grid_proj)] <- NA
+  temp <- round(temp, digits = 0)
+  temp <- as.integer(temp)
+  eco <- raster::stack(eco, temp)
+  cat("\nIteration", i, "complete - Title:", layers$title[i], "- TIFF name:", layers$file_name[i])
+}
+
+writeRaster(eco, paste0(ver, "/output_multiband/ecosystems_", ver, ".tif"), bandorder='BIL', datatype = 'INT2U', COMPRESS=LZW, overwrite=TRUE)
+```
+
+# PRESSURES - create multiband tif
+```{r}
+grid <- raster::raster("grid/grid_1km_v01.1.tif")
+grid_proj <- raster::raster("grid/grid_1km_v01.1_proj.tif")
+place <- grid_proj * 0
+layers <- rio::import(paste0("layers_metadata_", ver, ".xlsx")) |> dplyr::filter(theme == "Pressure")
+layers$file_name[is.na(layers$file_name)] <- "placeholder.tif"
+layer_files <- layers$file_name
+
+eco <- raster::stack()
+
+for(i in 1:length(layer_files)){
+  if(layer_files[i] == "placeholder.tif"){temp <- place}
+  if(layer_files[i] != "placeholder.tif"){temp <- raster(paste0(ver, "/output_geotiffs/pres/", layers$layer_file_name[i], ".tif"))}
+  
+  #temp[is.na(temp)] <- 0 # Add zeros before rescaling?
+  temp[temp == 0] <- NA
+  temp[is.na(temp)] <- 0
+  #temp[is.na(grid_proj)] <- NA
+  temp <- round(temp, digits = 0)
+  temp <- as.integer(temp)
+  eco <- raster::stack(eco, temp)
+  cat("\nIteration", i, "complete - Title:", layers$title[i], "- TIFF name:", layers$file_name[i])
+}
+
+writeRaster(eco, paste0(ver, "/output_multiband/pressures_", ver, ".tif"), bandorder='BIL', datatype = 'INT2U', COMPRESS=LZW, overwrite=TRUE)
+```
+
+# Compress raster stacks for adding to GitHub
+```{r}
+library(terra)
+dir.create(paste0(ver, "/output_multiband_compress"), recursive = T)
+
+# Ecosystems
+eco <- terra::rast(paste0(ver, "/output_multiband/ecosystems_", ver, ".tif"))
+terra::writeRaster(eco, 
+                   filename = paste0(ver, "/output_multiband_compress/ecosystems_", ver, ".tif"), 
+                   datatype = "INT2U", gdal=c("COMPRESS=ZSTD",
+                                              "PREDICTOR=2"))
+
+# Pressures
+pres <- terra::rast(paste0(ver, "/output_multiband/pressures_", ver, ".tif"))
+terra::writeRaster(pres, 
+                   filename = paste0(ver, "/output_multiband_compress/pressures_", ver, ".tif"), 
+                   datatype = "INT2U", gdal=c("COMPRESS=ZSTD",
+                                              "PREDICTOR=2"))
+```
