@@ -1,0 +1,157 @@
+# =========================================================================================================
+# Script by Edmond Sacre, SLU
+# =========================================================================================================
+
+# PREPARATIONS
+```{r, include = FALSE}
+# Install / load packages
+#x <- c("sf", "raster", "tidyr", "dplyr")
+#install.packages(x, dependencies=TRUE)
+```
+
+## Install packages
+```{r, include = FALSE}
+library(tidyr)
+library(dplyr)
+library(terra)
+```
+
+## View folders/themes
+```{r}
+#folders_raw <- read.table("./shiny_data_upload/folders.txt", sep = "\t", header = TRUE)
+#folders_data <- read.table("./process/templates/folders_data.txt", sep = "\t", header = TRUE)
+#folders <- folders_raw %>% add_row(folders_data)
+```
+
+## Define versions/directories
+```{r}
+version = "v01"
+d_version = ".0"
+location = "reg"   #check
+theme1 <- "pres"   #check
+subtheme1 <- "cc_sealev"   #check
+name1 <- "sea_level_rise"   #check
+name2 <- "" #check
+(dest1_path <- paste("./data", location, theme1, subtheme1, name1, version, sep="/"))
+(work1_path <- paste(dest1_path, "proc", sep="/"))
+(proc1_path <- paste(dest1_path, "proc_log", sep="/"))
+script_path <- "./process/r"
+(script_path_windows <- paste(getwd(), "/process/r", sep=""))
+(script_name <- paste(theme1, "_", subtheme1,"_", location, "_", name1,"_s01_",version, ".Rmd", sep=""))
+(dest1_path_file1 <-paste0(dest1_path, "/", subtheme1, "_", name1, "_", version, d_version, ".tif"))
+```
+
+## Create directories
+```{r}
+dir.create(dest1_path, recursive = TRUE)
+dir.create(work1_path, recursive = TRUE)
+dir.create(proc1_path, recursive = TRUE)
+```
+
+## Read in WIOSym standard grid
+```{r}
+grid_1km <- rast("./data/reg/grid/grid/v01/grid_1km_v01.1.tif")
+grid_proj <- rast("./products/grid/grid_1km_v01.1_epsg4326.tif")
+```
+
+## Define sources
+```{r}
+num_sources <- 1  # write the number of sources you will use in this script (to be used later for exporting metadata)
+  
+source1_dir <-  "./data_raw/glo/pres/cc_sealev/cmems/es2405271350189472/"    #check
+source1_id <- "es2405271350189472"    #check
+source1_metasym <- read.table(paste0(source1_dir, source1_id, "_metasym.txt"), sep = "\t")
+#source1_metasym # check that metasym file is populated, and fix if not - before finalising the processing
+
+source_list <- c(source1_id) # for multiple sources, should look like - c(source1_id, source2_id, source3_id) etc.
+```
+
+*****************************************************************
+*****************************************************************
+# PROCESSING
+
+# Install processing specific packages
+```{r, include = FALSE}
+library(terra)
+library(ncdf4)
+```
+
+# Import sea level rise data from Copernicus
+```{r}
+fp <- paste0(source1_dir, "omi_climate_sl_global_regional_trends_19930101_P20230403.nc")
+sea <- rast(fp)
+sea <- crop(sea, ext(8, 78, -40, 16))
+plot(sea)
+```
+
+```{r}
+fp <- paste0(dest1_path, "/resint.R")
+source(fp)
+
+sea <- resint(sea, grid_1km, nit = 100, win_size = 10000, method = "cubicspline")
+plot(sea)
+terra::minmax(sea) # Show max value of mean rise of 14.34 mm per year
+```
+
+# Transform data based on quantile cutoff to accentuate extreme areas
+```{r}
+sea_quant <- sea
+q <- quantile(terra::values(sea, na.rm = T), probs = 0.75) # Add quantile cutoff? Default to no cutoff
+sea_quant[sea_quant < q] <- 0
+plot(sea_quant)
+```
+
+```{r}
+product1 <- sea_quant
+```
+
+
+*****************************************************************
+*****************************************************************
+# EXPORT
+
+## Specify output directory and product file name
+```{r}
+(dest1_path_file1 <-paste0(dest1_path, "/", subtheme1, "_", name1, "_", version, d_version, ".tif"))
+```
+
+## Export image of product raster(s)
+```{r}
+(img_path <- paste0(dest1_path, "/", subtheme1, "_", name1, "_", version, d_version, ".png"))
+grid_1km_raster <- raster::raster(grid_1km)
+prod1_scale <- raster::raster(product1)
+prod1_scale[prod1_scale == 0] <- NA
+prod1_scale[] <- scales::rescale(prod1_scale[], to = c(1, 100))
+prod1_scale[is.na(prod1_scale)] <- 0
+prod1_scale[is.na(grid_1km_raster)] <- NA
+
+
+png(img_path, width = ncol(prod1_scale), height = nrow(prod1_scale))
+pal <- colorRampPalette(rev(c('#d53e4f','#f46d43','#fdae61','#fee08b','#ffffbf','#e6f598','#abdda4','#66c2a5','#3288bd')))
+plot(prod1_scale, maxpixels = ncell(prod1_scale), main = "", axes = FALSE, ylim=raster::extent(prod1_scale)[3:4], 
+     breaks = seq(0,100,1), col = pal(101), legend = F, box = F, colNA = "gray92")
+dev.off()
+```
+
+## Export metadata
+```{r}
+sourcesym <- data.frame(matrix(data = NA, nrow = num_sources, ncol = 1))
+colnames(sourcesym) <- "id"
+
+for(i in 1:num_sources){
+  sourcesym[i,1] <- source_list[i]
+}
+
+sourcesym
+```
+
+```{r}
+sourcesym_path <- paste0(dest1_path_file1, "_sourcesym.txt")
+write.table(sourcesym, sourcesym_path, row.names = F, sep = "\t")
+```
+
+## Export product
+```{r}
+writeRaster(product1, dest1_path_file1, gdal = c("COMPRESS=LZW"), overwrite=TRUE)
+```
+
