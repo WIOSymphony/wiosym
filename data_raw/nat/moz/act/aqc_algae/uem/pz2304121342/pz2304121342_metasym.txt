@@ -6,7 +6,7 @@
 "provider_list"	"uem"
 "provider_manual"	""
 "source"	""
-"citation"	"Bandeira S. Seaweed farming in Mozambique [dataset]. 2023 [accessed 2023 April 19]. Unpublished GIS work WIO Symphony, UEM. Available from contact; Salamao Bandeira: salomao.bandeira4@gmail.com, kundservice@sgu.se""
+"citation"	"Bandeira S. Seaweed farming in Mozambique [dataset]. 2023 [accessed 2023 April 19]. Unpublished GIS work WIO Symphony, UEM. Available from contact Salamao Bandeira: salomao.bandeira4@gmail.com, kundservice@sgu.se"
 "copyright"	"Open data"
 "copyright_details"	""
 "location"	"moz"

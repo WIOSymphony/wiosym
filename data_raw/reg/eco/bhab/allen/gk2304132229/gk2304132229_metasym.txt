@@ -15,4 +15,4 @@
 "subtheme"	"BENTHIC HABITAT"
 "subtheme_tag"	"bhab"
 "tags"	";eco;benthic habitat;topography;geomorphology;substrate;sedimentation;habitat;benthic habitat;hard soft bottom;coral;biogenic reef;vegetation;seagrass;macroalgae;"
-"comments"	"updated 2022 models, including new "reef extent" layer"
+"comments"	"updated 2022 models, including new reef extent layer"

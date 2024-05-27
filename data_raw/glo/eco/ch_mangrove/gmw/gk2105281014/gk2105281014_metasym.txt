@@ -6,7 +6,7 @@
 "provider_list"	"gmw"
 "provider_manual"	""
 "source"	"https://data.unep-wcmc.org/datasets/45"
-"citation"	"Bunting P, Rosenqvist A, Lucas R, Rebelo L-M, Hilarides L, Thomas N, Hardy A, Itoh T, Shimada M, Finlayson C M. The Global Mangrove Watch – a New 2010 Global Baseline of Mangrove Extent. [dataset]. 2018 [accessed 2021 May 28]. Remote Sensing 10(10): 1669. Available from: doi 10.3390/rs1010669"
+"citation"	"Bunting P, Rosenqvist A, Lucas R, Rebelo L-M, Hilarides L, Thomas N, Hardy A, Itoh T, Shimada M, Finlayson C M. The Global Mangrove Watch: a New 2010 Global Baseline of Mangrove Extent. [dataset]. 2018 [accessed 2021 May 28]. Remote Sensing 10(10): 1669. Available from: doi 10.3390/rs1010669"
 "copyright"	"Open - product and raw data can be downloaded"
 "copyright_details"	"Attribution 4.0 International (CC BY 4.0)"
 "location"	"glo"

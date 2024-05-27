@@ -6,7 +6,7 @@
 "provider_list"	"lit"
 "provider_manual"	""
 "source"	"https://www.researchgate.net/profile/Sundy-Ramah/publication/362184499_Diversity_and_distribution_of_the_shallow_water_23-50_m_benthic_habitats_on_the_Saya_de_Malha_Bank_Mascarene_Plateau/links/62dbcf86aa5823729eda0fd5/Diversity-and-distribution-of-the-shallow-water-23-50-m-benthic-habitats-on-the-Saya-de-Malha-Bank-Mascarene-Plateau.pdf"
-"citation"	"Ramah, Sundy, et al. "Diversity and distribution of the shallow water (23-50 m) benthic habitats on the Saya de Malha Bank, Mascarene Plateau." Western Indian Ocean Journal of Marine Science 2/2021 (2021): 69-80."
+"citation"	"Ramah, Sundy, et al. Diversity and distribution of the shallow water (23-50 m) benthic habitats on the Saya de Malha Bank, Mascarene Plateau. Western Indian Ocean Journal of Marine Science 2/2021 (2021): 69-80."
 "copyright"	"Open - product and raw data can be downloaded"
 "copyright_details"	""
 "location"	"reg"
