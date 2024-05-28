@@ -45,6 +45,7 @@
 !/products/v2.2/output_geotiffs/*/*.tif
 !/products/v2.2/output_geotiffs/*/*.json
 !/products/v2.2/output_multiband_compress/*.tif
+!/products/v2.2/output_multiband_compress/*.xlsx
 !/metadata/reg/**
 
 # allow upload of specific files
