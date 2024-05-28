@@ -40,7 +40,6 @@
 !/products/v2.1/output_images/*/*.png
 !/products/v2.1/output_geotiffs/*/*.tif
 !/products/v2.1/output_geotiffs/*/*.json
-#!/products/v2.1/output_multiband_compress/*.tif
 !/products/v2.2/output_images/*/*.png
 !/products/v2.2/output_geotiffs/*/*.tif
 !/products/v2.2/output_geotiffs/*/*.json
