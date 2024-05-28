@@ -234,7 +234,7 @@ for(i in 1:length(layer_files)){
   temp <- as.integer(temp)
   n <- layers$layer_file_name[i]
   if(layer_files[i] != "placeholder.tif"){
-    writeRaster(temp, paste0(ver, "/output_geotiffs/pres/", n, ".tif"), datatype = 'INT2U', COMPRESS=LZW,overwrite = T)
+    writeRaster(temp, paste0(ver, "/output_geotiffs/eco/", n, ".tif"), datatype = 'INT2U', COMPRESS=LZW,overwrite = T)
     }
   cat("\nIteration", i, "complete - Title:", layers$title[i], "- TIFF name:", layers$file_name[i])
 }
