@@ -51,6 +51,7 @@
 # allow upload of specific files
 !/metadata/sitemap.xml
 !/metadata/WIO_Symphony.json
+!/products/layers_metadata_v2.2.xlsx
 
 # add files that we want...
 
