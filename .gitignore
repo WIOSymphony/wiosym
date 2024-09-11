@@ -17,8 +17,8 @@
 !matrix/
 !/matrix/*.csv
 
-!metadata/
-/metadata/*/*/*/*
+#!metadata/
+#/metadata/*/*/*/*
 
 !products/
 /products/*/*/*/*/*/*
