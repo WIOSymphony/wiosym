@@ -93,7 +93,7 @@ pres <- filter(layers, theme == "Pressure")
 # Ecosystem components
 ```{r, include = FALSE}
 theme <- eco
-source_list <- vector(mode = "list", length = nrow(theme))
+#source_list <- vector(mode = "list", length = nrow(theme))
 #for(i in 1:nrow(theme)){
 #  f <- theme$cits[i]
 #  #f <- str_replace_all(f, " ", "")
@@ -130,8 +130,13 @@ theme <- select(theme, title, theme, raw_link, source)
 for(i in 1:nrow(theme)){
   for(j in 1:length(url_list[[i]])){
     f <- paste0("[", url_list[[i]][j], "]", "(", url_list[[i]][j], ")")
+    if(j == 1){
+    temp <- f
+    } else {
+      temp <- paste0(temp, "; ", f)
+    }
   }
-  theme$source[i] <- f
+  theme$source[i] <- temp
 }
 
 colnames(theme) <- c("Layer", "Theme", "Download link", "Data source(s)")
@@ -182,8 +187,13 @@ theme <- select(theme, title, theme, raw_link, source)
 for(i in 1:nrow(theme)){
   for(j in 1:length(url_list[[i]])){
     f <- paste0("[", url_list[[i]][j], "]", "(", url_list[[i]][j], ")")
+    if(j == 1){
+    temp <- f
+    } else {
+      temp <- paste0(temp, "; ", f)
+    }
   }
-  theme$source[i] <- f
+  theme$source[i] <- temp
 }
 
 colnames(theme) <- c("Layer", "Theme", "Download link", "Data source(s)")
