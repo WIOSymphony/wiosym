@@ -7,6 +7,7 @@ library(dplyr)
 library(tidyr)
 library(rio)
 library(gsheet)
+library(fs)
 ```
 
 # Import all 
@@ -39,6 +40,7 @@ for(i in 1:nrow(layers)){
 }
 ```
 
+## Create list of all metasym (data_raw) filenames mentioned in sourcesysm (data) files
 ```{r}
 l <- vector(mode = "list", length = nrow(df))
 for(i in 1:nrow(df)){
@@ -50,6 +52,39 @@ for(i in 1:nrow(df)){
 
 ```
 
+## Copy only used data from full data_raw to data_raw_used
+```{r}
+metasym <- unlist(l)
+source_dir <- "E:/data_raw" # Repeat for dirrent source directories (e.g. local, github)
+destination_dir <- "E:/data_raw_used"
+
+# Create the destination directory if it doesn't exist
+if (!dir.exists(destination_dir)) {
+  dir.create(destination_dir, recursive = TRUE)
+}
+all_dir <- dir_ls(source_dir, type = "directory", recurse = TRUE)
+for(i in 1:length(metasym)){
+  temp <- all_dir[grepl(metasym[i], basename(all_dir), ignore.case = FALSE)]
+  if(i == 1){matching_dir <- temp} else {matching_dir <- c(matching_dir, temp)}
+}
+names(matching_dir) <- NULL
+matching_dir <- unique(matching_dir)
+
+# Copy files
+for(i in 1:length(matching_dir)){
+  file_source <- matching_dir[i]
+  file_dest <- gsub(source_dir, destination_dir, file_source)
+  
+  if(!file.exists(file_dest)){
+    dir.create(dirname(file_dest), recursive = TRUE)
+    file.copy(file_source, dirname(file_dest), recursive = TRUE)
+  }
+  cat("\nCopied", file_source, "to", file_dest)
+}
+```
+
+
+*************************************
 ```{r}
 layers$cits <- NA
 
