@@ -7,11 +7,84 @@ library(gsheet)
 library(dplyr)
 library(tidyr)
 library(knitr)
-ver <- "2.1"
+library(stringr)
+```
+
+# Import all 
+```{r, include = FALSE}
+ver <- "v2.2"
+sourceloc <- "../data/"
+metaloc <- "../data_raw/"
+#meta <- list.files(path = "./data/", pattern = "_sourcesym.txt", recursive = T)
+source.long <- list.files(path = sourceloc, pattern = "_sourcesym.txt", recursive = T, full.names = T)
+source.short <- basename(source.long)
+
+meta.long <- list.files(path = metaloc, pattern = "_metasym.txt", recursive = T, full.names = T)
+meta.short <- basename(meta.long)
+
+#layers <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing")
+layers <- rio::import(paste0("layers_metadata/", ver, "/layers_metadata_", ver, ".xlsx"), encoding = "UTF-8")
+layers <- filter(layers, is.na(file_name) == FALSE)
+
+df <- data.frame("short_name" = as.character(1:nrow(layers)), "sourcesym" = NA)
+
+for(i in 1:nrow(layers)){
+  v1 <- layers$sourcesym[i]
+  v2 <- source.short
+  m <- source.long[which(v2 %in% v1)]
+  
+  df$short_name[i] <- layers$short_name[i]
+  df$sourcesym[i] <- m
+}
+
+## Create list of all metasym (data_raw) filenames mentioned in sourcesysm (data) files
+
+l <- vector(mode = "list", length = nrow(df))
+for(i in 1:nrow(df)){
+  f <- paste0(sourceloc, df$sourcesym[i])
+  f <- read.table(f, header = T)
+  l[[i]] <- f$id
+  #cat("\nIt", i, f$id)
+}
+
+
+layers$cits <- NA
+
+for(i in 1:length(l)){
+  cits <- NULL
+  
+  for(j in 1:length(l[[i]])){
+    p <- paste0(l[[i]][j], "_metasym.txt")
+    f <- list.files(path = metaloc, pattern = p, recursive = T, full.names = T)
+    f <- read.table(f[1], header = F)
+    f <- setNames(data.frame(t(f[,-1])), f[,1])
+    cits <- c(cits, f$citation)
+  }
+  
+  cits <- paste(cits, collapse = "; ")
+  layers$cits[i] <- cits
+}
+
+layers$source_url <- NA
+
+for(i in 1:length(l)){
+  cits <- NULL
+  
+  for(j in 1:length(l[[i]])){
+    p <- paste0(l[[i]][j], "_metasym.txt")
+    f <- list.files(path = metaloc, pattern = p, recursive = T, full.names = T)
+    f <- read.table(f[1], header = F)
+    f <- setNames(data.frame(t(f[,-1])), f[,1])
+    cits <- c(cits, f$source)
+  }
+  
+  cits <- paste(cits, collapse = "; ")
+  layers$source_url[i] <- cits
+}
 ```
 
 ```{r, include = FALSE}
-layers <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing")
+#layers <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1JIV92XisuBctBoVT53yqj0orPNRVyRQVEDtMq7R0fKw/edit?usp=sharing")
 layers <- filter(layers, is.na(file_name) == FALSE)
 eco <- filter(layers, theme == "Ecosystem")
 pres <- filter(layers, theme == "Pressure")
@@ -19,30 +92,105 @@ pres <- filter(layers, theme == "Pressure")
 
 # Ecosystem components
 ```{r, include = FALSE}
-n <- eco$layer_file_name
-raw <- paste0("[Download]", "(https://github.com/WIOSymphony/wiosym/raw/main/products/v", ver, "/output_geotiffs/eco/", n, ".tif)")
-eco$raw_link <- raw
-eco$source <- "[Source 1 name](https://google.com), [Source 2 name](https://google.com), etc"
+theme <- eco
+source_list <- vector(mode = "list", length = nrow(theme))
+#for(i in 1:nrow(theme)){
+#  f <- theme$cits[i]
+#  #f <- str_replace_all(f, " ", "")
+#  f <- str_split(f, pattern = ";")
+#  f <- unlist(f)
+#  trimws(f)
+#  #gsub("^\\s+|\\s+$","", f)
+#  #f <- read.table(f, header = T)
+#  source_list[[i]] <- f
+#  #cat("\nIt", i, f$id)
+#}
 
-eco <- select(eco, title, theme, raw_link, source)
-colnames(eco) <- c("Layer", "Theme", "Download link", "Data source(s)")
+url_list <- vector(mode = "list", length = nrow(theme))
+for(i in 1:nrow(theme)){
+  f <- theme$source_url[i]
+  #f <- str_replace_all(f, " ", "")
+  f <- str_split(f, pattern = ";")
+  f <- unlist(f)
+  f <- trimws(f)
+  #gsub("^\\s+|\\s+$","", f)
+  #f <- read.table(f, header = T)
+  url_list[[i]] <- f
+  #cat("\nIt", i, f$id)
+}
+```
+
+```{r, include = FALSE}
+n <- theme$layer_file_name
+raw <- paste0("[Download]", "(https://github.com/WIOSymphony/wiosym/raw/main/products/v", ver, "/output_geotiffs/eco/", n, ".tif)")
+theme$raw_link <- raw
+theme$source <- "Not available"
+theme <- select(theme, title, theme, raw_link, source)
+
+for(i in 1:nrow(theme)){
+  for(j in 1:length(url_list[[i]])){
+    f <- paste0("[", url_list[[i]][j], "]", "(", url_list[[i]][j], ")")
+  }
+  theme$source[i] <- f
+}
+
+colnames(theme) <- c("Layer", "Theme", "Download link", "Data source(s)")
+eco_table <- theme
 ```
 
 ```{r, echo = FALSE}
-kable(eco)
+kable(eco_table)
 ```
 
 # Pressures
 ```{r, include = FALSE}
-n <- pres$layer_file_name
-raw <- paste0("[Download]", "(https://github.com/WIOSymphony/wiosym/raw/main/products/v", ver, "/output_geotiffs/pres/", n, ".tif)")
-pres$raw_link <- raw
-pres$source <- "[Source 1 name](https://google.com), [Source 2 name](https://google.com), etc"
+theme <- pres
+source_list <- vector(mode = "list", length = nrow(theme))
+#for(i in 1:nrow(theme)){
+#  f <- theme$cits[i]
+#  #f <- str_replace_all(f, " ", "")
+#  f <- str_split(f, pattern = ";")
+#  f <- unlist(f)
+#  trimws(f)
+#  #gsub("^\\s+|\\s+$","", f)
+#  #f <- read.table(f, header = T)
+#  source_list[[i]] <- f
+#  #cat("\nIt", i, f$id)
+#}
 
-pres <- select(pres, title, theme, raw_link, source)
-colnames(pres) <- c("Layer", "Theme", "Download link", "Data source(s)")
+url_list <- vector(mode = "list", length = nrow(theme))
+for(i in 1:nrow(theme)){
+  f <- theme$source_url[i]
+  #f <- str_replace_all(f, " ", "")
+  f <- str_split(f, pattern = ";")
+  f <- unlist(f)
+  f <- trimws(f)
+  #gsub("^\\s+|\\s+$","", f)
+  #f <- read.table(f, header = T)
+  url_list[[i]] <- f
+  #cat("\nIt", i, f$id)
+}
+```
+
+```{r, include = FALSE}
+n <- theme$layer_file_name
+raw <- paste0("[Download]", "(https://github.com/WIOSymphony/wiosym/raw/main/products/v", ver, "/output_geotiffs/pres/", n, ".tif)")
+theme$raw_link <- raw
+theme$source <- "Not available"
+theme <- select(theme, title, theme, raw_link, source)
+
+for(i in 1:nrow(theme)){
+  for(j in 1:length(url_list[[i]])){
+    f <- paste0("[", url_list[[i]][j], "]", "(", url_list[[i]][j], ")")
+  }
+  theme$source[i] <- f
+}
+
+colnames(theme) <- c("Layer", "Theme", "Download link", "Data source(s)")
+pres_table <- theme
 ```
 
 ```{r, echo = FALSE}
-kable(pres)
+kable(pres_table)
 ```
+
